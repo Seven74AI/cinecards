@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { cardArt, SET_TITLES } from '../game/catalog.ts';
 import { modifierLines, signed, type ModifierLine } from '../game/modifiers.ts';
-import { CardView, CATEGORY_FR, RARITY_FR } from './CardView.tsx';
+import { atkDoublingEvery, CardView, CATEGORY_FR, cycleTitle, RARITY_FR } from './CardView.tsx';
 import { AbilityText, useRefs } from './Refs.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
@@ -85,6 +85,12 @@ export function CardSheet({
                 <span>
                   <Icon name="heart" size={13} /> {stats.hp}/{stats.maxHp} <small>(base {stats.baseHp})</small>
                 </span>
+              </p>
+            ) : null}
+            {stats && cycle != null && atkDoublingEvery(card) ? (
+              <p className="sheet-cycle">
+                <Icon name="cycle" size={12} color={cycle === 0 ? '#4FD1C5' : '#F2D27A'} /> {cycleTitle(card, cycle)}
+                {cycle > 0 ? ` (${stats.atk} → ${stats.atk * 2})` : ''}
               </p>
             ) : null}
             {inst.statuses.length ? (

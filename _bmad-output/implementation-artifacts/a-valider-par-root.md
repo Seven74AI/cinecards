@@ -6,7 +6,8 @@ Coche ou corrige après ton prochain playtest.
 
 ## Règles et ambiguïtés
 
-_(aucune pour l'instant)_
+- [ ] **13.4** — Néo (« Y m'faut des armes, un maximum d'armes ») : au début de son tour actif (2 tours après sa pose, puis tous les 2 tours), il gagne un bonus permanent égal à son ATQ **actuelle**, auras, terrains et bonus temporaires compris (un bonus « jusqu'à la fin du tour » actif à ce moment est donc doublé pour de bon). Le doublement passe après le poison et avant les autres passifs de début de tour. Réduit au silence ce tour-là : pas de doublement (le prochain essai est 2 tours plus tard). `[ASSUMPTION]` dans le GDD.
+- [ ] **13.4** — **Risque d'équilibrage** : 160 → 320 (2 tours après la pose) → 640 → 1 280 au 6ᵉ tour qui suit sa pose, 2 560 au 8ᵉ. Avec 600 PV il est dur à tuer, et à 640 ATQ il tue presque n'importe quelle carte en un coup. Simulation de 200 parties (bot aléatoire, mêmes graines) : 200/200 terminées ; Néo posé dans 107 parties, gagnées par son camp 84 fois (78,5 %, contre 81 fois / 75,7 % avec l'ancien ×2 un tour sur deux) ; ATQ max atteinte : 320 dans 30 parties, 640 dans 10, 1 600 dans 1 (avant : 300 au plus) ; parties avec Néo 33,3 → 31,9 tours en moyenne ; toutes parties 28,5 → 27,7 tours. Le bot aléatoire garde peu Néo en vie : entre humains, le doublement ira plus loin. Pistes si c'est trop fort : plafond (ex. 3 doublements), +160 fixe au lieu de ×2, ou bonus perdu quand il est réduit au silence.
 
 ## Choix de comportement (pas des règles du GDD)
 
@@ -44,6 +45,7 @@ _(aucune pour l'instant)_
 - [ ] **12.4** — La mort dure 1,2 s (au lieu des 0,8 s visés par la spécification) pour garder le rythme de la démo validée : figée, fissurée, tremblement, puis brûlure ; les cendres volent ensuite pendant que la partie continue. En vitesse rapide : 0,6 s.
 - [ ] **13.1** — Noms d'usage (alias) ajoutés aux données : Arthur, Lancelot, Robin, Galahad, Topper, Ramada, Benson, Iffune, Smith, Sentinelles, A.P.U, Néo, Mulo, Latrell, Marcus, Kevin, Gomez, Elliott. Un nom sans guillemets n'est reconnu qu'avec sa majuscule : « la Matrice » (Néo, Cypher) n'ouvre pas le terrain La Matrice, et « Morpheus » (Cypher) n'ouvre pas Les pilules de Morpheus. « Les Agents », « Le Lazar » et « Le Lazer » (E.M.P) ne correspondent à aucune carte et restent du texte.
 - [ ] **13.1** — Toucher un nom ouvre un aperçu par-dessus la fiche, qui reste ouverte dessous. Si la carte citée est sur la table, la fiche s'efface le temps de l'aperçu, le socle s'illumine en doré et l'aperçu se place sur l'autre moitié de l'écran. Sur ordinateur, l'aperçu apparaît après 0,25 s de survol et disparaît quand la souris s'en va (un clic le garde ouvert). « Voir la fiche » empile la fiche complète : la fermer ramène à la fiche précédente.
+- [ ] **13.4** — Le compteur de cycle de Néo porte une petite étiquette rouge « ×2 » ; son infobulle dit « ATQ doublée dans N tour(s) » (ou « ATQ doublée ce tour · prochain doublement dans 2 tours »), et la fiche ajoute la même ligne avec l'ATQ visée (ex. « 320 → 640 »). Le doublement s'affiche dans le journal (« Début de votre tour · « Y m'faut des armes… » » puis « Néo : +320 ATQ ») et avec l'animation de bonus ; il est listé dans « Bonus et malus » (« (elle-même) », permanent), une ligne par doublement.
 - [ ] **13.3** — Le petit nombre sur un écusson compte toutes les sources qui le modifient, y compris la carte elle-même (aura d'Arthur sur lui-même, compteur de Topper) ; une telle source est listée « (elle-même) » sans trait. Les traits partent des sources en jeu (personnages, terrains, sorts) tant que la fiche de la carte est ouverte. Sur téléphone, la fiche s'ouvre alors abaissée (un tiers de l'écran, poignée pour l'agrandir) ; une source couverte par la fiche (terrain de ma rangée) a son trait qui passe sous la fiche. À revoir avec la nouvelle table mobile (13.2).
 - [ ] **13.3** — Durée affichée : « tant qu'elle est en jeu » pour une aura, « encore N tour(s) » pour un effet temporaire (décompté à la fin des tours du propriétaire de la carte modifiée), « permanent » sinon.
 - [ ] **13.2** — La table compacte (vue d'ensemble + zoom) s'applique aux téléphones en portrait (moins de 700 px de large) ; paysage, tablette et ordinateur gardent leur disposition. En vue d'ensemble, toucher une carte agit comme avant (fiche, attaquant) ; toucher le fond d'un camp, un socle vide ou « agrandir » l'agrandit. Les terrains et sorts y sont une fine bande (sans toucher individuel) ; ils deviennent touchables quand le camp est agrandi.
@@ -55,6 +57,12 @@ _(aucune pour l'instant)_
 - [ ] **12.6** — Toute capacité qui se déclenche (à l'arrivée, à la mort, début de tour, quand son camp pose une carte…) a sa pulsation et son étiquette « déclencheur · « nom » » (0,55 s avant la suite) ; les attaques spéciales et réactions gardent leur trait sans attente (0,65 s). Couleur du trait : vert pour un déclencheur, bleu pour une attaque spéciale, doré pour une réaction ; un sort envoie un projectile depuis le centre de la table.
 - [ ] **12.6** — L'onde d'un terrain parcourt les personnages de son monde du côté de son propriétaire (les cartes que son aura renforce), de proche en proche.
 - [ ] **12.7** — Le bandeau dit « À toi de jouer » (tutoiement, comme le reste de la table) au lieu de « À vous de jouer ». Le début de tour dure 0,65 s ; le moment de fin de partie 2 s, puis l'écran de fin (tout de suite en vitesse instantanée). En hot seat, le portrait qui se brise est celui du perdant, la pluie d'or ou le voile suivent le joueur qui tient l'appareil.
+
+## Textes de cartes modifiés (story 13.4)
+
+| Carte — capacité | Avant | Après |
+|---|---|---|
+| Néo a.k.a L'élu — « Y m'faut des armes, un maximum d'armes » | Néo s'équipe dans la Matrice : tous les 2 tours, ses dégâts sont doublés. | Tous les 2 tours, l'ATQ de Néo double (le bonus se cumule). |
 
 ## Textes de cartes modifiés (story 11.8)
 

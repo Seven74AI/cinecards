@@ -34,3 +34,20 @@ Benson's bonus for one turn, single-use Sentinels).
 Average game length barely moves (+0.4 turn): the random bot rarely chained the repeatable
 actives that made playtest 1 games run away, so the main effect shows up as fewer actions per
 game (−8 %), not as shorter games. A human playtest is still the real check.
+
+## Story 13.4 — Néo doubles his ATQ every 2 turns, stacking (2026-11-22)
+
+Same 200 seeds and bot policy. "Before" is the old rule (attack damage ×2 on cycle turns only).
+
+| Metric | Before 13.4 | After 13.4 |
+|---|---|---|
+| Finished with a winner | 200 / 200 | 200 / 200 |
+| Wins first / second player | — | 103 / 97 |
+| Average turns (both players) | 28.5 | 27.7 |
+| Games where Néo was played | 107 | 107 |
+| Won by Néo's side | 81 (75.7 %) | 84 (78.5 %) |
+| Average turns, games with Néo | 33.3 | 31.9 |
+| Highest ATQ Néo reached | 300 | 1 600 (320 in 30 games, 640 in 10) |
+
+The random bot rarely keeps Néo alive for long, so humans will see more doublings (1 280 ATQ six
+turns after he lands). Balance risk noted in `a-valider-par-root.md`.

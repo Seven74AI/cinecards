@@ -2,7 +2,7 @@ import { RULES } from '../rules.ts';
 import { shuffleInPlace } from '../rng.ts';
 import type { CardInstance, GameEvent, GameState, PlayerId } from '../types.ts';
 import { other } from '../state/helpers.ts';
-import { board, coinCap, passives, type G } from '../ctx.ts';
+import { board, coinCap, cycleActive, inst, passives, stats, type G } from '../ctx.ts';
 import { checkWinner, damage, processDeaths } from '../effects/core.ts';
 import { runEffects } from '../effects/run.ts';
 import { drain, emit } from '../effects/triggers.ts';
@@ -67,6 +67,7 @@ export function startTurn(g: G, player: PlayerId): void {
     if (!iid) continue;
     for (const st of state.instances[iid]!.statuses) if (st.kind === 'poison') damage(g, iid, st.amount ?? 20, { source: st.source, fromAttack: false, sourcePlayer: other(player) });
   }
+  for (const b of board(g).filter((x) => x.player === player)) doubleAtkOnCycle(g, b.iid);
   for (const b of board(g).filter((x) => x.player === player)) {
     for (const e of passives(g, b.iid, 'startOfTurn')) {
       runEffects(g, e.effects ?? [], { source: b.iid, player, targets: [], fromSpell: false, label: e._ability.name });
@@ -78,6 +79,23 @@ export function startTurn(g: G, player: PlayerId): void {
   drawCard(state, player, events);
   // start-of-turn triggers (story 11.4): queued, resolved by drain()
   emit(g, { type: 'turnStarted', player });
+}
+
+/**
+ * "Every N turns, ATK doubles" (story 13.4, Néo): on an active cycle turn the card gains a permanent
+ * modifier equal to its current ATK, so the bonus stacks (160 → 320 → 640…). Silenced: no doubling;
+ * the modifiers are lost with the card when it leaves play.
+ */
+function doubleAtkOnCycle(g: G, iid: string): void {
+  for (const e of passives(g, iid, 'cycleAtkDouble')) {
+    if (!cycleActive(g, iid, e.every ?? 2)) continue;
+    const gain = stats(g, iid).atk;
+    if (gain <= 0) continue;
+    const label = e._ability.name;
+    g.ev.push({ type: 'abilityUsed', iid, ability: e._index, name: label, player: inst(g, iid).owner, trigger: 'startOfTurn' });
+    inst(g, iid).modifiers.push({ source: iid, label, atk: gain, hp: 0 });
+    g.ev.push({ type: 'modified', target: iid, atk: gain, hp: 0, label });
+  }
 }
 
 /** The active player ends the turn: end-of-turn triggers resolve first, then the turn passes (story 11.4). */

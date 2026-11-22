@@ -9,7 +9,7 @@ export const KNOWN_OPS = new Set([
   'discardRandom', 'enemiesHitAdjacent', 'playFree', 'duel', 'lockTerrain', 'extraAttack', 'cancelAttack', 'returnSelf', 'destroyAttacker',
   // passive / reaction ops
   'aura', 'damageTaken', 'noRetaliation', 'multiAttack', 'haste', 'onKill', 'onAttacked', 'onAttack', 'startOfTurn', 'surviveDeath',
-  'immuneTo', 'attackBonusVs', 'coinCap', 'spellImmuneAfterPlay', 'cycleAttackMultiplier', 'cycleInsensible', 'cycleLethal',
+  'immuneTo', 'attackBonusVs', 'coinCap', 'spellImmuneAfterPlay', 'cycleAtkDouble', 'cycleInsensible', 'cycleLethal',
   'counterAttack', 'cancelDeath', 'returnOnDeath',
 ]);
 

@@ -116,6 +116,19 @@ function statClass(cur: number, base: number) {
   return cur > base ? ' up' : cur < base ? ' down' : '';
 }
 
+/** Story 13.4: the cycle period of a "your ATQ doubles every N turns" card (Néo), or null. */
+export function atkDoublingEvery(card: Card): number | null {
+  for (const ab of card.abilities) for (const e of ab.effects ?? []) if (e.op === 'cycleAtkDouble') return Number((e as { every?: number }).every ?? 2);
+  return null;
+}
+
+/** What the cycle badge announces: the next ATQ doubling for Néo, the generic cycle otherwise. */
+export function cycleTitle(card: Card, cycle: number): string {
+  const every = atkDoublingEvery(card);
+  if (every) return cycle === 0 ? `ATQ doublée ce tour · prochain doublement dans ${every} tours` : `ATQ doublée dans ${cycle} tour${cycle > 1 ? 's' : ''}`;
+  return cycle === 0 ? 'Cycle actif ce tour' : `Cycle dans ${cycle} tour(s)`;
+}
+
 export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving, style }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
@@ -175,8 +188,9 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
           ) : null;
         })}
         {cycle != null ? (
-          <span className={'st cycle' + (cycle === 0 ? ' on' : '')} title={cycle === 0 ? 'Cycle actif ce tour' : `Cycle dans ${cycle} tour(s)`}>
+          <span className={'st cycle' + (cycle === 0 ? ' on' : '')} title={cycleTitle(card, cycle)} aria-label={cycleTitle(card, cycle)}>
             <Icon name="cycle" size={10} color={cycle === 0 ? '#4FD1C5' : '#F2D27A'} />
+            {atkDoublingEvery(card) ? <i className="x2">×2</i> : null}
             {cycle > 0 ? <small>{cycle}</small> : null}
           </span>
         ) : null}

@@ -57,7 +57,7 @@ describe('3.5 statuses', () => {
 
 describe('3.8 cycles', () => {
   it('"every 2 turns" is first active 2 owner-turns after arrival', () => {
-    const c = char('c', 1, 100, 10, { abilities: [ab('passive', [{ op: 'cycleAttackMultiplier', every: 2, multiplier: 2 }])] });
+    const c = char('c', 1, 100, 10, { abilities: [ab('passive', [{ op: 'cycleAtkDouble', every: 2 }])] });
     const { catalog, state } = setup([c]);
     const ci = put(state, 'c', 0, 'characters', 0, 1);
     state.players[0].turnNumber = 2;

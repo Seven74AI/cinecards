@@ -47,7 +47,7 @@ export interface DamageOpts {
   sourcePlayer: PlayerId;
 }
 
-/** Full damage pipeline (GDD order): insensible → attacker multipliers → lethal → reductions → rounding → shield → hp. */
+/** Full damage pipeline (GDD order): insensible → lethal → reductions → rounding → shield → hp. */
 export function damage(g: G, target: string, raw: number, opts: DamageOpts): number {
   const t = inst(g, target);
   const insensible =
@@ -59,7 +59,6 @@ export function damage(g: G, target: string, raw: number, opts: DamageOpts): num
   }
   let amount = raw;
   if (opts.fromAttack && opts.source) {
-    for (const e of passives(g, opts.source, 'cycleAttackMultiplier')) if (cycleActive(g, opts.source, e.every ?? 2)) amount *= e.multiplier ?? 2;
     const lethal = passives(g, opts.source, 'cycleLethal').some((e) => cycleActive(g, opts.source!, e.every ?? 2));
     if (lethal) amount = Math.max(amount, stats(g, target).hp + 1000);
   }

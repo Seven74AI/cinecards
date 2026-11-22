@@ -248,7 +248,7 @@ describe('4.1 Matrix', () => {
     expect(attacksAllowed(MVP, r.state, s2.id('mx-tank'))).toBe(2);
   });
 
-  it('Néo: counter-attacks during the enemy turn; calls Trinity; doubles damage and is insensible every 2 turns', () => {
+  it('Néo: counter-attacks during the enemy turn; calls Trinity; is insensible every 2 turns', () => {
     const { state, id } = scene({ chars: ['hs-topper'] }, { chars: ['mx-neo'], hand: ['mx-trinity'] });
     state.instances[id('mx-neo')]!.playedOnTurn = 2; // not in his cycle this turn
     let r = act(state, { type: 'attack', player: 0, attacker: id('hs-topper'), target: card(id('mx-neo')) });
@@ -263,6 +263,42 @@ describe('4.1 Matrix', () => {
     s2.state.instances[s2.id('mx-neo')]!.playedOnTurn = 1; // cycle active: insensible
     const r2 = act(s2.state, { type: 'attack', player: 0, attacker: s2.id('hs-kent'), target: card(s2.id('mx-neo')) });
     expect(st(r2.state, s2.id('mx-neo')).hp).toBe(600);
+  });
+
+  it('Néo: his ATQ doubles every 2 of his turns and the bonus stacks; silence skips it; leaving play loses it (story 13.4)', () => {
+    const { state, id } = scene({ hand: ['mx-neo', 'mx-tank'] });
+    const neo = id('mx-neo');
+    let r = act(state, { type: 'playCard', player: 0, iid: neo }); // played on his turn 3
+    const turn = () => (r = act(act(r.state, { type: 'endTurn', player: 0 }).state, { type: 'endTurn', player: 1 }));
+    expect(cycleCountdown(MVP, r.state, neo)).toBe(2);
+    turn(); // turn 4: not yet
+    expect(st(r.state, neo).atk).toBe(160);
+    expect(cycleCountdown(MVP, r.state, neo)).toBe(1);
+    const atks: number[] = [];
+    for (let k = 0; k < 3; k++) {
+      turn(); // turns 5, 7, 9: doubling
+      atks.push(st(r.state, neo).atk);
+      expect(r.events).toContainEqual({ type: 'modified', target: neo, atk: atks[k]! / 2, hp: 0, label: "Y m'faut des armes, un maximum d'armes" });
+      expect(cycleCountdown(MVP, r.state, neo)).toBe(0);
+      if (k < 2) turn();
+    }
+    expect(atks).toEqual([320, 640, 1280]);
+    const src = computeStats(MVP, r.state, neo).sources.filter((x) => x.source === neo);
+    expect(src.map((x) => x.atk)).toEqual([160, 320, 640]);
+    expect(src.every((x) => x.turnsLeft === undefined)).toBe(true); // permanent
+    turn(); // turn 10
+    r.state.instances[neo]!.statuses.push({ kind: 'silence', source: 'test' });
+    turn(); // turn 11: silenced, no doubling
+    expect(st(r.state, neo).atk).toBe(1280);
+    expect(r.events.some((e) => e.type === 'modified' && e.target === neo)).toBe(false);
+    r.state.instances[neo]!.statuses = [];
+    // Tank sends Néo back to hand: replayed, he starts again from 160
+    r = act(r.state, { type: 'playCard', player: 0, iid: id('mx-tank') });
+    r = act(r.state, { type: 'chooseTargets', player: 0, targets: [[neo]] });
+    expect(r.state.players[0].hand).toContain(neo);
+    r.state.players[0].coins = 10;
+    r = act(r.state, { type: 'playCard', player: 0, iid: neo });
+    expect(st(r.state, neo).atk).toBe(160);
   });
 
   it('Cypher: allies copy his stats; your cards take half damage', () => {

@@ -558,6 +558,19 @@ h3 {
   border-radius: 6px;
   padding: 0 2px;
 }
+.st.cycle .x2 {
+  position: absolute;
+  left: -5px;
+  top: -6px;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  background: #8b1e1e;
+  color: #fff3d6;
+  border-radius: 5px;
+  padding: 1px 2px;
+}
 .st.cycle.on {
   box-shadow: 0 0 8px var(--arcane);
   animation: pulse 1.4s infinite;
@@ -1187,6 +1200,14 @@ h3 {
   margin: 4px 0;
   padding-left: 16px;
   font-size: 13px;
+}
+.sheet-cycle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
 }
 .sheet-statuses {
   display: flex;

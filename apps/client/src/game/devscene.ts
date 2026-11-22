@@ -29,6 +29,9 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   pose: [['hs-topper', 'hg-lancelot'], ['hg-ni', 'hg-black-knight'], ['hs-missile', 'hg-camelot', 'mx-apu']],
   // Le Grimoire is down to 100 PV with no character: Topper's hit wins the game (story 12.7, see EXTRA)
   victoire: [['hs-topper'], []],
+  // Néo already doubled once (320 ATQ) and doubles again at the start of my next turn (story 13.4); empty hands
+  // and deck so Le Grimoire can only end its turn
+  neo: [['mx-neo'], []],
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;
@@ -36,6 +39,14 @@ type Take = (cardId: string, player: PlayerId) => string | null;
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
   victoire: (state) => {
     state.players[1].hp = 100;
+  },
+  neo: (state, _take, iidOf) => {
+    const neo = state.instances[iidOf('mx-neo')]!;
+    state.players[0].turnNumber = 5;
+    neo.playedOnTurn = 2; // doubled on my turn 4, doubles again on my turn 6
+    neo.modifiers.push({ source: neo.iid, label: "Y m'faut des armes, un maximum d'armes", atk: 160, hp: 0 });
+    for (const P of state.players) P.hand = [];
+    state.sharedDeck = [];
   },
   sources: (state, take, iidOf) => {
     const camelot = take('hg-camelot', 0)!;

@@ -858,12 +858,11 @@
             "count": 2
           },
           "kind": "passive",
-          "text": "Néo s'équipe dans la Matrice : tous les 2 tours, ses dégâts sont doublés.",
+          "text": "Tous les 2 tours, l'ATQ de Néo double (le bonus se cumule).",
           "effects": [
             {
-              "op": "cycleAttackMultiplier",
-              "every": 2,
-              "multiplier": 2
+              "op": "cycleAtkDouble",
+              "every": 2
             }
           ]
         },

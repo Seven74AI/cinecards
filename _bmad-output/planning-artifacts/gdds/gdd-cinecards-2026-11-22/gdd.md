@@ -74,7 +74,7 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 
 **Un tour** (joueur actif)
 1. **Début du tour** : pioche 1 carte ; revenu de pièces = numéro du tour du joueur (tour 1 → 1 pièce, tour 3 → 3 pièces), revenu maximum 10. Les pièces non dépensées restent en stock ; stock plafonné à 10.
-2. **Déclencheurs de début de tour** : passifs « au début de votre tour », soins périodiques, poison, compteurs de cycle.
+2. **Déclencheurs de début de tour** : passifs « au début de votre tour », soins périodiques, poison, compteurs de cycle. Néo (« Y m'faut des armes, un maximum d'armes », règle de Root du 2026-11-22) : tous les 2 tours de son propriétaire (premier doublement 2 tours après sa pose), son ATQ double et garde ce gain tant qu'il reste en jeu (160 → 320 → 640…) ; réduit au silence, il ne double pas ce tour-là ; une carte qui quitte la table perd ses bonus. `[ASSUMPTION : le doublement a lieu après le poison et avant les autres passifs de début de tour, et double l'ATQ actuelle, bonus temporaires et auras compris — le gain, lui, est permanent]`
 3. **Phase principale** (dans n'importe quel ordre, autant de fois que les pièces le permettent) :
    - poser des cartes (personnage dans un socle personnage, sort persistant ou équipement dans un socle sort, terrain dans un socle terrain ; sort instantané résolu puis envoyé au cimetière) ;
    - attaquer avec les personnages éligibles, ou utiliser leur capacité d'attaque à la place ;
@@ -150,7 +150,7 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 
 **Calcul des dégâts et modificateurs** (ordre de résolution)
 1. Valeur de base (ATQ imprimée, modifiée par les bonus/malus actifs).
-2. Multiplicateurs de l'attaquant (×2 de Néo, « mortel » de Trinity).
+2. Effets de l'attaquant (« mortel » de Trinity). L'ATQ de Néo ne multiplie plus les dégâts : elle double elle-même tous les 2 tours (voir « Début du tour »).
 3. Réductions de la cible (−50 % La Matrice, moitié des dégâts de Cypher), cumulées multiplicativement. `[ASSUMPTION]`
 4. Bouclier (absorbe en premier), puis PV.
 5. Arrondi à la dizaine inférieure après réduction. `[ASSUMPTION]`
@@ -443,4 +443,4 @@ Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
 5. Capacités (révisé au playtest 1, 2026-11-22) : effets déclenchés par défaut, capacités d'attaque à la place de l'attaque, choix de 0 à N cibles par défaut. Solo contre le Grimoire et chrono dans tous les modes au MVP.
 
 **Index des `[ASSUMPTION]`**
-Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · choix des cibles avant le dé d'une même capacité · « quand il attaque / est attaqué » sans cible · déclencheurs de début de tour après la pioche, de fin de tour avant le passage · touche Entrée pour finir le tour · options de familles post-MVP · appareil de référence 2022 · musique coupée par défaut.
+Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · choix des cibles avant le dé d'une même capacité · « quand il attaque / est attaqué » sans cible · déclencheurs de début de tour après la pioche, de fin de tour avant le passage · touche Entrée pour finir le tour · options de familles post-MVP · appareil de référence 2022 · musique coupée par défaut · Néo double son ATQ actuelle (bonus compris) au début de son tour, avant les autres passifs.

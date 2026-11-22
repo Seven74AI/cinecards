@@ -1,6 +1,6 @@
 import type { GameEvent, GameState, PlayerId, Target } from '@cinecards/engine';
 import type { Cue } from '../game/playback.ts';
-import { animate, cardEl, EASE } from './anim.ts';
+import { animate, animateSteps, cardEl, EASING, ENTRANCE_MS, ENTRANCE_TOUCH, entranceFrames, PHONE_ENTRANCE_MS, PHONE_TEMPO } from './anim.ts';
 import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 import { CATALOG, cardArt } from '../game/catalog.ts';
@@ -38,6 +38,8 @@ type Staged = { k: number; tx: number; ty: number; rect: DOMRect; until: number;
 const staged = new Map<HTMLElement, Staged>();
 let stageTimer: ReturnType<typeof setTimeout> | undefined;
 const compactTable = () => !!document.querySelector('.table.compact');
+/** Story 13.11: travel motions take longer on the portrait phone table (`PHONE_TEMPO`); impacts and numbers do not. */
+const tempo = () => (compactTable() ? PHONE_TEMPO : 1);
 
 /** Where an element is on screen; a staged card answers with its staged place (also while it grows). */
 function rectOf(el: Element): DOMRect {
@@ -72,7 +74,7 @@ function stage(el: HTMLElement | null | undefined, r: number, holdMs: number, in
   el.style.scale = String(k);
   el.style.translate = `${st.tx}px ${st.ty}px`;
   el.style.zIndex = '30';
-  void animate(el, [{ scale: '1', translate: '0px 0px' }, { scale: String(k), translate: `${st.tx}px ${st.ty}px` }], inMs);
+  void animate(el, [{ scale: '1', translate: '0px 0px' }, { scale: String(k), translate: `${st.tx}px ${st.ty}px` }], inMs, { easing: EASING.easeOut });
   staged.set(el, st);
   scheduleUnstage();
   return st;
@@ -97,7 +99,7 @@ function unstageDue() {
     staged.delete(el);
     el.style.scale = '';
     el.style.translate = '';
-    void animate(el, [{ scale: String(s.k), translate: `${s.tx}px ${s.ty}px` }, { scale: '1', translate: '0px 0px' }], 280 * s.r).then(() => {
+    void animate(el, [{ scale: String(s.k), translate: `${s.tx}px ${s.ty}px` }, { scale: '1', translate: '0px 0px' }], 280 * s.r, { easing: EASING.easeInOut }).then(() => {
       if (!staged.has(el)) el.style.zIndex = '';
     });
   }
@@ -130,12 +132,12 @@ function splat(el: HTMLElement, amount: number, r: number, small = false) {
   const fit = Math.min(1, Math.max(0.6, rectOf(el).width / 90));
   const size = fit * (small ? 0.7 : 1) * Math.min(1.5, 0.8 + amount / 200);
   const s = overlay('fx-splat', c.x, c.y, STAR);
-  void animate(
+  void animateSteps(
     s,
     [
-      { transform: `translate(-50%,-50%) scale(${0.2 * size}) rotate(-20deg)`, opacity: 0 },
-      { transform: `translate(-50%,-50%) scale(${1.15 * size}) rotate(5deg)`, opacity: 1, offset: 0.25 },
-      { transform: `translate(-50%,-50%) scale(${size}) rotate(0)`, opacity: 0.9, offset: 0.6 },
+      { transform: `translate(-50%,-50%) scale(${0.2 * size}) rotate(-20deg)`, opacity: 0, easing: EASING.snap },
+      { transform: `translate(-50%,-50%) scale(${1.15 * size}) rotate(5deg)`, opacity: 1, offset: 0.25, easing: EASING.easeOut },
+      { transform: `translate(-50%,-50%) scale(${size}) rotate(0)`, opacity: 0.9, offset: 0.6, easing: EASING.easeIn },
       { transform: `translate(-50%,-50%) scale(${1.1 * size})`, opacity: 0 },
     ],
     700 * r,
@@ -145,10 +147,11 @@ function splat(el: HTMLElement, amount: number, r: number, small = false) {
 /** The table shakes in proportion to the damage. */
 export function shake(amount: number, r: number) {
   const p = Math.min(10, 2 + amount / 25);
-  void animate(
+  void animateSteps(
     document.querySelector('.table'),
     [{ translate: '0 0' }, { translate: `${p}px ${-p / 2}px` }, { translate: `${-p}px ${p / 2}px` }, { translate: `${p / 2}px 0` }, { translate: '0 0' }],
     320 * r,
+    EASING.easeInOut,
     { composite: 'add' },
   );
 }
@@ -161,14 +164,14 @@ function recoil(el: HTMLElement, from: HTMLElement | null, r: number, power = 1)
   const k = 8 * power;
   const dx = ((b.x - a.x) / len) * k;
   const dy = ((b.y - a.y) / len) * k;
-  void animate(el, [{ translate: '0 0', rotate: '0deg' }, { translate: `${dx}px ${dy}px`, rotate: `${3 * power}deg` }, { translate: '0 0', rotate: '0deg' }], 260 * r, { composite: 'add' });
+  void animateSteps(el, [{ translate: '0 0', rotate: '0deg', easing: EASING.snap }, { translate: `${dx}px ${dy}px`, rotate: `${3 * power}deg`, offset: 0.3, easing: EASING.easeOut }, { translate: '0 0', rotate: '0deg' }], 260 * r, EASING.easeOut, { composite: 'add' });
 }
 
 /** Attack: lift, dash at the target (stopping short), then come back once the hit has landed. */
 function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
-  const lift = 220 * r;
-  const dash = 170 * r;
-  const back = 380 * r;
+  const lift = 220 * r * tempo();
+  const dash = 170 * r * tempo();
+  const back = 380 * r * tempo();
   // story 13.6: on the compact table attacker and target are staged at the demo's size, the attacker as it lifts
   const sa = stage(att, r, lift + dash + back + 900 * r, lift);
   stage(tgt, r, lift + dash + back + 900 * r, lift);
@@ -196,23 +199,22 @@ function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
   void animate(
     att,
     [
-      { transform: 'translate(0,0) scale(1)', offset: 0, easing: EASE },
-      { transform: lifted, offset: lift / (lift + dash), easing: 'cubic-bezier(.6,0,.9,.5)' },
+      { transform: 'translate(0,0) scale(1)', offset: 0, easing: EASING.easeOut },
+      { transform: lifted, offset: lift / (lift + dash), easing: EASING.easeIn },
       { transform: `translate(${dx}px,${dy}px) scale(1.05)`, offset: 1 },
     ],
     lift + dash,
     { fill: 'forwards', easing: 'linear' },
   ).then(() => {
     const out = att.getAnimations();
-    void animate(
+    void animateSteps(
       att,
       [
-        { transform: `translate(${dx}px,${dy}px) scale(1.05)` },
-        { transform: `translate(${dx * 0.8}px,${dy * 0.8}px) scale(1.06)`, offset: 0.2 },
+        { transform: `translate(${dx}px,${dy}px) scale(1.05)`, easing: EASING.snap },
+        { transform: `translate(${dx * 0.8}px,${dy * 0.8}px) scale(1.06)`, offset: 0.2, easing: EASING.easeInOut },
         { transform: 'translate(0,0) scale(1)' },
       ],
       back,
-      { easing: EASE },
     ).then(() => {
       if (!staged.has(att)) att.style.zIndex = '';
     });
@@ -241,14 +243,14 @@ function beam(from: HTMLElement, to: HTMLElement, r: number, color = '#b8d4ff') 
   bm.style.width = `${len}px`;
   bm.style.background = `linear-gradient(90deg, transparent, ${color} 30%, #fff 50%, ${color} 70%, transparent)`;
   bm.style.boxShadow = `0 0 14px 2px ${color}`;
-  void animate(
+  void animateSteps(
     bm,
     [
-      { transform: `rotate(${ang}rad) scaleX(0)`, opacity: 1 },
-      { transform: `rotate(${ang}rad) scaleX(1)`, opacity: 1, offset: 0.55 },
+      { transform: `rotate(${ang}rad) scaleX(0)`, opacity: 1, easing: EASING.easeOut },
+      { transform: `rotate(${ang}rad) scaleX(1)`, opacity: 1, offset: 0.55, easing: EASING.linear },
       { transform: `rotate(${ang}rad) scaleX(1)`, opacity: 0 },
     ],
-    520 * r,
+    520 * r * tempo(),
   ).then(() => bm.remove());
 }
 
@@ -273,12 +275,12 @@ function floatText(x: number, y: number, text: string, color: string, size: numb
   t.textContent = text;
   t.style.color = color;
   t.style.fontSize = `${Math.round(size)}px`;
-  void animate(
+  void animateSteps(
     t,
     [
-      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0 },
-      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: 0.2 },
-      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: 0.7 },
+      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: 0.2, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: 0.7, easing: EASING.easeIn },
       { transform: 'translate(-50%,-140%) scale(.95)', opacity: 0 },
     ],
     1100 * Math.max(r, 0.5),
@@ -304,14 +306,15 @@ function particles(el: HTMLElement, n: number, colors: string[], r: number, rise
     d.style.setProperty('--c', colors[i % colors.length]!);
     const dx = ((i * 29) % 21) - 10;
     const up = rise * (0.6 + ((i * 41) % 40) / 100);
-    void animate(
+    void animateSteps(
       d,
       [
-        { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0 },
-        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.2 },
+        { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0, easing: EASING.snap },
+        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.2, easing: EASING.easeOut },
         { transform: `translate(calc(-50% + ${dx}px), calc(-50% - ${up}px)) scale(.6)`, opacity: 0 },
       ],
       ms * r * (0.8 + ((i * 17) % 40) / 100),
+      EASING.easeOut,
       { delay: i * 25 * r },
     ).then(() => d.remove());
   }
@@ -325,12 +328,12 @@ function statArrow(card: HTMLElement, which: 'atk' | 'hp', delta: number, r: num
   const color = up ? '#f2d27a' : '#b98cff';
   const path = up ? 'M12 3l8 10h-5v8H9v-8H4z' : 'M12 21l8-10h-5V3H9v8H4z';
   const a = overlay('fx-arrow', c.x, c.y - 16, `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="${path}" fill="${color}" stroke="#2a1a0e" stroke-width="1.2"/></svg><b style="color:${color}">${up ? '+' : '−'}${Math.abs(delta)}</b>`);
-  void animate(
+  void animateSteps(
     a,
     [
-      { transform: `translate(-50%,${up ? '-10%' : '-90%'})`, opacity: 0 },
-      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.3 },
-      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.7 },
+      { transform: `translate(-50%,${up ? '-10%' : '-90%'})`, opacity: 0, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.3, easing: EASING.linear },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.7, easing: EASING.easeIn },
       { transform: `translate(-50%,${up ? '-140%' : '40%'})`, opacity: 0 },
     ],
     900 * Math.max(r, 0.5),
@@ -354,17 +357,17 @@ function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: numb
   const shield = box(SHIELD);
   const crack = box(CRACK);
   const total = (broken ? 700 : 600) * r;
-  void animate(
+  void animateSteps(
     shield,
     [
-      { transform: 'translate(-50%,-50%) scale(.7)', opacity: 0 },
-      { transform: 'translate(-50%,-50%) scale(1.08)', opacity: 1, offset: 0.25 },
-      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6 },
+      { transform: 'translate(-50%,-50%) scale(.7)', opacity: 0, easing: EASING.snap },
+      { transform: 'translate(-50%,-50%) scale(1.08)', opacity: 1, offset: 0.25, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6, easing: EASING.easeIn },
       { transform: `translate(-50%,-50%) scale(${broken ? 1.3 : 1})`, opacity: 0 },
     ],
     total,
   ).then(() => shield.remove());
-  void animate(
+  void animateSteps(
     crack,
     [
       { transform: 'translate(-50%,-50%)', opacity: 0 },
@@ -374,6 +377,7 @@ function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: numb
       { transform: 'translate(-50%,-50%)', opacity: 0 },
     ],
     total,
+    EASING.linear,
   ).then(() => crack.remove());
   if (broken) particles(card, 10, ['#f2d27a', '#fff3d6'], r, 30, 600, 'fx-shard');
   floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', 12 * fitOf(card), r, 'small');
@@ -385,16 +389,16 @@ function statusFx(card: HTMLElement, kind: string, r: number) {
   const c = center(card);
   const rect = rectOf(card);
   const land = [
-    { transform: 'translate(-50%,-50%) scale(1.8)', opacity: 0 },
-    { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.55 },
-    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.8 },
+    { transform: 'translate(-50%,-50%) scale(1.8)', opacity: 0, easing: EASING.easeIn },
+    { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.55, easing: EASING.easeOut },
+    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.8, easing: EASING.linear },
     { transform: 'translate(-50%,-50%) scale(1)', opacity: 0 },
   ];
   if (kind === 'silence') {
     const ch = overlay('fx-chains', c.x, c.y, CHAINS_SVG);
     ch.style.width = `${rect.width}px`;
     ch.style.height = `${rect.height}px`;
-    void animate(ch, land, 650 * r).then(() => ch.remove());
+    void animateSteps(ch, land, 650 * r).then(() => ch.remove());
   } else if (kind === 'poison') {
     particles(card, 12, ['#8fe36a', '#4fbf3a', '#c6f5a8'], r, 60, 800, 'fx-bubble');
   } else {
@@ -404,7 +408,7 @@ function statusFx(card: HTMLElement, kind: string, r: number) {
       ic.style.width = `${rect.width * 0.8}px`;
       ic.style.height = `${rect.width * 0.8}px`;
     }
-    void animate(ic, land, 650 * r).then(() => ic.remove());
+    void animateSteps(ic, land, 650 * r).then(() => ic.remove());
   }
   if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, 13 * fitOf(card), r, 'small');
 }
@@ -426,12 +430,12 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
   void animate(
     card,
     [
-      { transform: 'none', opacity: 1, offset: 0 },
-      { transform: 'none', opacity: 1, offset: 0.25 },
-      { transform: 'rotate(-2deg)', opacity: 1, offset: 0.33 },
-      { transform: 'rotate(2deg)', opacity: 1, offset: 0.4 },
-      { transform: 'rotate(0) scale(1)', opacity: 1, offset: 0.46 },
-      { transform: 'scale(.96)', opacity: 1, offset: 0.7 },
+      { transform: 'none', opacity: 1, offset: 0, easing: EASING.linear },
+      { transform: 'none', opacity: 1, offset: 0.25, easing: EASING.easeInOut },
+      { transform: 'rotate(-2deg)', opacity: 1, offset: 0.33, easing: EASING.easeInOut },
+      { transform: 'rotate(2deg)', opacity: 1, offset: 0.4, easing: EASING.easeInOut },
+      { transform: 'rotate(0) scale(1)', opacity: 1, offset: 0.46, easing: EASING.easeOut },
+      { transform: 'scale(.96)', opacity: 1, offset: 0.7, easing: EASING.easeIn },
       { transform: 'scale(.88) translateY(6px)', opacity: 0, offset: 1 },
     ],
     ms,
@@ -454,18 +458,17 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
       const d = overlay('fx-ash', x, y);
       const dx = to.x - x;
       const dy = to.y - y;
-      void animate(
+      void animateSteps(
         d,
         [
-          { transform: 'translate(-50%,-50%)', opacity: 0.9 },
-          { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px))`, opacity: 0.8, offset: 0.5 },
+          { transform: 'translate(-50%,-50%)', opacity: 0.9, easing: EASING.easeOut },
+          { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px))`, opacity: 0.8, offset: 0.5, easing: EASING.easeIn },
           { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.5)`, opacity: 0 },
         ],
         (700 + i * 40) * Math.max(r, 0.5),
-        { easing: 'ease-in' },
       ).then(() => {
         d.remove();
-        if (--left === 0) void animate(g, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)', offset: 0.4 }, { transform: 'scale(1)' }], 600 * Math.max(r, 0.5));
+        if (--left === 0) void animateSteps(g, [{ transform: 'scale(1)', easing: EASING.overshoot }, { transform: 'scale(1.35)', offset: 0.4, easing: EASING.easeInOut }, { transform: 'scale(1)' }], 600 * Math.max(r, 0.5));
       });
     }
   }, ms * 0.9);
@@ -480,7 +483,7 @@ function saved(iid: string, ms: number, r: number) {
   cr.style.width = `${rect.width}px`;
   cr.style.height = `${rect.height}px`;
   void animate(cr, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.55 }, { opacity: 0 }], ms, { easing: 'linear' }).then(() => cr.remove());
-  void animate(card, [{ rotate: '0deg' }, { rotate: '-2deg', offset: 0.3 }, { rotate: '2deg', offset: 0.4 }, { rotate: '0deg', offset: 0.5 }], ms, { composite: 'add', easing: 'linear' });
+  void animateSteps(card, [{ rotate: '0deg', easing: EASING.easeInOut }, { rotate: '-2deg', offset: 0.3 }, { rotate: '2deg', offset: 0.4 }, { rotate: '0deg', offset: 0.5, easing: EASING.linear }, { rotate: '0deg' }], ms, EASING.easeInOut, { composite: 'add' });
   later(() => {
     tint(card, 'saved', r, 450);
     particles(card, 10, ['#f2d27a', '#fff4c4'], r, 40, 600);
@@ -504,13 +507,13 @@ function backToHand(iid: string, owner: PlayerId, ms: number) {
   void animate(
     card,
     [
-      { transform: 'translate(0,0) scale(1) rotate(0)', opacity: 1 },
-      { transform: 'translate(0,-14px) scale(1.12) rotate(0)', opacity: 1, offset: 0.25 },
-      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 70}px) scale(.9) rotate(${owner ? -8 : 8}deg)`, opacity: 1, offset: 0.6 },
+      { transform: 'translate(0,0) scale(1) rotate(0)', opacity: 1, easing: EASING.easeOut },
+      { transform: 'translate(0,-14px) scale(1.12) rotate(0)', opacity: 1, offset: 0.25, easing: EASING.easeInOut },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 70}px) scale(.9) rotate(${owner ? -8 : 8}deg)`, opacity: 1, offset: 0.6, easing: EASING.easeIn },
       { transform: `translate(${dx}px, ${dy}px) scale(.55) rotate(0)`, opacity: 0.2 },
     ],
     ms,
-    { fill: 'forwards', easing: 'ease-in-out' },
+    { fill: 'forwards', easing: 'linear' },
   );
 }
 
@@ -549,7 +552,7 @@ const handZone = (p: PlayerId): HTMLElement | null =>
 /** Any card on the table: a character, or a terrain / equipment in its strip. */
 const boardEl = (iid: string) => cardEl(iid) ?? document.querySelector<HTMLElement>(`.table .zones [data-iid="${CSS.escape(iid)}"]`);
 
-/** The card flies in an arc from `from`, grows over its place and lands (demo `flyCard`). */
+/** The card flies in an arc from `from`, grows over its place and lands (demo `flyCard`, story 13.11 curves). */
 function flyIn(el: HTMLElement, from: Pt, ms: number, tilt = 0) {
   const to = ptOf(el);
   if (!to) return;
@@ -559,16 +562,8 @@ function flyIn(el: HTMLElement, from: Pt, ms: number, tilt = 0) {
   const dy = (from.y - to.y) / k;
   const s0 = Math.min(2, Math.max(0.3, from.w / to.w));
   el.style.zIndex = '30';
-  void animate(
-    el,
-    [
-      { transform: `translate(${dx}px, ${dy}px) scale(${s0}) rotate(${tilt}deg)`, opacity: 0.9 },
-      { transform: `translate(${dx * 0.45}px, ${dy * 0.45 - 70 / k}px) scale(1.3) rotate(0deg)`, opacity: 1, offset: 0.55 },
-      { transform: `translate(0px, ${-18 / k}px) scale(1.15) rotate(0deg)`, opacity: 1, offset: 0.82 },
-      { transform: 'translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1 },
-    ],
-    ms,
-  ).then(() => {
+  // story 13.11: a step back, an arc over the slot, then a landing that overshoots a little and settles
+  void animate(el, entranceFrames(dx, dy, s0, tilt, k), ms, { easing: 'linear' }).then(() => {
     if (!staged.has(el)) el.style.zIndex = '';
   });
 }
@@ -579,11 +574,11 @@ function runeLanding(el: HTMLElement, r: number) {
   if (!c) return;
   const ring = overlay('fx-rune', c.x, c.y);
   ring.style.width = ring.style.height = `${Math.round(c.w * 1.15)}px`;
-  void animate(
+  void animateSteps(
     ring,
     [
-      { transform: 'translate(-50%,-50%) scale(.6) rotate(0deg)', opacity: 0 },
-      { transform: 'translate(-50%,-50%) scale(1.1) rotate(40deg)', opacity: 1, offset: 0.3 },
+      { transform: 'translate(-50%,-50%) scale(.6) rotate(0deg)', opacity: 0, easing: EASING.snap },
+      { transform: 'translate(-50%,-50%) scale(1.1) rotate(40deg)', opacity: 1, offset: 0.3, easing: EASING.easeOut },
       { transform: 'translate(-50%,-50%) scale(1.4) rotate(90deg)', opacity: 0 },
     ],
     700 * r,
@@ -599,19 +594,19 @@ function sealLanding(el: HTMLElement, r: number) {
   const size = Math.max(28, c.w);
   const seal = overlay('fx-seal', c.x, c.y);
   seal.style.width = seal.style.height = `${size}px`;
-  void animate(
+  void animateSteps(
     seal,
     [
-      { transform: 'translate(-50%,-50%) scale(2.2)', opacity: 0 },
-      { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.45 },
-      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.65 },
+      { transform: 'translate(-50%,-50%) scale(2.2)', opacity: 0, easing: EASING.easeIn },
+      { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.45, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.65, easing: EASING.linear },
       { transform: 'translate(-50%,-50%) scale(1)', opacity: 0 },
     ],
     650 * r,
   ).then(() => seal.remove());
   const wave = overlay('fx-wave', c.x, c.y);
   wave.style.width = wave.style.height = `${size}px`;
-  void animate(wave, [{ transform: 'translate(-50%,-50%) scale(1)', opacity: 0.9 }, { transform: 'translate(-50%,-50%) scale(6)', opacity: 0 }], 800 * r, { delay: 260 * r, easing: 'ease-out' }).then(() => wave.remove());
+  void animate(wave, [{ transform: 'translate(-50%,-50%) scale(1)', opacity: 0.9 }, { transform: 'translate(-50%,-50%) scale(6)', opacity: 0 }], 800 * r, { delay: 260 * r, easing: EASING.easeOut }).then(() => wave.remove());
 }
 
 /** Equipment landing: it locks onto the rune stone with a metallic glint. */
@@ -621,7 +616,7 @@ function metalLanding(el: HTMLElement, r: number) {
   g.style.width = `${rect.width}px`;
   g.style.height = `${rect.height}px`;
   const shine = g.appendChild(document.createElement('i'));
-  void animate(shine, [{ transform: 'translateX(-120%) skewX(-20deg)' }, { transform: 'translateX(220%) skewX(-20deg)' }], 450 * r, { easing: 'ease-in-out' }).then(() => g.remove());
+  void animate(shine, [{ transform: 'translateX(-120%) skewX(-20deg)' }, { transform: 'translateX(220%) skewX(-20deg)' }], 450 * r, { easing: EASING.easeInOut }).then(() => g.remove());
   particles(el, 8, ['#e6ecf2', '#9fb3c4', '#ffffff'], r, 24, 450, 'fx-shard');
 }
 
@@ -658,15 +653,15 @@ function zoneGhost(cardId: string, from: Pt, seal: HTMLElement, fly: number, r: 
   const hold = 450 * r;
   const total = fly + hold + 260 * r;
   const o = (t: number) => t / total;
+  // story 13.11: the same entrance as a character (step back, arc, overshooting landing), then a hold and a dive
+  const entrance = entranceFrames(dx, dy, Math.max(0.3, from.w / w), 0, 1, 'translate(-50%,-50%)').map((f) => ({ ...f, offset: o(fly * (f.offset as number)) }));
+  entrance[entrance.length - 1]!.easing = EASING.linear;
   void animate(
     g,
     [
-      { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${Math.max(0.3, from.w / w)})`, opacity: 0.9 },
-      { transform: `translate(-50%,-50%) translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3)`, opacity: 1, offset: o(fly * 0.55) },
-      { transform: 'translate(-50%,-50%) translate(0px, -18px) scale(1.15)', opacity: 1, offset: o(fly * 0.82) },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: o(fly) },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: o(fly + hold) },
-      { transform: `translate(-50%,-50%) translate(${to.x - at.x}px, ${to.y - at.y}px) scale(${Math.max(0.15, to.w / w)})`, opacity: 0.2 },
+      ...entrance,
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1, offset: o(fly + hold), easing: EASING.easeIn },
+      { transform: `translate(-50%,-50%) translate(${to.x - at.x}px, ${to.y - at.y}px) scale(${Math.max(0.15, to.w / w)}) rotate(0deg)`, opacity: 0.2 },
     ],
     total,
     { easing: 'linear' },
@@ -684,7 +679,7 @@ function castSpell(cardId: string, from: Pt, ms: number, r: number) {
   const dx = from.x - mid.x;
   const dy = from.y - mid.y;
   const s0 = Math.max(0.3, from.w / w);
-  const start = { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${s0})`, opacity: 0.9 };
+  const start: Keyframe = { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${s0})`, opacity: 0.9, easing: EASING.easeInOut };
   // when the burn starts (fraction of the beat)
   let burn = 0.55;
   let frames: Keyframe[];
@@ -696,19 +691,19 @@ function castSpell(cardId: string, from: Pt, ms: number, r: number) {
     burn = (PHONE_SPELL.fly + PHONE_SPELL.grow + PHONE_SPELL.hold) / t;
     frames = [
       start,
-      { transform: `translate(-50%,-50%) translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3)`, opacity: 1, offset: f * 0.55 },
-      { transform: 'translate(-50%,-50%) translate(0px, -18px) scale(1.15)', opacity: 1, offset: f * 0.82 },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: f },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: grown },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: burn },
+      { transform: `translate(-50%,-50%) translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3)`, opacity: 1, offset: f * 0.55, easing: EASING.easeInOut },
+      { transform: 'translate(-50%,-50%) translate(0px, -18px) scale(1.15)', opacity: 1, offset: f * 0.82, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: f, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: grown, easing: EASING.linear },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: burn, easing: EASING.easeIn },
       { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.2)', opacity: 0 },
     ];
   } else {
     frames = [
       start,
-      { transform: `translate(-50%,-50%) translate(${dx * 0.4}px, ${dy * 0.4 - 50}px) scale(1.1)`, opacity: 1, offset: 0.3 },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: 0.55 },
-      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.3)', opacity: 1, offset: 0.7 },
+      { transform: `translate(-50%,-50%) translate(${dx * 0.4}px, ${dy * 0.4 - 50}px) scale(1.1)`, opacity: 1, offset: 0.3, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: 0.55, easing: EASING.linear },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.3)', opacity: 1, offset: 0.7, easing: EASING.easeIn },
       { transform: 'translate(-50%,-50%) translate(0px, -6px) scale(1.2)', opacity: 0 },
     ];
   }
@@ -738,7 +733,9 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
   }
   const el = boardEl(e.iid);
   if (!el) return;
-  const fly = Math.min(ms, 620 * r);
+  // story 13.11: the entrance takes 850 ms (was 620; 1100 on the portrait phone), with its step back and its
+  // overshooting landing
+  const fly = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
   const cat = CATALOG.get(e.cardId)?.category;
   // story 13.6: on the compact table a character lands at the demo's size, then settles into its slot;
   // a terrain or an equipment (a small seal in its strip) is shown as a card that lands, then shrinks into it
@@ -754,14 +751,14 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
     }
     else if (cat === 'equipment') metalLanding(at, r);
     else runeLanding(at, r);
-  }, fly * 0.82);
+  }, fly * ENTRANCE_TOUCH);
 }
 
 /** Deck → hand. Mine: a back slides to the card's place in the hand, then the card turns over. Foe's: a back only. */
 function drawn(iid: string, player: PlayerId, r: number) {
   const deck = ptOf(counterEl(player, 'Pioche'));
   if (!deck) return;
-  const total = 540 * r;
+  const total = 540 * r * tempo();
   const slide = total * 0.7;
   const real = player === myId() ? document.querySelector<HTMLElement>(`.table .hand .card[data-iid="${CSS.escape(iid)}"]`) : null;
   const to = real ? ptOf(real) : ptOf(handZone(player));
@@ -774,21 +771,21 @@ function drawn(iid: string, player: PlayerId, r: number) {
   void animate(
     b,
     [
-      { transform: 'translate(-50%,-50%) scale(.45) rotate(0deg)', opacity: 0.9 },
-      { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 50}px)) scale(.9) rotate(-10deg)`, opacity: 1, offset: 0.5 },
+      { transform: 'translate(-50%,-50%) scale(.45) rotate(0deg)', opacity: 0.9, easing: EASING.easeInOut },
+      { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 50}px)) scale(.9) rotate(-10deg)`, opacity: 1, offset: 0.5, easing: EASING.easeOut },
       { transform: `${end} scale(${real ? 1 : 0.5}) rotate(0deg)`, opacity: 1 },
     ],
     slide,
-    { fill: 'forwards' },
+    { fill: 'forwards', easing: 'linear' },
   ).then(() => {
     if (!real) {
-      void animate(b, [{ transform: `${end} scale(.5)`, opacity: 1 }, { transform: `${end} scale(.3)`, opacity: 0 }], 160 * r, { fill: 'forwards' }).then(() => b.remove());
+      void animate(b, [{ transform: `${end} scale(.5)`, opacity: 1 }, { transform: `${end} scale(.3)`, opacity: 0 }], 160 * r, { fill: 'forwards', easing: EASING.easeIn }).then(() => b.remove());
       return;
     }
     // the back turns to its edge while the real card turns from its edge
-    void animate(b, [{ transform: `${end} scaleX(1)`, opacity: 1 }, { transform: `${end} scaleX(0)`, opacity: 0.6 }], total - slide, { easing: 'ease-in', fill: 'forwards' }).then(() => b.remove());
+    void animate(b, [{ transform: `${end} scaleX(1)`, opacity: 1 }, { transform: `${end} scaleX(0)`, opacity: 0.6 }], total - slide, { easing: EASING.easeIn, fill: 'forwards' }).then(() => b.remove());
   });
-  if (real) void animate(real, [{ opacity: 0, scale: '0 1' }, { opacity: 0, scale: '0 1', offset: 0.7 }, { opacity: 1, scale: '1 1' }], total, { easing: 'linear' });
+  if (real) void animateSteps(real, [{ opacity: 0, scale: '0 1', easing: EASING.linear }, { opacity: 0, scale: '0 1', offset: 0.7, easing: EASING.easeOut }, { opacity: 1, scale: '1 1' }], total);
 }
 
 /** A summoned card comes from its zone of origin: a graveyard, a hand, or the other side of the table. */
@@ -800,13 +797,13 @@ function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameSta
   if (e.from === 'graveyard' && holder !== undefined) from = ptOf(counterEl(holder, 'Cimetière'));
   else if (e.from === 'hand' && holder !== undefined) from = handOrigin(e.iid, holder);
   else from = ptOf(document.querySelector(`.table .board${e.player === myId() ? '.theirs' : '.mine'}`));
-  const fly = Math.min(ms, 620 * r);
+  const fly = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
   stage(el, r, fly + 450 * r, 0);
   if (from) flyIn(el, { ...from, w: Math.min(from.w, 40) }, fly);
   later(() => {
     const at = cardEl(e.iid);
     if (at) runeLanding(at, r);
-  }, fly * 0.82);
+  }, fly * ENTRANCE_TOUCH);
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -821,12 +818,12 @@ function tagOver(at: { x: number; top: number }, text: string, tone: string, r: 
   // keep the whole label on screen
   const half = t.offsetWidth / 2;
   t.style.left = `${Math.min(innerWidth - half - 8, Math.max(half + 8, at.x))}px`;
-  void animate(
+  void animateSteps(
     t,
     [
-      { transform: 'translate(-50%,-20%)', opacity: 0 },
-      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.2 },
-      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.8 },
+      { transform: 'translate(-50%,-20%)', opacity: 0, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.2, easing: EASING.linear },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.8, easing: EASING.easeIn },
       { transform: 'translate(-50%,-80%)', opacity: 0 },
     ],
     1300 * Math.max(r, 0.5),
@@ -840,15 +837,14 @@ function projectile(from: Pt, to: HTMLElement, ms: number) {
   const o = overlay('fx-orb', from.x, from.y);
   const dx = b.x - from.x;
   const dy = b.y - from.y;
-  void animate(
+  void animateSteps(
     o,
     [
-      { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0.6 },
-      { transform: `translate(calc(-50% + ${dx * 0.4 + 50}px), calc(-50% + ${dy * 0.4 - 40}px)) scale(1)`, opacity: 1, offset: 0.5 },
+      { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0.6, easing: EASING.easeOut },
+      { transform: `translate(calc(-50% + ${dx * 0.4 + 50}px), calc(-50% + ${dy * 0.4 - 40}px)) scale(1)`, opacity: 1, offset: 0.5, easing: EASING.easeIn },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.2)`, opacity: 1 },
     ],
     ms,
-    { easing: 'ease-in' },
   ).then(() => o.remove());
 }
 
@@ -896,7 +892,7 @@ function familyWave(terrainIid: string, owner: PlayerId, cardId: string, r: numb
     const delay = (Math.hypot(at.x - origin.x, at.y - origin.y) * 0.9 + 250) * r;
     later(() => {
       tint(el, 'family', r, 520);
-      void animate(el, [{ scale: '1' }, { scale: '1.07', offset: 0.4 }, { scale: '1' }], 420 * r);
+      void animateSteps(el, [{ scale: '1', easing: EASING.easeOut }, { scale: '1.07', offset: 0.4, easing: EASING.easeInOut }, { scale: '1' }], 420 * r);
     }, delay);
   }
 }
@@ -915,12 +911,12 @@ function turnBanner(mine: boolean, r: number) {
   const open = (mine ? 450 : 320) * r;
   const hold = (mine ? 450 : 250) * r;
   const out = (mine ? 300 : 220) * r;
-  void animate(inner, [{ transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1.05)', opacity: 1, offset: 0.5 }, { transform: 'scaleX(1)', opacity: 1 }], open)
+  animateSteps(inner, [{ transform: 'scaleX(0)', opacity: 0, easing: EASING.easeOut }, { transform: 'scaleX(1.05)', opacity: 1, offset: 0.5, easing: EASING.easeInOut }, { transform: 'scaleX(1)', opacity: 1 }], open)
     .then(() => new Promise((res) => later(() => res(undefined), hold)))
-    .then(() => animate(inner, [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-30px)', opacity: 0 }], out, { fill: 'forwards' }))
+    .then(() => animate(inner, [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-30px)', opacity: 0 }], out, { fill: 'forwards', easing: EASING.easeIn }))
     .then(() => b.remove());
   // the hourglass turns over
-  void animate(document.querySelector('.table .timer svg'), [{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }], 500 * r);
+  void animate(document.querySelector('.table .timer svg'), [{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }], 500 * r, { easing: EASING.easeInOut });
   if (mine) later(() => playableGlow(r), open + hold);
 }
 
@@ -932,7 +928,7 @@ export function playableGlow(r: number) {
     const g = overlay('fx-glow playable', rect.left, rect.top);
     g.style.width = `${rect.width}px`;
     g.style.height = `${rect.height}px`;
-    void animate(g, [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], 1200 * Math.max(r, 0.5), { delay: i * 40 * r, easing: 'ease-in-out' }).then(() => g.remove());
+    void animate(g, [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], 1200 * Math.max(r, 0.5), { delay: i * 40 * r, easing: EASING.linear }).then(() => g.remove());
   });
 }
 
@@ -947,8 +943,8 @@ function gameEnd(winner: PlayerId | 'draw', ms: number, r: number) {
       const c = ptOf(face)!;
       const cr = overlay('fx-crack portrait', c.x, c.y, CRACKS_SVG);
       cr.style.width = cr.style.height = `${c.w * 1.4}px`;
-      void animate(cr, [{ transform: 'translate(-50%,-50%) scale(.8)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6 }, { transform: 'translate(-50%,-50%) scale(1.3)', opacity: 0 }], 900 * k).then(() => cr.remove());
-      void animate(face, [{ transform: 'scale(1) rotate(0deg)', opacity: 1 }, { transform: 'scale(1.1) rotate(-4deg)', opacity: 1, offset: 0.35 }, { transform: 'scale(1.1) rotate(4deg)', opacity: 1, offset: 0.5 }, { transform: 'scale(.4) rotate(0deg)', opacity: 0 }], 900 * k, { fill: 'forwards' });
+      void animateSteps(cr, [{ transform: 'translate(-50%,-50%) scale(.8)', opacity: 0, easing: EASING.snap }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.3, easing: EASING.linear }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6, easing: EASING.easeIn }, { transform: 'translate(-50%,-50%) scale(1.3)', opacity: 0 }], 900 * k).then(() => cr.remove());
+      void animateSteps(face, [{ transform: 'scale(1) rotate(0deg)', opacity: 1, easing: EASING.easeOut }, { transform: 'scale(1.1) rotate(-4deg)', opacity: 1, offset: 0.35, easing: EASING.easeInOut }, { transform: 'scale(1.1) rotate(4deg)', opacity: 1, offset: 0.5, easing: EASING.easeIn }, { transform: 'scale(.4) rotate(0deg)', opacity: 0 }], 900 * k, EASING.easeOut, { fill: 'forwards' });
       later(() => {
         particles(face, 16, ['#f2d27a', '#8e1f1f', '#fff3d6', '#5a3d0c'], r, 70, 800, 'fx-shard');
         shake(120, r);
@@ -959,11 +955,11 @@ function gameEnd(winner: PlayerId | 'draw', ms: number, r: number) {
     for (let i = 0; i < 36; i++) {
       const x = (innerWidth * ((i * 37) % 100)) / 100;
       const coin = overlay('fx-gold', x, -12);
-      void animate(coin, [{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translateY(${innerHeight + 30}px) rotate(${(i % 2 ? 1 : -1) * 540}deg)`, opacity: 0.9 }], (1300 + ((i * 53) % 700)) * k, { delay: (500 + ((i * 29) % 900)) * k, easing: 'ease-in' }).then(() => coin.remove());
+      void animate(coin, [{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translateY(${innerHeight + 30}px) rotate(${(i % 2 ? 1 : -1) * 540}deg)`, opacity: 0.9 }], (1300 + ((i * 53) % 700)) * k, { delay: (500 + ((i * 29) % 900)) * k, easing: EASING.easeIn }).then(() => coin.remove());
     }
   } else {
     const veil = overlay('fx-veil', 0, 0);
-    void animate(veil, [{ opacity: 0 }, { opacity: winner === 'draw' ? 0.35 : 0.6 }], ms * 0.7, { fill: 'forwards', easing: 'ease-in' });
+    void animate(veil, [{ opacity: 0 }, { opacity: winner === 'draw' ? 0.35 : 0.6 }], ms * 0.7, { fill: 'forwards', easing: EASING.linear });
     later(() => veil.remove(), ms + 200);
   }
 }
@@ -996,6 +992,7 @@ export function flipLayout(before: Layout, ms = 260) {
         { transform: 'translate(0, 0) scale(1)', transformOrigin: '0 0', opacity: 1 },
       ],
       ms,
+      { easing: EASING.easeOut },
     );
   }
   document.querySelectorAll('.table .side').forEach((el) => void animate(el, [{ opacity: 0.55 }, { opacity: 1 }], ms));

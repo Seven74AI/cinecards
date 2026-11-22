@@ -152,13 +152,30 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
   };
   let els = {};
 
+  /* Story 13.11: the shared palette of curves (same strings as EASING in apps/client/src/ui/anim.ts). A movement with
+     several keyframes runs a linear timeline and gives each keyframe the curve of the segment that starts there. */
+  const EASING = {
+    easeOut: 'cubic-bezier(.2,.7,.2,1)',
+    easeIn: 'cubic-bezier(.6,0,.9,.5)',
+    easeInOut: 'cubic-bezier(.3,0,.2,1)',
+    anticipate: 'cubic-bezier(.4,-0.45,.6,1)',
+    overshoot: 'cubic-bezier(.3,1.6,.5,1)',
+    snap: 'cubic-bezier(.1,.9,.15,1)',
+    linear: 'linear',
+  };
+  const ENTRANCE_MS = 850;
   function D(ms) { return instant ? 0 : ms * speed; }
   function wait(ms) { const d = D(ms); return d ? new Promise(r => setTimeout(r, d)) : Promise.resolve(); }
   function anim(el, frames, ms, opts) {
     const d = D(ms);
     if (!d) return Promise.resolve();
     const f = reduced ? frames.map(k => ({ opacity: k.opacity !== undefined ? k.opacity : 1, offset: k.offset })) : frames;
-    return el.animate(f, Object.assign({ duration: d, easing: 'cubic-bezier(.2,.7,.2,1)' }, opts || {})).finished.catch(() => {});
+    return el.animate(f, Object.assign({ duration: d, easing: EASING.easeOut }, opts || {})).finished.catch(() => {});
+  }
+  /* per-keyframe curves: `ease` for every segment that names none */
+  function steps(el, frames, ms, ease, opts) {
+    const f = frames.map((k, i) => (i < frames.length - 1 && k.easing === undefined ? Object.assign({}, k, { easing: ease || EASING.easeOut }) : k));
+    return anim(el, f, ms, Object.assign({}, opts || {}, { easing: 'linear' }));
   }
   function caption(t) { els.cap.textContent = t; }
 
@@ -225,10 +242,10 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     t.textContent = text; t.style.color = color; t.style.fontSize = size + 'px';
     t.style.left = x + 'px'; t.style.top = y + 'px'; t.style.transform = 'translate(-50%,-50%)';
     stage.appendChild(t);
-    return anim(t, [
-      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0 },
-      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: .2 },
-      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: .7 },
+    return steps(t, [
+      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: .2, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: .7, easing: EASING.easeIn },
       { transform: 'translate(-50%,-140%) scale(.95)', opacity: 0 },
     ], 1100).then(() => t.remove());
   }
@@ -238,7 +255,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     s.innerHTML = '<path d="M32 2l6 18 18-8-10 16 18 6-18 6 10 16-18-8-6 18-6-18-18 8 10-16-18-6 18-6-10-16 18 8z" fill="' + color + '" stroke="#fff3d6" stroke-width="1.5"></path>';
     s.style.left = x + 'px'; s.style.top = y + 'px';
     stage.appendChild(s);
-    return anim(s, [{ transform: 'scale(.2) rotate(-20deg)', opacity: 0 }, { transform: 'scale(1.15) rotate(5deg)', opacity: 1, offset: .25 }, { transform: 'scale(1) rotate(0)', opacity: .9, offset: .6 }, { transform: 'scale(1.1)', opacity: 0 }], 700).then(() => s.remove());
+    return steps(s, [{ transform: 'scale(.2) rotate(-20deg)', opacity: 0, easing: EASING.snap }, { transform: 'scale(1.15) rotate(5deg)', opacity: 1, offset: .25, easing: EASING.easeOut }, { transform: 'scale(1) rotate(0)', opacity: .9, offset: .6, easing: EASING.easeIn }, { transform: 'scale(1.1)', opacity: 0 }], 700).then(() => s.remove());
   }
   function shake(power) {
     const p = Math.min(10, 2 + power / 25);
@@ -281,7 +298,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     t.style.left = c.x + 'px'; t.style.top = (parseFloat(el.style.top) - 14) + 'px';
     t.style.transform = 'translate(-50%,-50%)';
     anim(el, [{ boxShadow: '0 0 0 1px #3a2608, 0 0 0 rgba(242,210,122,0)' }, { boxShadow: '0 0 0 2px #f2d27a, 0 0 26px rgba(242,210,122,.9)' }, { boxShadow: '0 0 0 1px #3a2608, 0 0 0 rgba(242,210,122,0)' }], 900);
-    await anim(t, [{ opacity: 0, transform: 'translate(-50%,-20%)' }, { opacity: 1, transform: 'translate(-50%,-50%)', offset: .2 }, { opacity: 1, transform: 'translate(-50%,-50%)', offset: .8 }, { opacity: 0, transform: 'translate(-50%,-80%)' }], 1300);
+    await steps(t, [{ opacity: 0, transform: 'translate(-50%,-20%)', easing: EASING.easeOut }, { opacity: 1, transform: 'translate(-50%,-50%)', offset: .2, easing: EASING.linear }, { opacity: 1, transform: 'translate(-50%,-50%)', offset: .8, easing: EASING.easeIn }, { opacity: 0, transform: 'translate(-50%,-80%)' }], 1300);
     t.remove();
   }
   async function lunge(att, target, hitAmount, ripAmount) {
@@ -289,33 +306,46 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     const dx = b.x - a.x, dy = (b.y - a.y) * 0.78;
     att.style.zIndex = 30;
     await anim(att, [{ transform: 'translate(0,0) scale(1)' }, { transform: 'translate(0,6px) scale(1.12)' }], 220, { fill: 'forwards' });
-    await anim(att, [{ transform: 'translate(0,6px) scale(1.12)' }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)' }], 170, { easing: 'cubic-bezier(.6,0,.9,.5)', fill: 'forwards' });
+    await anim(att, [{ transform: 'translate(0,6px) scale(1.12)' }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)' }], 170, { easing: EASING.easeIn, fill: 'forwards' });
     const hit = damage(target, hitAmount);
     anim(target, [{ transform: 'translate(0,0)' }, { transform: 'translate(' + (dx * 0.06) + 'px,' + (dy * 0.06) + 'px) rotate(3deg)' }, { transform: 'translate(0,0)' }], 260);
     if (ripAmount) setTimeout(() => damage(att, ripAmount), D(140));
-    await anim(att, [{ transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)' }, { transform: 'translate(' + (dx * 0.8) + 'px,' + (dy * 0.8) + 'px) scale(1.06)', offset: .2 }, { transform: 'translate(0,0) scale(1)' }], 380, { easing: 'cubic-bezier(.2,.7,.2,1)' });
+    await steps(att, [{ transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)', easing: EASING.snap }, { transform: 'translate(' + (dx * 0.8) + 'px,' + (dy * 0.8) + 'px) scale(1.06)', offset: .2, easing: EASING.easeInOut }, { transform: 'translate(0,0) scale(1)' }], 380);
     att.getAnimations().forEach(x => x.cancel());
     att.style.zIndex = '';
     await hit;
     await wait(ripAmount ? 420 : 0);
   }
-  async function flyCard(el, x, y, rot) {
+  /* `entrance`: a card put on the table (story 13.11): 850 ms, a small step back, then a landing that overshoots */
+  async function flyCard(el, x, y, rot, entrance) {
     const fromL = parseFloat(el.style.left), fromT = parseFloat(el.style.top);
     const fromTr = el.style.transform || 'none';
     el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = rot ? 'rotate(' + rot + 'deg)' : '';
     el.style.zIndex = 30;
     const dx = fromL - x, dy = fromT - y;
-    await anim(el, [
-      { transform: 'translate(' + dx + 'px,' + dy + 'px) ' + (fromTr === 'none' ? '' : fromTr) },
-      { transform: 'translate(' + (dx * 0.45) + 'px,' + (dy * 0.45 - 70) + 'px) scale(1.3)', offset: .55 },
-      { transform: 'translate(0,-18px) scale(1.15)', offset: .82 },
-      { transform: 'translate(0,0) scale(1)' },
-    ], 620);
+    const tr = fromTr === 'none' ? '' : fromTr;
+    if (entrance) {
+      const len = Math.hypot(dx, dy) || 1;
+      await steps(el, [
+        { transform: 'translate(' + dx + 'px,' + dy + 'px) ' + tr, easing: EASING.easeOut },
+        { transform: 'translate(' + (dx + dx / len * 10) + 'px,' + (dy + dy / len * 10) + 'px) ' + tr + ' scale(.94)', offset: .12, easing: EASING.easeInOut },
+        { transform: 'translate(' + (dx * 0.45) + 'px,' + (dy * 0.45 - 70) + 'px) scale(1.3)', offset: .58, easing: EASING.easeInOut },
+        { transform: 'translate(0,-18px) scale(1.15)', offset: .8, easing: EASING.overshoot },
+        { transform: 'translate(0,0) scale(1)' },
+      ], ENTRANCE_MS);
+    } else {
+      await steps(el, [
+        { transform: 'translate(' + dx + 'px,' + dy + 'px) ' + tr, easing: EASING.easeInOut },
+        { transform: 'translate(' + (dx * 0.45) + 'px,' + (dy * 0.45 - 70) + 'px) scale(1.3)', offset: .55, easing: EASING.easeOut },
+        { transform: 'translate(0,-18px) scale(1.15)', offset: .82, easing: EASING.easeOut },
+        { transform: 'translate(0,0) scale(1)' },
+      ], 620);
+    }
     el.style.zIndex = '';
   }
   function runeFlash(slot) {
     const r = slot.querySelector('.rune');
-    return anim(r, [{ opacity: 0, transform: 'scale(.6) rotate(0)' }, { opacity: 1, transform: 'scale(1.1) rotate(40deg)', offset: .3 }, { opacity: 0, transform: 'scale(1.4) rotate(90deg)' }], 700);
+    return steps(r, [{ opacity: 0, transform: 'scale(.6) rotate(0)', easing: EASING.snap }, { opacity: 1, transform: 'scale(1.1) rotate(40deg)', offset: .3, easing: EASING.easeOut }, { opacity: 0, transform: 'scale(1.4) rotate(90deg)' }], 700);
   }
   function particles(x, y, n, colors, spread, up, ms) {
     const ps = [];
@@ -347,7 +377,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     async function playEpok() {
       caption('Epok quitte la main, se pose avec un éclat de runes, puis son effet « À l’arrivée » pioche 3 cartes.');
       const slot = els.slots.me[2];
-      await flyCard(els.epok, SLOT_X[2], ME_Y, 0);
+      await flyCard(els.epok, SLOT_X[2], ME_Y, 0, true);
       runeFlash(slot);
       const c = center(els.epok);
       particles(c.x, c.y + 40, 14, ['#f2d27a', '#fff4c4'], 120, 30, 600);
@@ -359,7 +389,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
         d.style.left = '318px'; d.style.top = '460px'; d.style.zIndex = 35; d.textContent = '';
         stage.appendChild(d);
         const tx = 120 + i * 40 - 318, ty = 600 - 460;
-        await anim(d, [{ transform: 'translate(0,0) rotate(0)' }, { transform: 'translate(' + (tx * .5) + 'px,' + (ty * .5 - 50) + 'px) rotate(-10deg) scale(1.1)', offset: .5 }, { transform: 'translate(' + tx + 'px,' + ty + 'px) rotate(' + (i - 1) * 6 + 'deg)' }], 380);
+        await steps(d, [{ transform: 'translate(0,0) rotate(0)', easing: EASING.easeInOut }, { transform: 'translate(' + (tx * .5) + 'px,' + (ty * .5 - 50) + 'px) rotate(-10deg) scale(1.1)', offset: .5, easing: EASING.easeOut }, { transform: 'translate(' + tx + 'px,' + ty + 'px) rotate(' + (i - 1) * 6 + 'deg)' }], 380);
         await anim(d, [{ transform: 'translate(' + tx + 'px,' + ty + 'px) rotateY(0)' }, { transform: 'translate(' + tx + 'px,' + ty + 'px) rotateY(90deg)', opacity: 0 }], 160);
         d.remove();
       }
@@ -400,7 +430,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
       orb.style.left = c.x + 'px'; orb.style.top = c.y + 'px';
       orb.style.background = 'radial-gradient(circle,#fff,#ff8a3d 50%,#c0392b)'; orb.style.boxShadow = '0 0 16px #ff8a3d';
       stage.appendChild(orb);
-      await anim(orb, [{ transform: 'translate(0,0)' }, { transform: 'translate(' + ((t.x - c.x) * .4 + 60) + 'px,' + ((t.y - c.y) * .4 - 40) + 'px)', offset: .5 }, { transform: 'translate(' + (t.x - c.x) + 'px,' + (t.y - c.y) + 'px)' }], 520, { easing: 'ease-in' });
+      await steps(orb, [{ transform: 'translate(0,0)', easing: EASING.easeOut }, { transform: 'translate(' + ((t.x - c.x) * .4 + 60) + 'px,' + ((t.y - c.y) * .4 - 40) + 'px)', offset: .5, easing: EASING.easeIn }, { transform: 'translate(' + (t.x - c.x) + 'px,' + (t.y - c.y) + 'px)' }], 520);
       orb.remove();
       await damage(target, 120);
       await wait(400);
@@ -430,7 +460,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
         d.style.background = '#8a7a66'; d.style.left = c.x + (Math.random() - .5) * 60 + 'px'; d.style.top = c.y + (Math.random() - .5) * 80 + 'px';
         stage.appendChild(d);
         const dx = g.x - parseFloat(d.style.left), dy = g.y - parseFloat(d.style.top);
-        ashes.push(anim(d, [{ transform: 'translate(0,0)', opacity: .9 }, { transform: 'translate(' + (dx * .5) + 'px,' + (dy * .5 - 60) + 'px)', opacity: .8, offset: .5 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.5)', opacity: 0 }], 700 + i * 40, { easing: 'ease-in' }).then(() => d.remove()));
+        ashes.push(steps(d, [{ transform: 'translate(0,0)', opacity: .9, easing: EASING.easeOut }, { transform: 'translate(' + (dx * .5) + 'px,' + (dy * .5 - 60) + 'px)', opacity: .8, offset: .5, easing: EASING.easeIn }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.5)', opacity: 0 }], 700 + i * 40).then(() => d.remove()));
       }
       await Promise.all(ashes);
       anim(els.grave, [{ boxShadow: '0 0 0 0 rgba(242,210,122,0)' }, { boxShadow: '0 0 14px 2px rgba(242,210,122,.7)' }, { boxShadow: '0 0 0 0 rgba(242,210,122,0)' }], 600);
@@ -457,14 +487,14 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     card.style.zIndex = 73; card.style.left = '145px'; card.style.top = '140px'; card.style.transform = 'scale(1.6)';
     anim(veil, [{ opacity: 0 }, { opacity: 1 }], 300, { fill: 'forwards' });
     await anim(card, [
-      { transform: 'translate(' + (fromL - 145) + 'px,' + (fromT - 140) + 'px) ' + fromTr, easing: 'cubic-bezier(.3,0,.2,1)' },
-      { transform: 'translate(0,-20px) scale(1.75)', offset: .78, easing: 'cubic-bezier(.3,1.6,.5,1)' },
+      { transform: 'translate(' + (fromL - 145) + 'px,' + (fromT - 140) + 'px) ' + fromTr, easing: EASING.easeInOut },
+      { transform: 'translate(0,-20px) scale(1.75)', offset: .78, easing: EASING.overshoot },
       { transform: 'scale(1.6)' },
-    ], 850, { easing: 'linear' });
+    ], ENTRANCE_MS, { easing: 'linear' });
     anim(whoEl, [{ opacity: 0 }, { opacity: 1 }], 250, { fill: 'forwards' });
     await anim(spot, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }], 300, { fill: 'forwards' });
     spot.style.opacity = 1; whoEl.style.opacity = 1; veil.style.opacity = 1;
-    await anim(spot.querySelector('.bar i'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], holdMs, { easing: 'linear', fill: 'forwards' });
+    await anim(spot.querySelector('.bar i'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], holdMs, { easing: EASING.linear, fill: 'forwards' });
     anim(spot, [{ opacity: 1 }, { opacity: 0 }], 250, { fill: 'forwards' });
     anim(whoEl, [{ opacity: 1 }, { opacity: 0 }], 250, { fill: 'forwards' });
     await anim(veil, [{ opacity: 1 }, { opacity: 0 }], 350, { fill: 'forwards' });
@@ -498,7 +528,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
       orb.style.left = c.x + 'px'; orb.style.top = c.y + 'px';
       orb.style.background = 'radial-gradient(circle,#fff,#ff8a3d 50%,#c0392b)'; orb.style.boxShadow = '0 0 16px #ff8a3d';
       stage.appendChild(orb);
-      await anim(orb, [{ transform: 'translate(0,0)' }, { transform: 'translate(' + ((t.x - c.x) * .4 - 60) + 'px,' + ((t.y - c.y) * .4 - 30) + 'px)', offset: .5 }, { transform: 'translate(' + (t.x - c.x) + 'px,' + (t.y - c.y) + 'px)' }], 520, { easing: 'ease-in' });
+      await steps(orb, [{ transform: 'translate(0,0)', easing: EASING.easeOut }, { transform: 'translate(' + ((t.x - c.x) * .4 - 60) + 'px,' + ((t.y - c.y) * .4 - 30) + 'px)', offset: .5, easing: EASING.easeIn }, { transform: 'translate(' + (t.x - c.x) + 'px,' + (t.y - c.y) + 'px)' }], 520);
       orb.remove();
       await damage(target, 120);
       await wait(500);
@@ -507,7 +537,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
       caption('Tank arrive chez l’adversaire et renvoie votre Lancelot : mise en avant, tampon « Renvoyée », trace dans le socle et alerte.');
       const tank = foeHandCard('tank');
       await spotlight(tank, 'Le Grimoire pose Tank', 'À l’arrivée', 'arr', '« Opérateur ?! Eh, l’magicien, fais-moi sortir maintenant ! »', 'Choisissez jusqu’à 3 cartes sur le terrain et renvoyez-les dans la main de leur propriétaire.', 3000);
-      await flyCard(tank, SLOT_X[2], FOE_Y, 0);
+      await flyCard(tank, SLOT_X[2], FOE_Y, 0, true);
       runeFlash(els.slots.foe[2]);
       await wait(250);
       await tag(tank, 'À l’arrivée · « Opérateur ?! »');

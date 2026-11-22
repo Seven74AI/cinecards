@@ -1,4 +1,5 @@
 import type { Catalog, GameEvent, PlayerId } from '@cinecards/engine';
+import { ENTRANCE_MS, PHONE_ENTRANCE_MS, PHONE_TEMPO } from './motion.ts';
 
 /** One animation "time" (story 12.1): exactly one per engine event, played in order. */
 export interface Beat {
@@ -22,7 +23,7 @@ export const TIMING = {
   status: 260,
   save: 600,
   death: 1200, // freeze 0.1 + crack 0.2 + shake 0.25 + burn 0.65; the ashes fly during the next beats
-  play: 620, // arc from the hand, grows over the slot, lands (story 12.5)
+  play: ENTRANCE_MS, // step back, arc from the hand, grows over the slot, overshooting landing (stories 12.5, 13.11)
   spellCast: 700, // an instant spell grows over the table and burns
   draw: 420, // deck → hand, then the card turns over; later draws of the same batch overlap
   drawMore: 140,
@@ -40,8 +41,9 @@ export const TIMING = {
 /**
  * Story 13.7: on the portrait phone table a spell plays at the demo's pace (scene "Sort"): it flies from the hand
  * (620), grows (300), holds (250), burns (450), then its effect leaves after the label (260) and the orb flies (520).
+ * Story 13.11: the flight and the orb, travel motions, take the phone tempo on top (`PHONE_TEMPO`).
  */
-export const PHONE_SPELL = { fly: 620, grow: 300, hold: 250, burn: 450, label: 260, orb: 520 } as const;
+export const PHONE_SPELL = { fly: 620 * PHONE_TEMPO, grow: 300, hold: 250, burn: 450, label: 260, orb: 520 * PHONE_TEMPO } as const;
 const PHONE_CAST = PHONE_SPELL.fly + PHONE_SPELL.grow + PHONE_SPELL.hold + PHONE_SPELL.burn;
 
 /** Layout-dependent pacing: `phone` is the portrait phone table (story 13.7). */
@@ -54,6 +56,8 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
   const draws = [0, 0];
   /** Instant spells cast in this batch: their effect (abilityUsed) is paced like the demo's orb on phones. */
   const spells = new Set<string>();
+  // story 13.11: on the portrait phone table travel motions take longer (impacts and number pops do not)
+  const travel = (ms: number) => (opts.phone ? Math.round(ms * PHONE_TEMPO) : ms);
   return events.map((e, index) => {
     const b: Beat = { index, event: e, gap: 0 };
     switch (e.type) {
@@ -101,29 +105,29 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
           b.gap = TIMING.legend;
         } else {
           b.sound = card?.category === 'spell' ? 'spell' : 'play';
-          b.gap = e.zone === 'resolved' ? (opts.phone ? PHONE_CAST : TIMING.spellCast) : TIMING.play;
+          b.gap = e.zone === 'resolved' ? (opts.phone ? PHONE_CAST : TIMING.spellCast) : opts.phone ? PHONE_ENTRANCE_MS : TIMING.play;
         }
         if (e.zone === 'resolved') spells.add(e.iid);
         break;
       }
       case 'cardDrawn':
         b.sound = 'draw';
-        b.gap = draws[e.player]!++ < 2 ? TIMING.draw : TIMING.drawMore;
+        b.gap = travel(draws[e.player]!++ < 2 ? TIMING.draw : TIMING.drawMore);
         break;
       case 'summoned':
         b.sound = 'play';
-        b.gap = TIMING.summon;
+        b.gap = travel(TIMING.summon);
         break;
       case 'returnedToHand':
-        b.gap = TIMING.returned;
+        b.gap = travel(TIMING.returned);
         break;
       case 'abilityUsed':
-        b.gap = e.trigger === 'attack' || e.trigger === 'reaction' ? TIMING.special : TIMING.ability;
+        b.gap = travel(e.trigger === 'attack' || e.trigger === 'reaction' ? TIMING.special : TIMING.ability);
         if (opts.phone && spells.has(e.iid)) b.gap = PHONE_SPELL.label + PHONE_SPELL.orb;
         break;
       case 'attackDeclared':
         b.sound = 'swing';
-        b.gap = TIMING.attack;
+        b.gap = travel(TIMING.attack);
         break;
       case 'coinsGained':
       case 'coinBonus':

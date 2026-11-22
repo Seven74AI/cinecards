@@ -19,17 +19,18 @@ test('a played card flies from the hand and lands in its slot with a ring of run
       const slot = el?.closest('.slot');
       if (el && slot) w.__ccFly.push(el.getBoundingClientRect().top - slot.getBoundingClientRect().top);
       if (document.querySelector('.fx-rune')) w.__ccRune = true;
-      if (w.__ccFly.length < 90) requestAnimationFrame(tick);
+      if (w.__ccFly.length < 150) requestAnimationFrame(tick);
     };
     tick();
   }, name);
   await page.getByRole('button', { name: /^Jouer/ }).first().click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __ccFly: number[] }).__ccFly.length), { timeout: 5000 }).toBeGreaterThanOrEqual(90);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ccFly: number[] }).__ccFly.length), { timeout: 5000 }).toBeGreaterThanOrEqual(150);
   const { fly, rune } = await page.evaluate(() => {
     const w = window as unknown as { __ccFly: number[]; __ccRune: boolean };
     return { fly: w.__ccFly, rune: w.__ccRune };
   });
-  // it started far below its slot (in the hand), went through the air, and ended in place
+  // it started far below its slot (in the hand), went through the air, and ended in place (story 13.11: ~1.1 s on
+  // the portrait phone, with an overshooting landing, so it is followed for 150 frames)
   expect(Math.max(...fly.slice(0, 5))).toBeGreaterThan(60);
   expect(Math.min(...fly)).toBeLessThan(-5);
   expect(Math.abs(fly.at(-1)!)).toBeLessThan(2);

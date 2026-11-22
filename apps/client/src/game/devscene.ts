@@ -32,11 +32,17 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // Néo already doubled once (320 ATQ) and doubles again at the start of my next turn (story 13.4); empty hands
   // and deck so Le Grimoire can only end its turn
   neo: [['mx-neo'], []],
+  // story 13.10: Le Grimoire holds only Tank; on its turn it plays it and sends my cards back to my hand
+  retrait: [['hg-lancelot', 'hs-topper'], []],
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;
 /** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
+  retrait: (state, take) => {
+    const tank = take('mx-tank', 1)!;
+    state.players[1].hand = [tank];
+  },
   victoire: (state) => {
     state.players[1].hp = 100;
   },
@@ -64,6 +70,10 @@ const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: strin
     );
   },
 };
+
+/** Seed of the bot for the scenes where its choices matter (story 13.10: it sends my cards back with Tank). */
+const BOT_SEEDS: Record<string, number> = { retrait: 9 };
+export const devBotSeed = (name: string): number | undefined => BOT_SEEDS[name];
 
 export function devScene(catalog: Catalog, name: string): GameState | null {
   const scene = SCENES[name];

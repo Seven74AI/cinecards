@@ -16,10 +16,12 @@ async function watchFx(page: Page) {
 const fx = (page: Page) => page.evaluate(() => (window as unknown as { __ccFx: { cls: string; text: string; t: number }[] }).__ccFx);
 
 test('"Tour adverse", then "À toi de jouer" and my playable cards light up', async ({ page }) => {
+  // story 13.10: the foe's spells and "À l'arrivée" cards are shown in the spotlight first, its turn takes longer
+  test.setTimeout(120_000);
   await page.goto('/?scene=mort');
   await watchFx(page);
   await page.getByRole('button', { name: 'Fin du tour' }).click();
-  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('playable')), { timeout: 30000 }).toBe(true);
+  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('playable')), { timeout: 90000 }).toBe(true);
   const seen = await fx(page);
   const foe = seen.find((f) => f.cls.includes('fx-turn') && f.text === 'Tour adverse');
   const mine = seen.find((f) => f.cls.includes('fx-turn') && f.cls.includes('mine'));

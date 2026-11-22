@@ -1,4 +1,4 @@
-import type { Catalog, GameEvent, GameState } from '@cinecards/engine';
+import type { Catalog, GameEvent, GameState, PlayerId } from '@cinecards/engine';
 import { planBeats, type Beat } from './fx.ts';
 import { drawnBy, idleView, shownView, type ShownView } from './present.ts';
 
@@ -36,8 +36,22 @@ interface Batch {
   beats: Beat[];
 }
 
-/** A beat starting now; `ms` is its real duration at the current pace (0 when instant). */
-export type Cue = { beat: Beat; ms: number; rate: number; before: GameState; after: GameState; events: GameEvent[] };
+/**
+ * A beat starting now; `ms` is its real duration at the current pace (0 when instant).
+ * Story 13.10: `lead` marks the time played before a beat (spotlight, removal stamp), the table still showing the
+ * state before it; `skip` ends that time early (a tap on the spotlight). `names`: the players' names.
+ */
+export type Cue = {
+  beat: Beat;
+  ms: number;
+  rate: number;
+  before: GameState;
+  after: GameState;
+  events: GameEvent[];
+  lead?: boolean;
+  skip?: () => void;
+  names?: readonly [string, string];
+};
 
 declare global {
   interface Window {
@@ -57,7 +71,9 @@ const trace = (type: string, phase: 'start' | 'end', iid?: string) => {
 export class Playback {
   private queue: Batch[] = [];
   /** `held`: cards kept in their slot while they die or go back to hand. */
-  private cur: { batch: Batch; played: number; held: Set<string> } | null = null;
+  private cur: { batch: Batch; played: number; held: Set<string>; led: number } | null = null;
+  /** Story 13.10: a lead (spotlight, removal stamp) is playing. */
+  private inLead = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private deathTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private view: ShownView;
@@ -71,7 +87,13 @@ export class Playback {
   speed: AnimSpeed;
   /** Story 13.7: the portrait phone table plays spells at the demo's pace (set by the table). */
   phone = false;
+  /** Story 13.10: players whose cards get the removal alert (set by the table). */
+  alertFor: readonly PlayerId[] = [];
+  /** Story 13.10: the players' names, for the spotlight's "who plays" line and the alert. */
+  names: readonly [string, string] = ['', ''];
   onCue: (c: Cue) => void = () => {};
+  /** Story 13.10: everything queued was dropped (instant speed, hidden tab): overlays of a lead must go. */
+  onFlush: () => void = () => {};
 
   constructor(
     private readonly catalog: Catalog,
@@ -100,7 +122,7 @@ export class Playback {
   }
 
   push(before: GameState, after: GameState, events: GameEvent[]) {
-    const beats = planBeats(events, this.catalog, { phone: this.phone });
+    const beats = planBeats(events, this.catalog, { phone: this.phone, alertFor: this.alertFor });
     if (!beats.length && !this.playing) {
       this.view = idleView(after);
       this.emit();
@@ -132,6 +154,8 @@ export class Playback {
     this.timer = null;
     for (const t of this.deathTimers.values()) clearTimeout(t);
     this.deathTimers.clear();
+    this.inLead = false;
+    this.onFlush();
     const last = this.queue.at(-1)?.after ?? this.cur?.batch.after;
     this.queue = [];
     this.cur = null;
@@ -146,8 +170,9 @@ export class Playback {
     if (this.paused && this.playing) return 1000;
     if (!this.playing) return 0;
     const r = this.rate();
-    const rest = this.queue.reduce((s, b) => s + b.beats.reduce((t, x) => t + x.gap, 0), 0) * r;
-    const curRest = this.cur ? this.cur.batch.beats.slice(this.cur.played).reduce((t, x) => t + x.gap, 0) * r : 0;
+    const time = (x: Beat) => x.gap + (x.lead ?? 0);
+    const rest = this.queue.reduce((s, b) => s + b.beats.reduce((t, x) => t + time(x), 0), 0) * r;
+    const curRest = this.cur ? this.cur.batch.beats.slice(this.cur.played).reduce((t, x) => t + time(x), 0) * r : 0;
     return Math.max(0, this.endsAt - performance.now()) + rest + curRest;
   }
 
@@ -176,12 +201,21 @@ export class Playback {
       this.cur = null;
       return;
     }
-    this.cur = { batch, played: 0, held: new Set() };
+    this.cur = { batch, played: 0, held: new Set(), led: -1 };
+    this.step();
+  }
+
+  /** Story 13.10: ends the current lead (spotlight) now; the beat it leads to starts. */
+  skipLead() {
+    if (!this.inLead || !this.timer || this.paused) return;
+    clearTimeout(this.timer);
+    this.endsAt = performance.now();
     this.step();
   }
 
   private step() {
     this.timer = null;
+    this.inLead = false;
     const c = this.cur;
     if (!c || this.paused) return;
     const r = this.rate();
@@ -203,10 +237,23 @@ export class Playback {
     let ms = 0;
     while (c.played < c.batch.beats.length && ms === 0) {
       const beat = c.batch.beats[c.played]!;
+      if (beat.lead && c.led !== c.played) {
+        // story 13.10: the lead plays first, the table still showing the state before this beat
+        c.led = c.played;
+        const lead = Math.round(beat.lead * r);
+        this.refresh();
+        trace(beat.spot ? 'spotlight' : 'removalStamp', 'start', beat.spot?.iid ?? beat.removal?.iid);
+        this.inLead = true;
+        this.onCue({ beat, ms: lead, rate: r, before: c.batch.before, after: c.batch.after, events: c.batch.events, lead: true, skip: () => this.skipLead(), names: this.names });
+        this.endsAt = performance.now() + lead;
+        this.timer = setTimeout(() => this.step(), lead);
+        return;
+      }
       c.played++;
       ms = Math.round(beat.gap * r);
       this.begin(c, beat, ms);
-      this.onCue({ beat, ms, rate: r, before: c.batch.before, after: c.batch.after, events: c.batch.events });
+      if (beat.removal) trace('removalAlert', 'start', beat.removal.iid);
+      this.onCue({ beat, ms, rate: r, before: c.batch.before, after: c.batch.after, events: c.batch.events, names: this.names });
     }
     this.refresh();
     this.endsAt = performance.now() + ms;

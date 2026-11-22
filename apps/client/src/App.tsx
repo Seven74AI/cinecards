@@ -23,9 +23,9 @@ export function App() {
     if (!import.meta.env.DEV) return;
     const name = new URLSearchParams(location.search).get('scene');
     if (!name) return;
-    void import('./game/devscene.ts').then(({ devScene }) => {
+    void import('./game/devscene.ts').then(({ devScene, devBotSeed }) => {
       const initial = devScene(CATALOG, name);
-      if (initial) setSession(localSession(CATALOG, { kind: 'bot', mode: 'shared', initial }));
+      if (initial) setSession(localSession(CATALOG, { kind: 'bot', mode: 'shared', initial, seed: devBotSeed(name) }));
     });
   }, []);
 

@@ -1,11 +1,14 @@
 import type { GameEvent, GameState, PlayerId, Target } from '@cinecards/engine';
 import type { Cue } from '../game/playback.ts';
 import { animate, animateSteps, cardEl, EASING, ENTRANCE_MS, ENTRANCE_TOUCH, entranceFrames, PHONE_ENTRANCE_MS, PHONE_TEMPO } from './anim.ts';
-import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
+import { createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { CardView, CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 import { CATALOG, cardArt } from '../game/catalog.ts';
-import { abilityTag } from '../game/labels.ts';
-import { PHONE_SPELL } from '../game/fx.ts';
+import { abilityBody, abilityTag } from '../game/labels.ts';
+import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
+import { removalText, STAMP } from '../game/removal.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -720,6 +723,12 @@ function castSpell(cardId: string, from: Pt, ms: number, r: number) {
 
 /** Where a card leaves its owner's hand from. */
 function handOrigin(iid: string, owner: PlayerId): Pt | null {
+  // story 13.10: a card that was in the spotlight leaves from the middle of the table
+  const spot = spotFrom.get(iid);
+  if (spot) {
+    spotFrom.delete(iid);
+    return spot;
+  }
   const seen = handSeen.get(iid);
   if (seen && owner === myId()) return seen.pt;
   return ptOf(handZone(owner));
@@ -998,9 +1007,187 @@ export function flipLayout(before: Layout, ms = 260) {
   document.querySelectorAll('.table .side').forEach((el) => void animate(el, [{ opacity: 0.55 }, { opacity: 1 }], ms));
 }
 
+
+// ---------------------------------------------------------------------------------------------------------
+// Story 13.10 (demo scenes « Mise en avant » and « Carte retirée »). A spell, or a card with an "À l'arrivée"
+// effect, is first shown in the middle of the darkened table with who plays it and its effect (a tap skips it);
+// then it goes on as before, leaving from the middle. One of my cards removed by an opposing effect glows red with a
+// stamp, leaves, its slot blinks with a red dashed outline and a red alert names what happened.
+// ---------------------------------------------------------------------------------------------------------
+
+/** Where a card shown in the spotlight is when the spotlight ends: its flight to the table leaves from there. */
+const spotFrom = new Map<string, Pt>();
+/** The overlays of the spotlight being played, and how to end it. */
+let spotNow: { token: number; els: HTMLElement[]; hidden: HTMLElement | null; ghost: HTMLElement; root: Root } | null = null;
+let spotToken = 0;
+
+function endSpot(ms: number) {
+  const s = spotNow;
+  if (!s) return;
+  spotNow = null;
+  if (s.hidden) s.hidden.style.visibility = '';
+  const gone = (el: HTMLElement) => {
+    if (el === s.ghost) setTimeout(() => s.root.unmount(), 0);
+    el.remove();
+  };
+  for (const el of [...s.els, s.ghost]) {
+    if (ms <= 0) gone(el);
+    else void animate(el, [{ opacity: Number(getComputedStyle(el).opacity) || 1 }, { opacity: 0 }], ms, { fill: 'forwards', easing: EASING.linear }).then(() => gone(el));
+  }
+}
+/** Story 13.10: everything queued was dropped (instant speed, hidden tab): the spotlight and alerts go at once. */
+export function clearLeads() {
+  spotToken++;
+  endSpot(0);
+  document.querySelectorAll('.fx-spot-veil, .fx-spot, .fx-stamp, .fx-removed, .fx-ghost-slot').forEach((el) => el.remove());
+  document.querySelectorAll<HTMLElement>('.table .card.removed-glow').forEach((el) => el.classList.remove('removed-glow'));
+}
+
+function spotlight(cue: Cue, spot: NonNullable<Cue['beat']['spot']>) {
+  const r = cue.rate;
+  const card = CATALOG.get(spot.cardId);
+  const ab = card?.abilities[spot.ability];
+  if (!card || !ab) return;
+  endSpot(0);
+  const token = ++spotToken;
+  const me = spot.player === myId();
+  const who = card.category === 'spell' ? (me ? 'Vous jouez un sort' : `${cue.names?.[spot.player] || 'L’adversaire'} joue un sort`) : me ? `Vous posez ${card.name}` : `${cue.names?.[spot.player] || 'L’adversaire'} pose ${card.name}`;
+  const tag = abilityTag(card, ab);
+  const label = card.category === 'spell' ? `Sort · ${tag.label}` : tag.label;
+  const w = Math.round(Math.max(110, Math.min(200, innerWidth * 0.42, (innerHeight - 330) / 1.4)));
+
+  const veil = overlay('fx-spot-veil', 0, 0);
+  const box = overlay('fx-spot', 0, 0);
+  box.innerHTML = `<div class="who"></div><div class="hole"></div><div class="panel"><span class="lab"></span><div class="q"></div><div class="tx"></div><div class="bar"><i></i></div></div><div class="skip">Touchez pour passer</div>`;
+  box.querySelector<HTMLElement>('.hole')!.style.cssText = `width:${w}px;height:${Math.round(w * 1.4)}px`;
+  box.querySelector('.who')!.textContent = who;
+  const lab = box.querySelector<HTMLElement>('.lab')!;
+  lab.textContent = label;
+  lab.classList.add(`t-${tag.tone}`);
+  box.querySelector('.q')!.textContent = `« ${ab.name} »`;
+  box.querySelector('.tx')!.textContent = abilityBody(card, ab);
+  const hole = ptOf(box.querySelector('.hole'))!;
+  const at: Pt = { x: hole.x, y: hole.y, w };
+  // the card leaves its owner's hand (my hand card hides while it is in the spotlight)
+  const from = handOrigin(spot.iid, spot.player) ?? { x: at.x, y: innerHeight, w: 40 };
+  const hidden = document.querySelector<HTMLElement>(`.table .hand .card[data-iid="${CSS.escape(spot.iid)}"]`);
+  if (hidden) hidden.style.visibility = 'hidden';
+  // the whole card (cost, art, stats), as in the hand
+  const ghost = overlay('fx-card fx-spot-card', at.x, at.y);
+  ghost.style.width = `${w}px`;
+  ghost.style.transform = 'translate(-50%,-50%)';
+  const root = createRoot(ghost);
+  root.render(createElement(CardView, { card, size: 'hand' }));
+  spotNow = { token, els: [veil, box], hidden, ghost, root };
+  spotFrom.set(spot.iid, at);
+
+  const skip = () => {
+    if (spotToken !== token) return;
+    endSpot(160);
+    cue.skip?.();
+  };
+  veil.addEventListener('pointerdown', skip);
+  box.addEventListener('pointerdown', skip);
+  ghost.addEventListener('pointerdown', skip);
+
+  const enter = SPOT.enter * r;
+  const panel = SPOT.panel * r;
+  const hold = SPOT.hold * r;
+  const exit = SPOT.exit * r;
+  void animate(veil, [{ opacity: 0 }, { opacity: 1 }], 300 * r, { fill: 'forwards', easing: EASING.linear });
+  // the demo's entry: accelerates over the table, overshoots (1.09 ≈ the demo's 1.75 / 1.6), then settles
+  void animate(
+    ghost,
+    [
+      { transform: `translate(-50%,-50%) translate(${from.x - at.x}px, ${from.y - at.y}px) scale(${Math.max(0.2, from.w / w)}) rotate(${me ? 0 : 4}deg)`, opacity: 0.9, easing: EASING.easeInOut },
+      { transform: 'translate(-50%,-50%) translate(0px, -20px) scale(1.09) rotate(0deg)', opacity: 1, offset: 0.78, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1 },
+    ],
+    enter,
+    { easing: 'linear' },
+  );
+  const still = () => spotToken === token && spotNow?.token === token;
+  later(() => {
+    if (!still()) return;
+    const whoEl = box.querySelector<HTMLElement>('.who')!;
+    const pan = box.querySelector<HTMLElement>('.panel')!;
+    const sk = box.querySelector<HTMLElement>('.skip')!;
+    void animate(whoEl, [{ opacity: 0 }, { opacity: 1 }], 250 * r, { fill: 'forwards', easing: EASING.linear });
+    for (const el of [pan, sk]) void animate(el, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }], panel, { fill: 'forwards', easing: EASING.easeOut });
+    void animate(box.querySelector('.bar i'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], hold, { delay: panel, fill: 'forwards', easing: EASING.linear });
+  }, enter);
+  later(() => {
+    if (!still()) return;
+    endSpot(exit);
+  }, enter + panel + hold);
+}
+
+/** Story 13.10: the red glow and stamp on my card, while it is still in its slot. */
+const removedAt = new Map<string, DOMRect>();
+function removalStamp(cue: Cue, rm: NonNullable<Cue['beat']['removal']>) {
+  const r = cue.rate;
+  const card = boardEl(rm.iid);
+  if (!card) return;
+  const rect = card.getBoundingClientRect();
+  removedAt.set(rm.iid, rect);
+  stage(card, r, cue.ms + 400 * r);
+  card.classList.add('removed-glow');
+  const c = center(card);
+  const st = overlay('fx-stamp', c.x, c.y);
+  st.textContent = STAMP[rm.kind];
+  void animate(st, [{ opacity: 0, transform: 'translate(-50%,-50%) rotate(-12deg) scale(2)' }, { opacity: 1, transform: 'translate(-50%,-50%) rotate(-12deg) scale(1)' }], REMOVAL.stamp * r, { fill: 'forwards', easing: EASING.snap });
+  later(() => st.remove(), Math.max(0, cue.ms - 20));
+}
+
+/** Story 13.10: once the card leaves, its slot blinks red for ~2 s and a red alert stays ~4 s at the top. */
+function removalAlert(cue: Cue, rm: NonNullable<Cue['beat']['removal']>) {
+  const r = cue.rate;
+  const card = boardEl(rm.iid);
+  if (card) later(() => card.classList.remove('removed-glow'), REMOVAL.ghost * Math.max(r, 0.5));
+  const rect = removedAt.get(rm.iid) ?? card?.getBoundingClientRect();
+  removedAt.delete(rm.iid);
+  if (rect && rect.width) {
+    const g = overlay('fx-ghost-slot', rect.left, rect.top);
+    g.style.width = `${rect.width}px`;
+    g.style.height = `${rect.height}px`;
+    void animate(g, [{ opacity: 1 }, { opacity: 0.25 }, { opacity: 1 }, { opacity: 0.25 }, { opacity: 1 }, { opacity: 0 }], REMOVAL.ghost * Math.max(r, 0.5), { easing: EASING.linear }).then(() => g.remove());
+  }
+  const mine = rm.owner === myId();
+  const cardIdOf = (iid: string) => cue.before.instances[iid]?.cardId ?? cue.after.instances[iid]?.cardId;
+  const { title, body } = removalText(rm, CATALOG, cardIdOf, mine);
+  document.querySelectorAll('.fx-removed').forEach((el) => el.remove());
+  const t = overlay('fx-removed', innerWidth / 2, 0, '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffb59e" stroke-width="2" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18h.01"></path></svg><div><b></b><span></span></div>');
+  t.setAttribute('role', 'alert');
+  t.removeAttribute('aria-hidden');
+  t.querySelector('b')!.textContent = title;
+  t.querySelector('span')!.textContent = body;
+  // under the foe's hero bar, centred on the table (the desktop table sits between the journal and the sheet)
+  const top = (document.querySelector('.table [data-hero]')?.getBoundingClientRect().bottom ?? 60) + 8;
+  const tb = document.querySelector('.table')?.getBoundingClientRect();
+  t.style.top = `${Math.round(top)}px`;
+  if (tb && tb.width) t.style.left = `${Math.round(tb.left + tb.width / 2)}px`;
+  void animate(
+    t,
+    [
+      { opacity: 0, transform: 'translate(-50%,-12px)', easing: EASING.easeOut },
+      { opacity: 1, transform: 'translate(-50%,0)', offset: 0.08, easing: EASING.linear },
+      { opacity: 1, transform: 'translate(-50%,0)', offset: 0.9, easing: EASING.easeIn },
+      { opacity: 0, transform: 'translate(-50%,-8px)' },
+    ],
+    REMOVAL.alert,
+    { easing: 'linear' },
+  ).then(() => t.remove());
+}
+
 export function direct(cue: Cue) {
   const { beat, rate: r, events } = cue;
   const e = beat.event;
+  if (cue.lead) {
+    if (beat.spot) spotlight(cue, beat.spot);
+    else if (beat.removal) removalStamp(cue, beat.removal);
+    return;
+  }
+  if (beat.removal) removalAlert(cue, beat.removal);
   if (current && performance.now() > current.until) current = null;
   switch (e.type) {
     case 'attackDeclared': {

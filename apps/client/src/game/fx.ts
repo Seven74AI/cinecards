@@ -1,5 +1,6 @@
 import type { Catalog, GameEvent, PlayerId } from '@cinecards/engine';
 import { ENTRANCE_MS, PHONE_ENTRANCE_MS, PHONE_TEMPO } from './motion.ts';
+import { removalAt, type Removal } from './removal.ts';
 
 /** One animation "time" (story 12.1): exactly one per engine event, played in order. */
 export interface Beat {
@@ -11,6 +12,15 @@ export interface Beat {
   dice?: { value: number; label: string };
   highlight?: { name: string; cardId: string; player: PlayerId };
   sound?: string;
+  /**
+   * Story 13.10: milliseconds (normal speed) played BEFORE the beat, while the table still shows the state before it:
+   * the spotlight of a played card, or the red stamp on my card that an opposing effect removes.
+   */
+  lead?: number;
+  /** Story 13.10: the card is shown in the middle of the table first (a spell, or a card with an "À l'arrivée" effect). */
+  spot?: { iid: string; cardId: string; player: PlayerId; ability: number };
+  /** Story 13.10: one of the watched players' cards leaves the table because of an opposing effect. */
+  removal?: Removal;
 }
 
 /** Durations at normal speed, in ms (demo docs/design/animations/demo.html). */
@@ -39,6 +49,15 @@ export const TIMING = {
 } as const;
 
 /**
+ * Story 13.10 (demo scenes « Mise en avant » and « Carte retirée »): the spotlight's entry (850, accelerates then
+ * overshoots), its panel fading in (300), the 3 s it holds with a draining bar, and its exit (350); the removal's red
+ * glow and stamp (260) held before the card leaves (700), the blinking slot (2400) and the alert (4200).
+ */
+export const SPOT = { enter: 850, panel: 300, hold: 3000, exit: 350 } as const;
+export const SPOT_MS = SPOT.enter + SPOT.panel + SPOT.hold + SPOT.exit;
+export const REMOVAL = { stamp: 260, hold: 700, ghost: 2400, alert: 4200 } as const;
+
+/**
  * Story 13.7: on the portrait phone table a spell plays at the demo's pace (scene "Sort"): it flies from the hand
  * (620), grows (300), holds (250), burns (450), then its effect leaves after the label (260) and the orb flies (520).
  * Story 13.11: the flight and the orb, travel motions, take the phone tempo on top (`PHONE_TEMPO`).
@@ -49,6 +68,8 @@ const PHONE_CAST = PHONE_SPELL.fly + PHONE_SPELL.grow + PHONE_SPELL.hold + PHONE
 /** Layout-dependent pacing: `phone` is the portrait phone table (story 13.7). */
 export interface BeatOptions {
   phone?: boolean;
+  /** Story 13.10: players whose cards get the removal alert (me; both players in hot seat). */
+  alertFor?: readonly PlayerId[];
 }
 
 /** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1); `ui/director.ts` stages them. */
@@ -58,6 +79,13 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
   const spells = new Set<string>();
   // story 13.11: on the portrait phone table travel motions take longer (impacts and number pops do not)
   const travel = (ms: number) => (opts.phone ? Math.round(ms * PHONE_TEMPO) : ms);
+  // story 13.10: a watched player's card removed by an opposing effect is stamped first, then leaves
+  const alert = (b: Beat, index: number) => {
+    const r = removalAt(events, index);
+    if (!r || !opts.alertFor?.includes(r.owner)) return;
+    b.removal = r;
+    b.lead = REMOVAL.stamp + REMOVAL.hold;
+  };
   return events.map((e, index) => {
     const b: Beat = { index, event: e, gap: 0 };
     switch (e.type) {
@@ -87,6 +115,7 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
       case 'cardDestroyed':
         b.sound = 'death';
         b.gap = TIMING.death;
+        alert(b, index);
         break;
       case 'playerDamaged':
         b.sound = 'heroHit';
@@ -99,7 +128,13 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
         break;
       case 'cardPlayed': {
         const card = catalog.get(e.cardId);
-        if (card?.rarity === 'legendary') {
+        // story 13.10: a spell, or a card with an "À l'arrivée" effect, is shown in the middle of the table first
+        const ability = !card ? -1 : card.category === 'spell' ? card.abilities.findIndex((a) => a.kind !== 'flavor') : card.abilities.findIndex((a) => a.kind === 'onPlay');
+        if (card && ability >= 0) {
+          b.spot = { iid: e.iid, cardId: e.cardId, player: e.player, ability };
+          b.lead = SPOT_MS;
+        }
+        if (card?.rarity === 'legendary' && !b.spot) {
           b.highlight = { name: card.name, cardId: card.id, player: e.player };
           b.sound = 'legend';
           b.gap = TIMING.legend;
@@ -117,9 +152,11 @@ export function planBeats(events: GameEvent[], catalog: Catalog, opts: BeatOptio
       case 'summoned':
         b.sound = 'play';
         b.gap = travel(TIMING.summon);
+        alert(b, index);
         break;
       case 'returnedToHand':
         b.gap = travel(TIMING.returned);
+        alert(b, index);
         break;
       case 'abilityUsed':
         b.gap = travel(e.trigger === 'attack' || e.trigger === 'reaction' ? TIMING.special : TIMING.ability);

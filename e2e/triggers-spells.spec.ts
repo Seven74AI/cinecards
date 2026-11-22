@@ -28,7 +28,7 @@ test('a spell burns, its label shows, then a projectile reaches the target, in o
   await page.goto('/?scene=pose');
   await watchFx(page);
   await play(page, 'Missile');
-  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('fx-num')), { timeout: 5000 }).toBe(true);
+  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('fx-num')), { timeout: 12000 }).toBe(true);
   const seen = await fx(page);
   const at = (pred: (f: { cls: string; text: string }) => boolean) => seen.find(pred)?.t ?? Infinity;
   const card = at((f) => f.cls.includes('fx-card'));
@@ -47,7 +47,7 @@ test('a terrain: "À l’arrivée" label over it, and a wave over the cards of i
   await page.goto('/?scene=pose');
   await watchFx(page);
   await play(page, 'Camelot');
-  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('fx-tint') && f.cls.includes('family')), { timeout: 5000 }).toBe(true);
+  await expect.poll(async () => (await fx(page)).some((f) => f.cls.includes('fx-tint') && f.cls.includes('family')), { timeout: 12000 }).toBe(true);
   const seen = await fx(page);
   expect(seen.some((f) => f.cls.includes('fx-seal'))).toBe(true);
   expect(seen.some((f) => f.cls.includes('fx-tag') && f.text.startsWith('À l'))).toBe(true);

@@ -40,6 +40,8 @@ test('a played card flies from the hand and lands in its slot with a ring of run
 });
 
 test('draws: the foe gets a card back, my drawn card stays hidden until it turns over in my hand', async ({ page }) => {
+  // story 13.10: the foe's spells and "À l'arrivée" cards are shown in the spotlight first, its turn takes longer
+  test.setTimeout(120_000);
   await page.goto('/?scene=mort');
   await page.evaluate(() => {
     const w = window as unknown as { __ccBack: number; __ccHidden: string[] };
@@ -56,7 +58,7 @@ test('draws: the foe gets a card back, my drawn card stays hidden until it turns
   const before = await page.locator('.hand .card').count();
   await page.getByRole('button', { name: 'Fin du tour' }).click();
   // Le Grimoire's turn, then mine again: more cards in my hand
-  await expect(page.getByRole('button', { name: 'Fin du tour' })).toBeEnabled({ timeout: 30000 });
+  await expect(page.getByRole('button', { name: 'Fin du tour' })).toBeEnabled({ timeout: 90000 });
   await expect.poll(() => page.locator('.hand .card').count(), { timeout: 5000 }).toBeGreaterThan(before);
   // (the buttons follow the real state: the replay of the draws may still be running)
   const seen = () =>

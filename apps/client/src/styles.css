@@ -2942,3 +2942,170 @@ span.mod-src {
   width: 100%;
   height: 100%;
 }
+
+/* story 13.10: spotlight of a played card (demo scene « Mise en avant ») */
+.fx-layer.fx-spot-veil {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(8, 4, 2, 0.62);
+  opacity: 0;
+  z-index: 80;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.fx-layer.fx-spot {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.fx-spot .who {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--gold2);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 14px;
+  opacity: 0;
+}
+.fx-spot .hole {
+  flex: none;
+}
+.fx-spot .panel {
+  width: min(320px, 100%);
+  box-sizing: border-box;
+  margin-top: 16px;
+  padding: 12px 14px 10px;
+  border-radius: 8px;
+  background: var(--parch-bg);
+  box-shadow: 0 0 0 2px var(--gold), 0 12px 28px rgba(0, 0, 0, 0.7);
+  color: var(--ink);
+  opacity: 0;
+}
+.fx-spot .lab {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #fff;
+  margin-bottom: 5px;
+}
+.fx-spot .lab.t-eff {
+  background: #a0621a;
+}
+.fx-spot .q {
+  font-family: var(--text);
+  font-style: italic;
+  font-size: 13px;
+  color: #5a3d1c;
+  margin-bottom: 4px;
+}
+.fx-spot .tx {
+  font-family: var(--text);
+  font-size: 15px;
+  line-height: 1.3;
+}
+.fx-spot .bar {
+  height: 3px;
+  margin-top: 9px;
+  border-radius: 2px;
+  background: rgba(90, 61, 12, 0.25);
+  overflow: hidden;
+}
+.fx-spot .bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gold-dark);
+  transform-origin: 0 50%;
+}
+.fx-spot .skip {
+  margin-top: 8px;
+  font-family: var(--text);
+  font-size: 12px;
+  color: var(--dim);
+  opacity: 0;
+}
+.fx-layer.fx-card.fx-spot-card {
+  z-index: 82;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* story 13.10: one of my cards removed by an opposing effect (demo scene « Carte retirée ») */
+.table .card.removed-glow {
+  box-shadow: 0 0 0 3px #e0574a, 0 0 24px rgba(224, 87, 74, 0.9);
+}
+.fx-layer.fx-stamp {
+  z-index: 66;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: #c0392b;
+  padding: 3px 8px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px #ffd7c2, 0 4px 10px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  opacity: 0;
+}
+.fx-layer.fx-ghost-slot {
+  z-index: 58;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: 2px dashed #e0574a;
+  box-shadow: 0 0 18px rgba(224, 87, 74, 0.6) inset;
+}
+.fx-layer.fx-removed {
+  z-index: 85;
+  width: min(420px, calc(100vw - 24px));
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(#3a0d0a, #240806);
+  box-shadow: 0 0 0 1.5px #c0392b, 0 10px 24px rgba(0, 0, 0, 0.6);
+  color: #ffe3d6;
+  font-family: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  transform: translate(-50%, 0);
+}
+.fx-removed svg {
+  flex: none;
+}
+.fx-removed b {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #ffb59e;
+  display: block;
+  margin-bottom: 2px;
+}
+.journal-list li.removed {
+  color: #ffd7c2;
+  background: rgba(192, 57, 43, 0.28);
+  box-shadow: inset 3px 0 0 #e0574a;
+  padding-left: 6px;
+  border-radius: 2px;
+}

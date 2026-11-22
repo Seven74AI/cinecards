@@ -13,7 +13,8 @@ import {
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
-import { captureLayout, direct, flipLayout, noteHand, type Layout } from './director.ts';
+import { captureLayout, clearLeads, direct, flipLayout, noteHand, type Layout } from './director.ts';
+import { removalAt } from '../game/removal.ts';
 import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
@@ -103,6 +104,11 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const [pb] = useState(() => new Playback(catalog, state, loadSpeed()));
   // story 13.7: spells take the demo's time on the portrait phone table (set before the next batch is planned)
   pb.phone = compact;
+  // story 13.10: my cards get the removal alert (both players' in hot seat); names for the spotlight and the alert
+  const alertFor = useMemo<PlayerId[]>(() => (session.kind === 'hotseat' ? [0, 1] : [viewer]), [session.kind, viewer]);
+  pb.alertFor = alertFor;
+  pb.names = names;
+  pb.onFlush = clearLeads;
   const view = useSyncExternalStore(pb.subscribe, pb.get);
   const shown = view.state;
   const [speed, setSpeed] = useState<AnimSpeed>(pb.speed);
@@ -649,7 +655,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           </button>
         ) : null}
       </div>
-      <JournalList snapLog={snap.log} describe={(e, s) => describeEvent(e, catalog, s, { players: names })} />
+      <JournalList snapLog={snap.log} alertFor={alertFor} describe={(e, s) => describeEvent(e, catalog, s, { players: names })} />
     </div>
   );
 
@@ -910,8 +916,18 @@ function MiniArt({ card }: { card: Card }) {
   return <CardView card={card} size="board" />;
 }
 
-function JournalList({ snapLog, describe }: { snapLog: { seq: number; event: import('@cinecards/engine').GameEvent; state: GameState }[]; describe: (e: import('@cinecards/engine').GameEvent, s: GameState) => string | null }) {
+function JournalList({
+  snapLog,
+  alertFor,
+  describe,
+}: {
+  snapLog: { seq: number; event: import('@cinecards/engine').GameEvent; state: GameState }[];
+  alertFor: readonly PlayerId[];
+  describe: (e: import('@cinecards/engine').GameEvent, s: GameState) => string | null;
+}) {
   const ref = useRef<HTMLOListElement>(null);
+  // story 13.10: a card of mine removed by an opposing effect stands out in the journal
+  const events = useMemo(() => snapLog.map((l) => l.event), [snapLog]);
   useEffect(() => {
     ref.current?.scrollTo({ top: ref.current.scrollHeight });
   }, [snapLog.length]);
@@ -921,7 +937,7 @@ function JournalList({ snapLog, describe }: { snapLog: { seq: number; event: imp
         const text = describe(l.event, l.state);
         if (!text) return null;
         return (
-          <li key={i} className={l.event.type === 'turnStarted' ? 'turn' : l.event.type === 'gameOver' ? 'over' : ''}>
+          <li key={i} className={l.event.type === 'turnStarted' ? 'turn' : l.event.type === 'gameOver' ? 'over' : alertFor.includes(removalAt(events, i)?.owner as PlayerId) ? 'removed' : ''}>
             {text}
           </li>
         );

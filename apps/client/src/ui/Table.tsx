@@ -13,7 +13,6 @@ import {
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
-import { deathFx } from './anim.ts';
 import { direct } from './director.ts';
 import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
@@ -107,16 +106,11 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   // event batch → beats (stories 7.2, 12.1); the playback's timers end with the table
   useEffect(() => () => pb.flush(), [pb]);
   pb.onCue = (cue: Cue) => {
-    const { beat, ms } = cue;
+    const { beat } = cue;
     sfx(beat.sound);
     direct(cue);
     if (beat.dice) setDice({ ...beat.dice, key: Date.now() });
     if (beat.highlight) setHighlight({ name: beat.highlight.name, cardId: beat.highlight.cardId, key: Date.now() });
-    if (beat.event.type === 'cardDestroyed') {
-      const iid = beat.event.iid;
-      // the dying card is rendered on this beat: animate it once it is in the DOM
-      requestAnimationFrame(() => deathFx(iid, Math.max(0, ms - 16)));
-    }
   };
   useEffect(() => {
     const before = prevState.current;
@@ -277,6 +271,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     const card = inst && catalog.get(inst.cardId);
     if (!inst || !card) return null;
     const dying = view.dying.has(iid);
+    const leaving = view.returning.has(iid);
     const sick = !dying && card.category === 'character' && inst.playedOnTurn >= shown.players[owner].turnNumber && canAttack(catalog, shown, iid)?.code === 'SUMMONING_SICK';
     return (
       <CardView
@@ -288,7 +283,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         sick={!!sick}
         cycle={dying ? null : cycleCountdown(catalog, shown, iid)}
         dying={dying}
-        state={dying ? null : cardState(iid, owner)}
+        leaving={leaving}
+        state={dying || leaving ? null : cardState(iid, owner)}
         onClick={() => tapCard(iid)}
         count={countMs}
       />

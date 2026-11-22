@@ -125,3 +125,28 @@ test('damage shows a number, the HP counter rolls, and a shield absorbs', async 
   expect(nums).toContain('−110');
   expect(nums).toContain('absorbé 40');
 });
+
+/** Story 12.4: the dying card cracks and burns in its slot, then its ashes fly to the graveyard counter. */
+test('a dying card cracks, burns, and its ashes reach the graveyard', async ({ page }) => {
+  await page.goto('/?scene=mort');
+  await page.evaluate((name) => {
+    const w = window as unknown as { __ccDeath: { cracked: boolean; scorched: boolean; ashes: number } };
+    w.__ccDeath = { cracked: false, scorched: false, ashes: 0 };
+    const tick = () => {
+      const card = document.querySelector(`.board.theirs [aria-label="${name}"]`);
+      const op = (sel: string) => Number(card?.querySelector(sel) ? getComputedStyle(card.querySelector(sel)!).opacity : 0);
+      if (op('.cracks') > 0.9) w.__ccDeath.cracked = true;
+      if (op('.scorch') > 0.5) w.__ccDeath.scorched = true;
+      w.__ccDeath.ashes = Math.max(w.__ccDeath.ashes, document.querySelectorAll('.fx-ash').length);
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, NI);
+  const grave = page.locator('[data-hero="1"] [title="Cimetière"]');
+  await expect(grave).toHaveText('0');
+  await attackNi(page);
+  await expect(grave).toHaveText('1', { timeout: 5000 });
+  await page.waitForFunction(() => (window as unknown as { __ccDeath: { ashes: number } }).__ccDeath.ashes > 0, null, { timeout: 5000 });
+  const seen = await page.evaluate(() => (window as unknown as { __ccDeath: unknown }).__ccDeath);
+  expect(seen).toMatchObject({ cracked: true, scorched: true });
+});

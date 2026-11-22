@@ -56,7 +56,8 @@ const trace = (type: string, phase: 'start' | 'end', iid?: string) => {
  */
 export class Playback {
   private queue: Batch[] = [];
-  private cur: { batch: Batch; played: number; dying: Set<string> } | null = null;
+  /** `held`: cards kept in their slot while they die or go back to hand. */
+  private cur: { batch: Batch; played: number; held: Set<string> } | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private deathTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private view: ShownView;
@@ -160,7 +161,7 @@ export class Playback {
   private refresh() {
     const c = this.cur;
     if (!c) return;
-    this.view = shownView(this.catalog, c.batch.before, c.batch.after, c.batch.events, c.played, new Set(c.dying));
+    this.view = shownView(this.catalog, c.batch.before, c.batch.after, c.batch.events, c.played, new Set(c.held));
     this.emit();
   }
 
@@ -170,7 +171,7 @@ export class Playback {
       this.cur = null;
       return;
     }
-    this.cur = { batch, played: 0, dying: new Set() };
+    this.cur = { batch, played: 0, held: new Set() };
     this.step();
   }
 
@@ -182,13 +183,13 @@ export class Playback {
     if (r === 0) {
       // instant: no animation, the view lands on the batch's end
       c.played = c.batch.beats.length;
-      c.dying.clear();
+      c.held.clear();
       this.view = idleView(c.batch.after);
       this.emit();
       return this.next();
     }
     if (c.played >= c.batch.beats.length) {
-      if (c.dying.size) return; // the last death ends the batch
+      if (c.held.size) return; // the last death (or return to hand) ends the batch
       this.view = idleView(c.batch.after);
       this.emit();
       return this.next();
@@ -210,15 +211,15 @@ export class Playback {
   private begin(c: NonNullable<Playback['cur']>, beat: Beat, ms: number) {
     const e = beat.event;
     trace(e.type, 'start', 'iid' in e ? (e.iid as string) : undefined);
-    if (e.type !== 'cardDestroyed') return;
-    c.dying.add(e.iid);
+    if (e.type !== 'cardDestroyed' && e.type !== 'returnedToHand') return;
+    c.held.add(e.iid);
     const t = setTimeout(() => {
       this.deathTimers.delete(e.iid);
       if (this.cur !== c) return;
-      c.dying.delete(e.iid);
-      trace('cardDestroyed', 'end', e.iid);
+      c.held.delete(e.iid);
+      trace(e.type, 'end', e.iid);
       this.refresh();
-      if (c.played >= c.batch.beats.length && !c.dying.size && !this.timer) this.step();
+      if (c.played >= c.batch.beats.length && !c.held.size && !this.timer) this.step();
     }, ms);
     this.deathTimers.set(e.iid, t);
   }

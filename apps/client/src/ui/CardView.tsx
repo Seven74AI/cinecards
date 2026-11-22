@@ -105,17 +105,19 @@ export interface CardViewProps {
   cost?: number;
   /** Destroyed, still shown for its death animation (story 12.1). */
   dying?: boolean;
+  /** Sent back to hand, still shown while it flies off (story 12.4). */
+  leaving?: boolean;
 }
 
 function statClass(cur: number, base: number) {
   return cur > base ? ' up' : cur < base ? ' down' : '';
 }
 
-export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying }: CardViewProps) {
+export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
-  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
+  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
     <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
       <span className="card-frame">
@@ -172,7 +174,12 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
           </span>
         ) : null}
       </span>
-      {dying ? <span className="fx-death" aria-hidden="true" /> : null}
+      {dying ? (
+        <>
+          <span className="cracks" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CRACKS_SVG }} />
+          <span className="scorch" aria-hidden="true" />
+        </>
+      ) : null}
       {statuses.some((s) => s.kind === 'silence') ? <Chains /> : null}
     </button>
   );
@@ -182,6 +189,10 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
 export function CardBack({ small }: { small?: boolean }) {
   return <span className={'card-back' + (small ? ' small' : '')} aria-hidden="true" />;
 }
+
+/** Cracks of a dying card (story 12.4), faded in by the director. */
+export const CRACKS_SVG =
+  '<svg viewBox="0 0 100 140" preserveAspectRatio="none" aria-hidden="true"><path d="M48 0 L42 30 L58 52 L40 80 L55 104 L46 140 M58 52 L82 60 M40 80 L14 88" fill="none" stroke="#2a1a0e" stroke-width="2.6"/></svg>';
 
 /** Chains crossed over a silenced card (story 12.3); also drawn, animated, when the silence lands. */
 export const CHAINS_SVG =

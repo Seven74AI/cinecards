@@ -16,11 +16,13 @@ export interface ShownView {
   statuses: Record<string, Status[]>;
   /** Destroyed cards still in their slot for their death animation. */
   dying: ReadonlySet<string>;
+  /** Cards sent back to hand, still in their slot while they lift off (story 12.4). */
+  returning: ReadonlySet<string>;
 }
 
 const ZONES: SlotKind[] = ['characters', 'terrains', 'spells'];
 
-export const idleView = (state: GameState): ShownView => ({ state, stats: {}, statuses: {}, dying: new Set() });
+export const idleView = (state: GameState): ShownView => ({ state, stats: {}, statuses: {}, dying: new Set(), returning: new Set() });
 
 const onBoard = (s: GameState, iid: string): { player: PlayerId; zone: SlotKind; slot: number } | null => {
   for (const player of [0, 1] as const)
@@ -40,11 +42,12 @@ const deltaOf = (e: GameEvent): { iid: string; d: Delta } | null => {
 };
 
 /**
- * The state shown after the first `played` events of the batch, with the cards of `dying` still in place.
+ * The state shown after the first `played` events of the batch, with the cards of `held` (dying, or going
+ * back to hand) still in place.
  * Pure: the same inputs always give the same view.
  */
-export function shownView(catalog: Catalog, before: GameState, after: GameState, events: GameEvent[], played: number, dying: ReadonlySet<string> = new Set()): ShownView {
-  if (played >= events.length && dying.size === 0) return idleView(after);
+export function shownView(catalog: Catalog, before: GameState, after: GameState, events: GameEvent[], played: number, held: ReadonlySet<string> = new Set()): ShownView {
+  if (played >= events.length && held.size === 0) return idleView(after);
   const done = events.slice(0, played);
   const todo = events.slice(played);
 
@@ -63,13 +66,20 @@ export function shownView(catalog: Catalog, before: GameState, after: GameState,
     zones[player]![zone][at] = iid;
   };
   let heroHp: [number, number] = [before.players[0].hp, before.players[1].hp];
+  const dying = new Set<string>();
+  const returning = new Set<string>();
   for (const e of done) {
     if (e.type === 'cardPlayed' && e.zone !== 'resolved') place(e.iid, e.player, e.zone, e.slot);
     else if (e.type === 'summoned') {
       const where = onBoard(after, e.iid);
       if (where) place(e.iid, where.player, where.zone, where.slot);
-    } else if (e.type === 'returnedToHand') remove(e.iid);
-    else if (e.type === 'cardDestroyed' && !dying.has(e.iid)) remove(e.iid);
+    } else if (e.type === 'returnedToHand') {
+      if (held.has(e.iid)) returning.add(e.iid);
+      else remove(e.iid);
+    } else if (e.type === 'cardDestroyed') {
+      if (held.has(e.iid)) dying.add(e.iid);
+      else remove(e.iid);
+    }
     else if (e.type === 'playerDamaged') heroHp = e.player === 0 ? [e.hp, heroHp[1]] : [heroHp[0], e.hp];
   }
 
@@ -118,7 +128,7 @@ export function shownView(catalog: Catalog, before: GameState, after: GameState,
     for (const zone of ['terrains', 'spells'] as const)
       for (const iid of p[zone]) if (iid && !onBoard(after, iid) && before.instances[iid]) instances[iid] = before.instances[iid]!;
 
-  return { state, stats, statuses, dying };
+  return { state, stats, statuses, dying, returning };
 }
 
 const neg = (d: Delta): Delta => ({ atk: -d.atk, hp: -d.hp });

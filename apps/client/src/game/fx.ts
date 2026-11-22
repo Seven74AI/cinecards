@@ -21,11 +21,11 @@ export const TIMING = {
   modify: 200,
   status: 260,
   save: 600,
-  death: 800,
+  death: 1200, // freeze 0.1 + crack 0.2 + shake 0.25 + burn 0.65; the ashes fly during the next beats
   play: 350,
   legend: 1500,
   summon: 420,
-  returned: 450,
+  returned: 500,
   dice: 1300,
   ability: 250,
   special: 600, // glow + beam of a special attack or a reaction

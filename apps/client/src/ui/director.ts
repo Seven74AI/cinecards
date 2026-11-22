@@ -1,7 +1,7 @@
 import type { GameEvent, PlayerId, Target } from '@cinecards/engine';
 import type { Cue } from '../game/playback.ts';
 import { animate, cardEl, EASE } from './anim.ts';
-import { CHAINS_SVG } from './CardView.tsx';
+import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 
 /**
@@ -307,6 +307,110 @@ function statusFx(card: HTMLElement, kind: string, r: number) {
   if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, 13 * fitOf(card), r, 'small');
 }
 
+const later = (fn: () => void, ms: number) => setTimeout(fn, ms);
+
+
+/** The graveyard counter of a player, where the ashes go. */
+const graveEl = (p: PlayerId) => heroEl(p)?.querySelector<HTMLElement>('[title="Cimetière"]') ?? heroEl(p);
+
+/**
+ * Story 12.4, death (demo scene "Mort"): the card freezes, cracks, shakes, then burns away in place
+ * (scorch veil, embers); its ashes fly in an arc to its owner's graveyard counter, which glows.
+ * `ms` is the whole time the card stays in its slot.
+ */
+function death(iid: string, owner: PlayerId, ms: number, r: number) {
+  const card = cardEl(iid);
+  if (!card) return;
+  void animate(
+    card,
+    [
+      { transform: 'none', opacity: 1, offset: 0 },
+      { transform: 'none', opacity: 1, offset: 0.25 },
+      { transform: 'rotate(-2deg)', opacity: 1, offset: 0.33 },
+      { transform: 'rotate(2deg)', opacity: 1, offset: 0.4 },
+      { transform: 'rotate(0) scale(1)', opacity: 1, offset: 0.46 },
+      { transform: 'scale(.96)', opacity: 1, offset: 0.7 },
+      { transform: 'scale(.88) translateY(6px)', opacity: 0, offset: 1 },
+    ],
+    ms,
+    { fill: 'forwards', easing: 'linear' },
+  );
+  void animate(card.querySelector('.cracks'), [{ opacity: 0 }, { opacity: 0, offset: 0.08 }, { opacity: 1, offset: 0.25 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
+  void animate(card.querySelector('.scorch'), [{ opacity: 0 }, { opacity: 0, offset: 0.46 }, { opacity: 0.7, offset: 0.75 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
+  const rect = card.getBoundingClientRect();
+  later(() => particles(card, 18, ['#ff8a3d', '#ffd27a', '#8e1f1f'], r, 70, 900), ms * 0.46);
+  // ashes: from where the card was to the graveyard counter
+  later(() => {
+    const g = graveEl(owner);
+    if (!g) return;
+    const to = center(g);
+    const n = 12;
+    let left = n;
+    for (let i = 0; i < n; i++) {
+      const x = rect.left + rect.width * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
+      const y = rect.top + rect.height * (0.2 + (0.6 * ((i * 53) % 100)) / 100);
+      const d = overlay('fx-ash', x, y);
+      const dx = to.x - x;
+      const dy = to.y - y;
+      void animate(
+        d,
+        [
+          { transform: 'translate(-50%,-50%)', opacity: 0.9 },
+          { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px))`, opacity: 0.8, offset: 0.5 },
+          { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.5)`, opacity: 0 },
+        ],
+        (700 + i * 40) * Math.max(r, 0.5),
+        { easing: 'ease-in' },
+      ).then(() => {
+        d.remove();
+        if (--left === 0) void animate(g, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)', offset: 0.4 }, { transform: 'scale(1)' }], 600 * Math.max(r, 0.5));
+      });
+    }
+  }, ms * 0.9);
+}
+
+/** Story 12.4, death avoided: the card cracks, shakes, then the crack seals in a golden glint, "Sauvé !". */
+function saved(iid: string, ms: number, r: number) {
+  const card = cardEl(iid);
+  if (!card) return;
+  const rect = card.getBoundingClientRect();
+  const cr = overlay('fx-crack', rect.left, rect.top, CRACKS_SVG);
+  cr.style.width = `${rect.width}px`;
+  cr.style.height = `${rect.height}px`;
+  void animate(cr, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.55 }, { opacity: 0 }], ms, { easing: 'linear' }).then(() => cr.remove());
+  void animate(card, [{ rotate: '0deg' }, { rotate: '-2deg', offset: 0.3 }, { rotate: '2deg', offset: 0.4 }, { rotate: '0deg', offset: 0.5 }], ms, { composite: 'add', easing: 'linear' });
+  later(() => {
+    tint(card, 'saved', r, 450);
+    particles(card, 10, ['#f2d27a', '#fff4c4'], r, 40, 600);
+    const c = center(card);
+    floatText(c.x, c.y - 10, 'Sauvé !', '#f2d27a', 16 * fitOf(card), r, 'small');
+  }, ms * 0.5);
+}
+
+/** Story 12.4, back to hand: the card lifts and flies in an arc to its owner's hand, shrinking. */
+function backToHand(iid: string, owner: PlayerId, ms: number) {
+  const card = cardEl(iid);
+  const mine = !!card?.closest('.board.mine');
+  const hand = document.querySelector<HTMLElement>(mine ? '.table .hand' : '.table .foe-hand');
+  if (!card || !hand) return;
+  const a = center(card);
+  const b = center(hand);
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  card.style.zIndex = '30';
+  void animate(
+    card,
+    [
+      { transform: 'translate(0,0) scale(1) rotate(0)', opacity: 1 },
+      { transform: 'translate(0,-14px) scale(1.12) rotate(0)', opacity: 1, offset: 0.25 },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 70}px) scale(.9) rotate(${owner ? -8 : 8}deg)`, opacity: 1, offset: 0.6 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.55) rotate(0)`, opacity: 0.2 },
+    ],
+    ms,
+    { fill: 'forwards', easing: 'ease-in-out' },
+  );
+}
+
 export function direct(cue: Cue) {
   const { beat, rate: r, events } = cue;
   const e = beat.event;
@@ -345,6 +449,20 @@ export function direct(cue: Cue) {
       floatText(c.x + 30, c.y, `−${e.amount}`, '#ff6a5a', Math.min(40, 20 + e.amount / 8), r, 'dmg');
       recoil(hero, current ? cardEl(current.attacker) : null, r, 0.8);
       shake(e.amount, r);
+      break;
+    }
+    case 'cardDestroyed': {
+      const { iid, owner } = e;
+      // the dying card gets its cracks and scorch layers on this beat's render
+      requestAnimationFrame(() => death(iid, owner, Math.max(0, cue.ms - 16), r));
+      break;
+    }
+    case 'deathPrevented':
+      saved(e.iid, cue.ms, r);
+      break;
+    case 'returnedToHand': {
+      const { iid, owner } = e;
+      requestAnimationFrame(() => backToHand(iid, owner, Math.max(0, cue.ms - 16)));
       break;
     }
     case 'healed': {

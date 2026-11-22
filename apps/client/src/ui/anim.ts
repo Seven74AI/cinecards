@@ -17,20 +17,3 @@ export function animate(el: Element | null | undefined, frames: Keyframe[], ms: 
 }
 
 export const cardEl = (iid: string) => document.querySelector<HTMLElement>(`.board [data-iid="${CSS.escape(iid)}"]`);
-
-/** Story 12.1 death beat: the card freezes, darkens and fades in place (12.4 adds cracks, burn and ashes). */
-export function deathFx(iid: string, ms: number) {
-  const el = cardEl(iid);
-  // the scorch veil (`.is-dying` in styles.css) darkens the card at the same pace
-  el?.style.setProperty('--death-ms', `${ms}ms`);
-  void animate(
-    el,
-    [
-      { transform: 'scale(1)', opacity: 1 },
-      { transform: 'scale(.96)', opacity: 1, offset: 0.4 },
-      { transform: 'scale(.88) translateY(6px)', opacity: 0 },
-    ],
-    ms,
-    { fill: 'forwards' },
-  );
-}

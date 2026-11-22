@@ -54,6 +54,20 @@ describe('12.1 shown state', () => {
     expect(shownView(MVP, state, r.state, r.events, at + 1).state.players[0].characters[1]).toBe(tank);
   });
 
+  it('a card sent back to hand stays in its slot while it lifts off', () => {
+    const { state, id } = scene({}, { chars: ['hg-ni'] });
+    const ni = id('hg-ni');
+    const after = structuredClone(state);
+    after.players[1].characters[0] = null;
+    after.players[1].hand.push(ni);
+    const events = [{ type: 'returnedToHand' as const, iid: ni, owner: 1 as const }];
+    const held = shownView(MVP, state, after, events, 1, new Set([ni]));
+    expect(held.state.players[1].characters[0]).toBe(ni);
+    expect(held.returning.has(ni)).toBe(true);
+    expect(held.dying.has(ni)).toBe(false);
+    expect(shownView(MVP, state, after, events, 1).state).toBe(after);
+  });
+
   it('a hit on the player counts down on its beat', () => {
     const { state, id } = scene({ chars: ['hs-topper'] }, {});
     const r = act(state, { type: 'attack', player: 0, attacker: id('hs-topper'), target: { kind: 'player', player: 1 } });

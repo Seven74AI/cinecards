@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>B · Vue d'ensemble</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&amp;family=Alegreya:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.c{position:relative;flex:none;width:var(--w);height:calc(var(--w) * 1.4);padding:2px;box-sizing:border-box;border-radius:5px;background:linear-gradient(145deg,#f2d27a,#d4a74a 40%,#8a6416 75%,#f2d27a);box-shadow:0 0 0 1px #3a2608,0 3px 6px rgba(0,0,0,.6)}
+.c .in{height:100%;border-radius:3px;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;border:1px solid rgba(90,61,12,.5);background:radial-gradient(ellipse at 50% 40%,#f3e6c4,#ead9b0 60%,#cdb07a)}
+.c .nm{font-family:Cinzel,serif;font-weight:900;font-size:calc(var(--w) * .095);line-height:1;color:#2a1a0e;text-align:center;padding:4px 2px 2px calc(var(--w) * .2);min-height:calc(var(--w) * .2);display:flex;align-items:center;justify-content:center}
+.c .art{flex:1;margin:0 3px 3px;border-radius:2px;border:1px solid #8a6416}
+.c .st{position:absolute;left:2px;right:2px;bottom:2px;display:flex;justify-content:space-between}
+.c .st span{font-family:Cinzel,serif;font-weight:900;font-size:calc(var(--w) * .135);color:#fff;padding:0 3px;border-radius:2px 2px 5px 5px;box-shadow:0 0 0 1px #f2d27a;line-height:1.35}
+.c .a{background:linear-gradient(#b8322a,#7a1414)}.c .h{background:linear-gradient(#8a3cb0,#4e1670)}.c .h.hurt{background:linear-gradient(#d8402e,#8e1f1f)}.c .a.up{background:linear-gradient(#3aa860,#1d6a36)}
+.tk{position:absolute;top:-4px;left:-4px;width:calc(var(--w) * .3);height:calc(var(--w) * .34);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.tk i,.tk b{position:absolute;inset:0;font-style:normal}
+.tk i{background:linear-gradient(145deg,#fff4c4,#d4a74a 45%,#7a5410)}
+.tk b{inset:1.5px;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:calc(var(--w) * .15);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.7)}
+.shield i,.shield b{clip-path:polygon(0 0,100% 0,100% 58%,50% 100%,0 58%)}
+.shield b{background:linear-gradient(#e9c25d,#9a6a14);color:#3a2608;text-shadow:none;padding-bottom:22%}
+.seal i{border-radius:47% 53% 50% 50% / 53% 47% 53% 47%;background:#5a0f0d}
+.seal b{border-radius:50%;inset:3px;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 55%,#5a0f0d)}
+.r1 .in{border:1.5px solid #2f7bf6}.r2 .in{border:1.5px solid #b020c0;box-shadow:inset 0 0 8px rgba(176,32,192,.4)}
+.r3{background:linear-gradient(145deg,#fff2c0,#ffb54a 30%,#d4a74a 55%,#8a6416 80%,#fff2c0);box-shadow:0 0 0 1px #3a2608,0 0 9px rgba(255,149,0,.55)}.r3 .in{border:1.5px solid #ff9500}
+.ready{box-shadow:0 0 0 2px #4fd1c5,0 0 10px rgba(79,209,197,.7)}
+.rune{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(212,167,74,.55);box-sizing:border-box;flex:none}
+.chip{width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center}
+.dia{width:14px;height:14px;transform:rotate(45deg);background:linear-gradient(160deg,#7fb84a,#3e7a1c 55%,#1d3a0c);box-shadow:0 0 0 1.5px #d4a74a}
+.sealc{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 55%,#5a0f0d);box-shadow:0 0 0 1.5px #d4a74a}
+.empty{width:12px;height:12px;border-radius:3px;border:1px dashed rgba(212,167,74,.45);box-sizing:border-box;flex:none}
+.ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;cursor:pointer}
+.ph{display:flex;align-items:center;gap:8px;height:40px;padding:0 10px;box-sizing:border-box;border-radius:10px;background:rgba(20,12,6,.7);box-shadow:0 0 0 1px rgba(212,167,74,.35)}
+.av{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:13px;color:#f2d27a;background:radial-gradient(circle,#8e1f1f,#3a0a08);box-shadow:0 0 0 1.5px #d4a74a}
+.pn{font-family:Cinzel,serif;font-weight:700;font-size:12px;color:#ead9b0}
+.hp{margin-left:auto;font-family:Cinzel,serif;font-weight:900;font-size:13px;color:#ead9b0;font-variant-numeric:tabular-nums}
+.coin{display:flex;align-items:center;gap:3px;font-family:Cinzel,serif;font-weight:900;font-size:12px;color:#f2d27a}
+.coin span{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff4c4,#f2d27a 35%,#c08a2a 75%,#7a5410)}
+.meta{font-family:Alegreya,serif;font-size:11px;color:#b9a27a}
+.slotg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;justify-items:center}
+.ghost{width:var(--w);height:calc(var(--w) * 1.4);display:flex;align-items:center;justify-content:center}
+.ghost span{width:70%;aspect-ratio:1;border-radius:50%;border:1.5px dashed rgba(212,167,74,.35);box-sizing:border-box}
+.side{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;background:rgba(20,12,6,.45);box-shadow:0 0 0 1px rgba(212,167,74,.25);border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%;box-sizing:border-box}
+.zoomhint{display:flex;align-items:center;gap:4px;margin-left:auto;font-family:Alegreya,serif;font-size:11px;color:#b9a27a}
+.target{box-shadow:0 0 0 2px #ff6b4a,0 0 12px rgba(255,107,74,.8)}
+.sel{box-shadow:0 0 0 2px #4fd1c5,0 0 14px rgba(79,209,197,.9);transform:translateY(-8px) scale(1.08)}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;padding:0 10px 0;background:radial-gradient(ellipse at 50% 45%,#3d2616,#24170d 60%,#140c06);display:flex;flex-direction:column;gap:6px;color:#ead9b0;overflow:hidden">
+<div style="display:flex;align-items:center;height:44px;flex:none">
+<button type="button" class="ib" aria-label="Abandonner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"></path></svg></button>
+<span style="font-family:Cinzel,serif;font-weight:900;font-size:15px;color:#f2d27a;margin-right:auto">CineCards</span>
+<button type="button" class="ib" aria-label="Règles et mots-clés"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"></path></svg></button>
+<button type="button" class="ib" aria-label="Journal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path></svg></button>
+</div>
+
+<div class="ph" style="flex:none"><span class="av">J</span><span class="pn">Joueur 2</span><span class="meta">main 6 · pioche 22</span><span class="hp">♥ 560</span><span class="coin"><span></span>3/10</span></div>
+<button type="button" class="side" aria-label="Agrandir le camp adverse" style="--w:52px;flex:none"><div style="display:flex;align-items:center;gap:6px;height:18px"><span class="chip"><span class="dia"></span></span><span class="meta" style="margin-right:6px">Camelot</span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="zoomhint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b9a27a" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4M11 8v6M8 11h6"></path></svg>agrandir</span></div><div class="slotg"><sc-for list="{{ foeSlots }}" as="c" hint-placeholder-count="10"><sc-if value="{{ c.filled }}" hint-placeholder-val="{{ true }}"><div class="c {{ c.r }} {{ c.ready }}"><div class="in"><div class="nm">{{ c.name }}</div><div class="art" style="background:{{ c.art }}"></div></div><span class="tk {{ c.t }}"><i></i><b>{{ c.cost }}</b></span><div class="st"><span class="{{ c.acls }}">{{ c.atk }}</span><span class="{{ c.hcls }}">{{ c.hp }}</span></div></div></sc-if><sc-if value="{{ c.free }}" hint-placeholder-val="{{ false }}"><div class="ghost"><span></span></div></sc-if></sc-for></div></button>
+<div style="flex:none;display:flex;align-items:center;gap:10px;height:50px;padding:0 6px 0 12px;border-radius:8px;background:linear-gradient(#f3e6c4,#d9c08a);box-shadow:0 0 0 1.5px #d4a74a,0 4px 10px rgba(0,0,0,.5);color:#2a1a0e">
+<div style="display:flex;flex-direction:column;gap:1px"><span style="font-family:Cinzel,serif;font-weight:900;font-size:14px">Ton tour 7</span><span style="font-family:Alegreya,serif;font-size:11px;color:#5a3d1c">Pose, attaque, puis termine</span></div>
+<span style="margin-left:auto;font-family:Cinzel,serif;font-weight:900;font-size:15px;font-variant-numeric:tabular-nums">⧗ 58 s</span>
+<button type="button" style="height:44px;padding:0 14px;border:0;border-radius:22px;font-family:Cinzel,serif;font-weight:900;font-size:12px;color:#fff3d6;background:radial-gradient(circle at 40% 35%,#c0392b,#7a1414 70%);box-shadow:0 0 0 2px #4d0c0a">Fin du tour</button>
+</div>
+
+<button type="button" class="side" aria-label="Agrandir votre camp" style="--w:52px;flex:none"><div class="slotg"><sc-for list="{{ meSlots }}" as="c" hint-placeholder-count="10"><sc-if value="{{ c.filled }}" hint-placeholder-val="{{ true }}"><div class="c {{ c.r }} {{ c.ready }}"><div class="in"><div class="nm">{{ c.name }}</div><div class="art" style="background:{{ c.art }}"></div></div><span class="tk {{ c.t }}"><i></i><b>{{ c.cost }}</b></span><div class="st"><span class="{{ c.acls }}">{{ c.atk }}</span><span class="{{ c.hcls }}">{{ c.hp }}</span></div></div></sc-if><sc-if value="{{ c.free }}" hint-placeholder-val="{{ false }}"><div class="ghost"><span></span></div></sc-if></sc-for></div><div style="display:flex;align-items:center;gap:6px;height:18px"><span class="chip"><span class="dia"></span></span><span class="meta" style="margin-right:6px">La Matrice</span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="zoomhint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b9a27a" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4M11 8v6M8 11h6"></path></svg>agrandir</span></div></button>
+<div class="ph" style="flex:none"><span class="av">J</span><span class="pn">Joueur 1 (vous)</span><span class="meta">pioche 21</span><span class="hp">♥ 610</span><span class="coin"><span></span>7/10</span></div>
+<div style="flex:1;min-height:0;position:relative;--w:92px">
+<div style="position:absolute;left:0;right:0;bottom:-34px;display:flex;justify-content:center">
+<sc-for list="{{ hand }}" as="c" hint-placeholder-count="7">
+<div class="c {{ c.r }} {{ c.ready }}" style="margin:0 -16px;transform:{{ c.tf }}"><div class="in"><div class="nm">{{ c.name }}</div><div class="art" style="background:{{ c.art }}"></div></div><span class="tk {{ c.t }}"><i></i><b>{{ c.cost }}</b></span><sc-if value="{{ c.char }}" hint-placeholder-val="{{ true }}"><div class="st"><span class="a">{{ c.atk }}</span><span class="h">{{ c.hp }}</span></div></sc-if></div>
+</sc-for>
+</div>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const A = { g: 'linear-gradient(160deg,#173a2a,#0b1f14)', b: 'linear-gradient(160deg,#1d3a5a,#081422)', k: 'linear-gradient(160deg,#1a1a22,#05050a)', r: 'linear-gradient(160deg,#3a2a10,#120a02)', s: 'radial-gradient(circle,#ff8a3d,#8e1f1f 55%,#2a0606)', p: 'linear-gradient(160deg,#3a1d4a,#12081a)' };
+const ch = (name, cost, atk, hp, r, art, extra) => Object.assign({ name, cost, atk, hp, r, art, t: 'shield', char: true, hcls: 'h', acls: 'a', ready: '' }, extra || {});
+const foe1 = [ch('Sire Galahad', 3, 50, 100, 'r0', A.g), ch('Le Gardien du pont', 4, 60, 130, 'r1', A.r), ch('Kent Gregory', 5, 90, 160, 'r1', A.b), ch('Le Chevalier noir', 7, 110, 210, 'r2', A.k, { hcls: 'h hurt' }), ch('Sire Robin', 2, 40, 70, 'r0', A.g)];
+const foe2 = [ch('Tim l’Enchanteur', 4, 60, 100, 'r1', A.p), ch('Le maître des clés', 4, 50, 90, 'r1', A.g)];
+const me1 = [ch('Patsy', 1, 10, 40, 'r0', A.r), ch('Cypher', 5, 70, 150, 'r1', A.k, { ready: 'ready' }), ch('Topper Harley', 9, 170, 400, 'r3', A.b, { ready: 'ready', acls: 'a up', hcls: 'h hurt' }), ch('Agent Gomez', 2, 40, 70, 'r0', A.p, { ready: 'ready' })];
+const raw = [ch('Smith', 13, 150, 300, 'r3', A.g), ch('Le Chevalier noir', 7, 110, 350, 'r2', A.k, { ready: 'ready' }), Object.assign(ch('Missile', 7, 0, 0, 'r2', A.s, { ready: 'ready' }), { t: 'seal', char: false }), ch('Néo', 10, 160, 600, 'r3', A.g), Object.assign(ch('Les pilules', 7, 0, 0, 'r2', A.s, { ready: 'ready' }), { t: 'seal', char: false }), ch('Sire Lancelot', 5, 90, 160, 'r1', A.r, { ready: 'ready' }), ch('Latrell', 9, 140, 520, 'r3', A.p)];
+const fill = (arr) => { const out = arr.map((c) => Object.assign({ filled: true, free: false }, c)); while (out.length < 10) out.push({ filled: false, free: true }); return out; };
+const foeSlots = fill(foe1.concat(foe2));
+const meSlots = fill(me1);
+const n = raw.length;
+const hand = raw.map((c, i) => { const k = i - (n - 1) / 2; return Object.assign({}, c, { tf: 'translateY(' + Math.round(k * k * 3) + 'px) rotate(' + (k * 5).toFixed(1) + 'deg)' }); });
+return { foeSlots, meSlots, hand };
+}
+}
+</script>
+</body>
+</html>

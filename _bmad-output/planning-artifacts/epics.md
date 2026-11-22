@@ -946,7 +946,10 @@ As a joueur sur téléphone, I want voir toute la table sans faire défiler, So 
 - **Given** une partie sur un téléphone en portrait (de 360 × 640 à 430 × 932)
 - **When** la table s'affiche, à n'importe quel moment de la partie
 - **Then** tout tient dans la hauteur visible (`100dvh`) sans défilement de la page : les deux camps, le bandeau de tour avec le chrono, les PV et pièces, et la main
-- **And** la disposition suit la maquette validée par Root
+- **And** la disposition suit la maquette validée par Root, l'option **B · vue d'ensemble + zoom** (`docs/design/mobile-table/`) :
+  - **Vue d'ensemble :** les deux camps en grilles compactes 2×5, avec les 10 socles visibles (socles vides en runes pointillées) et une fine bande terrains/sorts par camp. Le bandeau de tour et le chrono sont au centre. La main est grande et déborde en éventail sur le bas de l'écran.
+  - **Zoom :** toucher un camp, choisir un attaquant ou recevoir une demande de cible agrandit le camp concerné, et l'autre se replie en bande de miniatures. Une barre de consigne indique l'action, le chrono et « Annuler », avec un retour « Vue d'ensemble ». Une demande de cible ouvre le zoom toute seule, et il se referme après l'action.
+  - **Transitions :** le passage d'une vue à l'autre est animé avec la couche de présentation de l'epic 12 (moins de 300 ms, fondu avec « réduire les animations »).
 - **And** les cibles tactiles mesurent toujours au moins 44 px, et les cartes restent lisibles (nom, coût, ATQ/PV)
 - **And** les tests e2e vérifient l'absence de défilement vertical à 390 × 844 et 360 × 640
 

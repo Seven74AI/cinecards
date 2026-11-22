@@ -60,6 +60,8 @@ function useMedia(q: string) {
 
 /** Story 13.2: portrait phones get the compact table (overview + zoom); landscape, tablets and desktop keep theirs. */
 const COMPACT_QUERY = '(orientation: portrait) and (max-width: 699px)';
+/** Story 13.6: tall enough phones keep both sides at full size in zoom (folding would leave an empty band). */
+const ROOMY_QUERY = '(min-height: 760px)';
 
 function useWide() {
   const q = '(min-width: 1100px)';
@@ -81,6 +83,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const catalog = session.catalog;
   const wide = useWide();
   const compact = useMedia(COMPACT_QUERY) && !wide;
+  const roomy = useMedia(ROOMY_QUERY);
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   const [inspect, setInspect] = useState<string | null>(null);
   const { openRules, previewId } = useRefs();
@@ -187,9 +190,15 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const [manualZoom, setManualZoom] = useState<PlayerId | null>(null);
   const [dismissed, setDismissed] = useState('');
   /** After an action, the automatic zoom stays until its beats have played (the director reads positions then). */
-  const [heldZoom, setHeldZoom] = useState<{ side: PlayerId; seq: number } | null>(null);
+  const [heldZoom, setHeldZoom] = useState<{ side: PlayerId; seq: number; attack: boolean } | null>(null);
   const auto = autoSide !== null && dismissed !== autoKey ? autoSide : null;
   const zoom: PlayerId | null = compact ? (auto ?? heldZoom?.side ?? manualZoom) : null;
+  /**
+   * Story 13.6: the other side folds into mini cards only on short screens, and never during my own attack
+   * (the attacker must stay a real card: the director stages it at the demo's size).
+   */
+  const attackZoom = auto !== null ? mode.k === 'attack' : (heldZoom?.attack ?? false);
+  const fold = zoom !== null && !roomy && !attackZoom;
   const zoomTo = (side: PlayerId | null) => {
     setManualZoom(side);
     setHeldZoom(null);
@@ -205,7 +214,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   }, [heldZoom]);
   useEffect(() => setHeldZoom(null), [snap.error]);
   // the switch between views is animated (FLIP): positions are read before the new layout is committed
-  const zoomKey = compact ? String(zoom) : 'x';
+  const zoomKey = compact ? `${zoom}${fold ? 'f' : ''}` : 'x';
   const lastZoomKey = useRef(zoomKey);
   const flipFrom = useRef<Layout | null>(null);
   if (zoomKey !== lastZoomKey.current && !flipFrom.current && zoomKey !== 'x' && lastZoomKey.current !== 'x') flipFrom.current = captureLayout();
@@ -229,7 +238,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     sfx('click');
     pb.hurry();
     session.send(a);
-    if (auto !== null) setHeldZoom({ side: auto, seq: snap.seq });
+    if (auto !== null) setHeldZoom({ side: auto, seq: snap.seq, attack: mode.k === 'attack' });
     setManualZoom(null);
     setMode({ k: 'idle' });
     setInspect(null);
@@ -477,7 +486,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
 
   /** Story 13.2: one side of the compact table, shown in overview, zoomed, or folded into a strip of mini cards. */
   const Side = ({ player }: { player: PlayerId }) => {
-    const view = zoom === null ? 'overview' : zoom === player ? 'zoomed' : 'folded';
+    const view = zoom === null ? 'overview' : zoom === player ? 'zoomed' : fold ? 'folded' : 'overview';
     const mine = player === me;
     const free = shown.players[player].characters.filter((x) => !x).length;
     const head = (
@@ -613,7 +622,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     <div className={'table-root' + (wide ? ' wide' : '')}>
       <Ambient />
       {wide ? <div className="col-left">{journal}</div> : null}
-      <main className={'table' + (compact ? ` compact zoom-${zoom === null ? 'none' : zoom === me ? 'mine' : 'theirs'}` : '')}>
+      <main className={'table' + (compact ? ` compact zoom-${zoom === null ? 'none' : zoom === me ? 'mine' : 'theirs'}${fold ? ' fold' : ''}` : '')}>
         <div className="topbar">
           <button type="button" className="icon-btn" onClick={() => setConfirmQuit('quit')} aria-label="Quitter">
             <Icon name="flag" size={16} />
@@ -706,7 +715,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         )}
         {Hero({ player: me })}
         <div className="hand" aria-label="Ta main">
-          <div className="hand-fan" style={{ '--n': hand.length } as CSSProperties}>
+          <div className={'hand-fan' + (hand.length > 7 ? ' many' : '')} style={{ '--n': hand.length } as CSSProperties}>
           {hand.map((iid, i) => {
             const inst = state.instances[iid];
             if (!inst) return null;

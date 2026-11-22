@@ -19,9 +19,92 @@ const targetEl = (t: Target) => (t.kind === 'card' ? cardEl(t.iid) : portraitEl(
 const elOf = (at: string) => (at.startsWith('hero:') ? portraitEl(Number(at.slice(5)) as PlayerId) : cardEl(at));
 
 const center = (el: Element) => {
-  const r = el.getBoundingClientRect();
+  const r = rectOf(el);
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 };
+
+// ---------------------------------------------------------------------------------------------------------
+// Story 13.6: on the compact phone table the board cards are 40 to 70 px wide, the demo's are 100 px. The cards
+// an action involves (attacker and target, a card landing, a source that fires, a card that dies) are staged:
+// scaled up in place to the demo's size (kept on screen), then sent back to their slot once the action is over.
+// Only the CSS `scale` / `translate` properties are used, so the effects' own `transform` animations compose.
+// Never on the other layouts (landscape, tablet, desktop keep their animations).
+// ---------------------------------------------------------------------------------------------------------
+
+/** Width of a staged card: the demo's cards are 100 px wide. */
+const STAGE_W = 104;
+type Staged = { k: number; tx: number; ty: number; rect: DOMRect; until: number; r: number };
+const staged = new Map<HTMLElement, Staged>();
+let stageTimer: ReturnType<typeof setTimeout> | undefined;
+const compactTable = () => !!document.querySelector('.table.compact');
+
+/** Where an element is on screen; a staged card answers with its staged place (also while it grows). */
+function rectOf(el: Element): DOMRect {
+  return staged.get(el as HTMLElement)?.rect ?? el.getBoundingClientRect();
+}
+/** The scale a staged card is drawn at: a `transform` on it is applied inside that scale. */
+const stageK = (el: Element | null | undefined) => (el ? (staged.get(el as HTMLElement)?.k ?? 1) : 1);
+
+/**
+ * Stages a board card for `holdMs` (or keeps it staged that long). `inMs`: how long it takes to grow.
+ * Returns the staging, or null when there is nothing to do (other layouts, a card already large enough).
+ */
+function stage(el: HTMLElement | null | undefined, r: number, holdMs: number, inMs = 160 * r): Staged | null {
+  if (!el || !el.classList.contains('card') || !compactTable()) return null;
+  const until = performance.now() + holdMs;
+  const had = staged.get(el);
+  if (had) {
+    had.until = Math.max(had.until, until);
+    scheduleUnstage();
+    return had;
+  }
+  const b = el.getBoundingClientRect();
+  if (!b.width || b.width >= STAGE_W - 1) return null;
+  const k = STAGE_W / b.width;
+  const w = b.width * k;
+  const h = b.height * k;
+  const cx = b.left + b.width / 2;
+  const cy = b.top + b.height / 2;
+  const nx = Math.min(innerWidth - w / 2 - 4, Math.max(w / 2 + 4, cx));
+  const ny = Math.min(innerHeight - h / 2 - 4, Math.max(h / 2 + 4, cy));
+  const st: Staged = { k, tx: nx - cx, ty: ny - cy, rect: new DOMRect(nx - w / 2, ny - h / 2, w, h), until, r };
+  el.style.scale = String(k);
+  el.style.translate = `${st.tx}px ${st.ty}px`;
+  el.style.zIndex = '30';
+  void animate(el, [{ scale: '1', translate: '0px 0px' }, { scale: String(k), translate: `${st.tx}px ${st.ty}px` }], inMs);
+  staged.set(el, st);
+  scheduleUnstage();
+  return st;
+}
+
+function scheduleUnstage() {
+  clearTimeout(stageTimer);
+  if (!staged.size) return;
+  const next = Math.min(...[...staged.values()].map((s) => s.until));
+  stageTimer = setTimeout(unstageDue, Math.max(0, next - performance.now()));
+}
+
+/** Staged cards whose time is up go back to their slot. */
+function unstageDue() {
+  const now = performance.now();
+  for (const [el, s] of staged) {
+    if (!el.isConnected) {
+      staged.delete(el);
+      continue;
+    }
+    if (s.until > now + 5) continue;
+    staged.delete(el);
+    el.style.scale = '';
+    el.style.translate = '';
+    void animate(el, [{ scale: String(s.k), translate: `${s.tx}px ${s.ty}px` }, { scale: '1', translate: '0px 0px' }], 280 * s.r).then(() => {
+      if (!staged.has(el)) el.style.zIndex = '';
+    });
+  }
+  scheduleUnstage();
+}
+
+/** Effects on a card stage it too, unless several cards are on stage already (an effect on a whole side). */
+const stageHit = (el: HTMLElement | null | undefined, r: number, holdMs: number) => (staged.size < 3 || staged.has(el!) ? stage(el, r, holdMs) : null);
 
 /** The attack being played: its riposte is the defender hitting back. */
 let current: { attacker: string; target: Target; until: number } | null = null;
@@ -43,7 +126,7 @@ const STAR = '<svg viewBox="0 0 64 64" width="64" height="64"><path d="M32 2l6 1
 /** Impact star at the target, scaled with the damage. */
 function splat(el: HTMLElement, amount: number, r: number, small = false) {
   const c = center(el);
-  const fit = Math.min(1, Math.max(0.6, el.getBoundingClientRect().width / 90));
+  const fit = Math.min(1, Math.max(0.6, rectOf(el).width / 90));
   const size = fit * (small ? 0.7 : 1) * Math.min(1.5, 0.8 + amount / 200);
   const s = overlay('fx-splat', c.x, c.y, STAR);
   void animate(
@@ -82,22 +165,38 @@ function recoil(el: HTMLElement, from: HTMLElement | null, r: number, power = 1)
 
 /** Attack: lift, dash at the target (stopping short), then come back once the hit has landed. */
 function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
-  const a = center(att);
-  const b = center(tgt);
-  // stop just short of the target (the demo stops at 78 % of a short distance), so the cards touch
-  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-  const k = Math.max(0, len - Math.min(len * 0.22, tgt.getBoundingClientRect().height * 0.45)) / len;
-  const dx = (b.x - a.x) * k;
-  const dy = (b.y - a.y) * k;
-  att.style.zIndex = '30';
   const lift = 220 * r;
   const dash = 170 * r;
   const back = 380 * r;
+  // story 13.6: on the compact table attacker and target are staged at the demo's size, the attacker as it lifts
+  const sa = stage(att, r, lift + dash + back + 900 * r, lift);
+  stage(tgt, r, lift + dash + back + 900 * r, lift);
+  const a = center(att);
+  const b = center(tgt);
+  let dx: number;
+  let dy: number;
+  if (sa || compactTable()) {
+    // the demo's dash: all the way across, 78 % of the way up or down, so the staged cards overlap
+    dx = b.x - a.x;
+    dy = (b.y - a.y) * 0.78;
+  } else {
+    // stop just short of the target (the demo stops at 78 % of a short distance), so the cards touch
+    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    const k = Math.max(0, len - Math.min(len * 0.22, rectOf(tgt).height * 0.45)) / len;
+    dx = (b.x - a.x) * k;
+    dy = (b.y - a.y) * k;
+  }
+  // a transform on a staged card is drawn inside its stage scale
+  const ks = sa?.k ?? 1;
+  dx /= ks;
+  dy /= ks;
+  const lifted = `translate(0,${6 / ks}px) scale(1.12)`;
+  att.style.zIndex = '30';
   void animate(
     att,
     [
       { transform: 'translate(0,0) scale(1)', offset: 0, easing: EASE },
-      { transform: 'translate(0,6px) scale(1.12)', offset: lift / (lift + dash), easing: 'cubic-bezier(.6,0,.9,.5)' },
+      { transform: lifted, offset: lift / (lift + dash), easing: 'cubic-bezier(.6,0,.9,.5)' },
       { transform: `translate(${dx}px,${dy}px) scale(1.05)`, offset: 1 },
     ],
     lift + dash,
@@ -114,7 +213,7 @@ function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
       back,
       { easing: EASE },
     ).then(() => {
-      att.style.zIndex = '';
+      if (!staged.has(att)) att.style.zIndex = '';
     });
     out.forEach((x) => x.cancel());
   });
@@ -123,7 +222,7 @@ function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
 /** Glow of a card whose ability fires. */
 function glow(el: HTMLElement, r: number) {
   const g = overlay('fx-glow', 0, 0);
-  const rect = el.getBoundingClientRect();
+  const rect = rectOf(el);
   g.style.left = `${rect.left}px`;
   g.style.top = `${rect.top}px`;
   g.style.width = `${rect.width}px`;
@@ -165,7 +264,7 @@ function effectTargets(events: GameEvent[], from: number): string[] {
 }
 
 /** How big a card is compared with the demo's cards (100 px wide): effects scale with it. */
-const fitOf = (el: Element) => Math.min(1.2, Math.max(0.6, el.getBoundingClientRect().width / 90));
+const fitOf = (el: Element) => Math.min(1.2, Math.max(0.6, rectOf(el).width / 90));
 
 /** Story 12.3: a number that splashes up from the target; its size follows the value. */
 function floatText(x: number, y: number, text: string, color: string, size: number, r: number, cls = '') {
@@ -187,7 +286,7 @@ function floatText(x: number, y: number, text: string, color: string, size: numb
 
 /** A colored veil over the card for a moment (the card "turns red" when hit, glows green when healed). */
 function tint(el: HTMLElement, cls: string, r: number, ms = 380) {
-  const rect = el.getBoundingClientRect();
+  const rect = rectOf(el);
   const v = overlay(`fx-tint ${cls}`, rect.left, rect.top);
   v.style.width = `${rect.width}px`;
   v.style.height = `${rect.height}px`;
@@ -196,7 +295,7 @@ function tint(el: HTMLElement, cls: string, r: number, ms = 380) {
 
 /** Small particles (poison bubbles, healing sparks, shield shards) rising from the card. */
 function particles(el: HTMLElement, n: number, colors: string[], r: number, rise = 50, ms = 700, cls = 'fx-dot') {
-  const rect = el.getBoundingClientRect();
+  const rect = rectOf(el);
   for (let i = 0; i < n; i++) {
     const x = rect.left + rect.width * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
     const y = rect.top + rect.height * (0.55 + (0.35 * ((i * 53) % 100)) / 100);
@@ -244,7 +343,7 @@ const CRACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l-1.5 5
 /** The shield takes the hit: it cracks, and shatters if it is used up. */
 function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: number) {
   const c = center(card);
-  const size = card.getBoundingClientRect().width * 0.8;
+  const size = rectOf(card).width * 0.8;
   const box = (html: string) => {
     const el = overlay('fx-shield', c.x, c.y, html);
     el.style.width = `${size}px`;
@@ -283,7 +382,7 @@ function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: numb
 function statusFx(card: HTMLElement, kind: string, r: number) {
   const meta = STATUS_ICON[kind];
   const c = center(card);
-  const rect = card.getBoundingClientRect();
+  const rect = rectOf(card);
   const land = [
     { transform: 'translate(-50%,-50%) scale(1.8)', opacity: 0 },
     { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.55 },
@@ -339,7 +438,7 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
   );
   void animate(card.querySelector('.cracks'), [{ opacity: 0 }, { opacity: 0, offset: 0.08 }, { opacity: 1, offset: 0.25 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
   void animate(card.querySelector('.scorch'), [{ opacity: 0 }, { opacity: 0, offset: 0.46 }, { opacity: 0.7, offset: 0.75 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
-  const rect = card.getBoundingClientRect();
+  const rect = rectOf(card);
   later(() => particles(card, 18, ['#ff8a3d', '#ffd27a', '#8e1f1f'], r, 70, 900), ms * 0.46);
   // ashes: from where the card was to the graveyard counter
   later(() => {
@@ -375,7 +474,7 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
 function saved(iid: string, ms: number, r: number) {
   const card = cardEl(iid);
   if (!card) return;
-  const rect = card.getBoundingClientRect();
+  const rect = rectOf(card);
   const cr = overlay('fx-crack', rect.left, rect.top, CRACKS_SVG);
   cr.style.width = `${rect.width}px`;
   cr.style.height = `${rect.height}px`;
@@ -421,7 +520,7 @@ function backToHand(iid: string, owner: PlayerId, ms: number) {
 
 type Pt = { x: number; y: number; w: number };
 const ptOf = (el: Element | null | undefined): Pt | null => {
-  const r = el?.getBoundingClientRect();
+  const r = el ? rectOf(el) : undefined;
   return r && r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width } : null;
 };
 
@@ -453,21 +552,23 @@ const boardEl = (iid: string) => cardEl(iid) ?? document.querySelector<HTMLEleme
 function flyIn(el: HTMLElement, from: Pt, ms: number, tilt = 0) {
   const to = ptOf(el);
   if (!to) return;
-  const dx = from.x - to.x;
-  const dy = from.y - to.y;
+  // a staged card (story 13.6) draws its transform inside its stage scale
+  const k = stageK(el);
+  const dx = (from.x - to.x) / k;
+  const dy = (from.y - to.y) / k;
   const s0 = Math.min(2, Math.max(0.3, from.w / to.w));
   el.style.zIndex = '30';
   void animate(
     el,
     [
       { transform: `translate(${dx}px, ${dy}px) scale(${s0}) rotate(${tilt}deg)`, opacity: 0.9 },
-      { transform: `translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3) rotate(0deg)`, opacity: 1, offset: 0.55 },
-      { transform: 'translate(0px, -18px) scale(1.15) rotate(0deg)', opacity: 1, offset: 0.82 },
+      { transform: `translate(${dx * 0.45}px, ${dy * 0.45 - 70 / k}px) scale(1.3) rotate(0deg)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(0px, ${-18 / k}px) scale(1.15) rotate(0deg)`, opacity: 1, offset: 0.82 },
       { transform: 'translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1 },
     ],
     ms,
   ).then(() => {
-    el.style.zIndex = '';
+    if (!staged.has(el)) el.style.zIndex = '';
   });
 }
 
@@ -514,7 +615,7 @@ function sealLanding(el: HTMLElement, r: number) {
 
 /** Equipment landing: it locks onto the rune stone with a metallic glint. */
 function metalLanding(el: HTMLElement, r: number) {
-  const rect = el.getBoundingClientRect();
+  const rect = rectOf(el);
   const g = overlay('fx-glint', rect.left, rect.top);
   g.style.width = `${rect.width}px`;
   g.style.height = `${rect.height}px`;
@@ -524,12 +625,13 @@ function metalLanding(el: HTMLElement, r: number) {
 }
 
 /** A card face drawn over the table for a moment (an instant spell has no slot to fly to). */
+const GHOST_CAT: Record<string, string> = { terrain: 'cat-terr', equipment: 'cat-equip', character: 'cat-char' };
 function ghostCard(cardId: string, at: Pt, w: number): HTMLElement {
   const card = CATALOG.get(cardId);
   const art = card ? cardArt(card) : undefined;
   const el = overlay('fx-card', at.x, at.y);
   el.style.width = `${w}px`;
-  el.innerHTML = '<span class="card card-hand cat-spell"><span class="card-frame"><span class="card-name"></span><span class="card-art"></span><span class="card-foot"></span></span><span class="fx-burn"></span></span>';
+  el.innerHTML = `<span class="card card-hand ${GHOST_CAT[card?.category ?? ''] ?? 'cat-spell'}"><span class="card-frame"><span class="card-name"></span><span class="card-art"></span><span class="card-foot"></span></span><span class="fx-burn"></span></span>`;
   el.querySelector('.card-name')!.textContent = card?.name ?? '';
   if (art) {
     const img = document.createElement('img');
@@ -538,6 +640,36 @@ function ghostCard(cardId: string, at: Pt, w: number): HTMLElement {
     el.querySelector('.card-art')!.appendChild(img);
   }
   return el;
+}
+
+/** Story 13.6: a card flies from the hand to above its small seal, holds at the demo's size, then shrinks into it. */
+function zoneGhost(cardId: string, from: Pt, seal: HTMLElement, fly: number, r: number) {
+  const to = ptOf(seal);
+  if (!to) return;
+  const w = STAGE_W;
+  const h = w * 1.4;
+  const at = { x: Math.min(innerWidth - w / 2 - 4, Math.max(w / 2 + 4, to.x)), y: Math.min(innerHeight - h / 2 - 4, Math.max(h / 2 + 4, to.y)), w };
+  const g = ghostCard(cardId, at, w);
+  g.querySelector('.fx-burn')?.remove();
+  void animate(seal, [{ opacity: 0 }, { opacity: 0, offset: 0.85 }, { opacity: 1 }], fly + 710 * r, { easing: 'linear' });
+  const dx = from.x - at.x;
+  const dy = from.y - at.y;
+  const hold = 450 * r;
+  const total = fly + hold + 260 * r;
+  const o = (t: number) => t / total;
+  void animate(
+    g,
+    [
+      { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${Math.max(0.3, from.w / w)})`, opacity: 0.9 },
+      { transform: `translate(-50%,-50%) translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3)`, opacity: 1, offset: o(fly * 0.55) },
+      { transform: 'translate(-50%,-50%) translate(0px, -18px) scale(1.15)', opacity: 1, offset: o(fly * 0.82) },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: o(fly) },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: o(fly + hold) },
+      { transform: `translate(-50%,-50%) translate(${to.x - at.x}px, ${to.y - at.y}px) scale(${Math.max(0.15, to.w / w)})`, opacity: 0.2 },
+    ],
+    total,
+    { easing: 'linear' },
+  ).then(() => g.remove());
 }
 
 /** Where the middle of the table is (the turn banner). */
@@ -589,8 +721,12 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
   const el = boardEl(e.iid);
   if (!el) return;
   const fly = Math.min(ms, 620 * r);
-  if (from) flyIn(el, from, fly, e.player === myId() ? 0 : -8);
   const cat = CATALOG.get(e.cardId)?.category;
+  // story 13.6: on the compact table a character lands at the demo's size, then settles into its slot;
+  // a terrain or an equipment (a small seal in its strip) is shown as a card that lands, then shrinks into it
+  stage(el, r, fly + 450 * r, 0);
+  if (from && compactTable() && !el.classList.contains('card')) zoneGhost(e.cardId, from, el, fly, r);
+  else if (from) flyIn(el, from, fly, e.player === myId() ? 0 : -8);
   later(() => {
     const at = boardEl(e.iid);
     if (!at) return;
@@ -647,6 +783,7 @@ function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameSta
   else if (e.from === 'hand' && holder !== undefined) from = handOrigin(e.iid, holder);
   else from = ptOf(document.querySelector(`.table .board${e.player === myId() ? '.theirs' : '.mine'}`));
   const fly = Math.min(ms, 620 * r);
+  stage(el, r, fly + 450 * r, 0);
   if (from) flyIn(el, { ...from, w: Math.min(from.w, 40) }, fly);
   later(() => {
     const at = cardEl(e.iid);
@@ -704,11 +841,13 @@ function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: Ga
   const special = e.trigger === 'attack' || e.trigger === 'reaction';
   const spell = card?.category === 'spell';
   const src = spell ? null : boardEl(e.iid);
+  // story 13.6: the source shows at the demo's size while it fires
+  stage(src, r, gap + 700 * r);
   const mid = tableMid();
   const from: Pt = ptOf(src) ?? mid;
   if (src) glow(src, r);
   const label = card && ab ? abilityTag(card, ab) : { label: special ? 'Attaque spéciale' : 'Effet', tone: 'eff' };
-  const rect = src?.getBoundingClientRect();
+  const rect = src ? rectOf(src) : undefined;
   tagOver({ x: from.x, top: rect ? rect.top : mid.y - 70 }, `${label.label} · « ${e.name} »`, label.tone, r);
   const targets = effectTargets(events, index)
     .map(elOf)
@@ -718,6 +857,8 @@ function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: Ga
   const delay = special ? 0 : Math.min(gap * 0.45, 260 * r);
   later(() => {
     for (const to of targets) {
+      // story 13.6: a card target is staged before the beam or the orb leaves, so it aims at its staged place
+      if (targets.length <= 2) stageHit(to, r, gap + 900 * r);
       if (spell || !src) projectile(from, to, Math.max(200 * r, gap - delay));
       else beam(src, to, r, e.trigger === 'reaction' ? '#ffd27a' : special ? '#b8d4ff' : '#9fe0b0');
     }
@@ -857,6 +998,7 @@ export function direct(cue: Cue) {
     case 'damageDealt': {
       const tgt = elOf(e.target);
       if (!tgt) break;
+      stageHit(tgt, r, cue.ms + 700 * r);
       const c = center(tgt);
       if (e.absorbed > 0) shieldHit(tgt, e.absorbed, !cue.after.instances[e.target]?.statuses.some((st) => st.kind === 'shield'), r);
       if (e.amount <= 0) {
@@ -884,6 +1026,7 @@ export function direct(cue: Cue) {
     }
     case 'cardDestroyed': {
       const { iid, owner } = e;
+      stage(cardEl(iid), r, cue.ms + 200);
       // the dying card gets its cracks and scorch layers on this beat's render
       requestAnimationFrame(() => death(iid, owner, Math.max(0, cue.ms - 16), r));
       break;
@@ -906,6 +1049,7 @@ export function direct(cue: Cue) {
       break;
     }
     case 'deathPrevented':
+      stage(cardEl(e.iid), r, cue.ms + 500 * r);
       saved(e.iid, cue.ms, r);
       break;
     case 'returnedToHand': {
@@ -916,6 +1060,7 @@ export function direct(cue: Cue) {
     case 'healed': {
       const tgt = elOf(e.target);
       if (!tgt) break;
+      stageHit(tgt, r, cue.ms + 600 * r);
       const c = center(tgt);
       tint(tgt, 'heal', r, 500);
       particles(tgt, 8, ['#6fdc8c', '#c6f5a8'], r, 45, 650);
@@ -925,12 +1070,14 @@ export function direct(cue: Cue) {
     case 'modified': {
       const tgt = cardEl(e.target);
       if (!tgt) break;
+      stageHit(tgt, r, cue.ms + 700 * r);
       if (e.atk) statArrow(tgt, 'atk', e.atk, r);
       if (e.hp) statArrow(tgt, 'hp', e.hp, r);
       break;
     }
     case 'statusApplied': {
       const tgt = cardEl(e.target);
+      stageHit(tgt, r, cue.ms + 700 * r);
       if (tgt) statusFx(tgt, e.status, r);
       break;
     }

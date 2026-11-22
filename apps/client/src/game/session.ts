@@ -86,6 +86,9 @@ export function localSession(catalog: Catalog, opts: { kind: 'hotseat' | 'bot'; 
     }, 900);
   };
 
+  // The coin toss may hand the first turn to the bot: start it right away (story 11.1).
+  scheduleBot();
+
   return {
     kind: opts.kind,
     catalog,
@@ -98,6 +101,7 @@ export function localSession(catalog: Catalog, opts: { kind: 'hotseat' | 'bot'; 
     },
     dispose() {
       if (botTimer) clearTimeout(botTimer);
+      botTimer = null;
     },
   };
 }

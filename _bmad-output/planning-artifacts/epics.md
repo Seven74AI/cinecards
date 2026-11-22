@@ -1084,10 +1084,12 @@ As a joueur, I want inviter un ami de ma liste, So that je n'aie pas à partager
   salle d'un appui.
 
 ### Story 8.4: Historique
+As a joueur, I want voir mes dernières parties, So that je suive mes résultats.
 **Acceptance Criteria :** **Given** des parties en ligne terminées **When** j'ouvre l'historique **Then** adversaire,
 résultat (victoire, défaite, nulle, abandon), mode et date des 20 dernières s'affichent, avec mon bilan.
 
 ### Story 8.5: Émotes
+As a joueur, I want envoyer des répliques prédéfinies, So that on se chambre sans chat libre.
 **Acceptance Criteria :** **Given** une partie en ligne **When** je choisis une réplique prédéfinie **Then**
 l'adversaire la voit 3 s ; une réplique toutes les 3 s au plus ; je peux couper les répliques adverses.
 
@@ -1116,11 +1118,13 @@ n'a pas exactement 50 cartes, s'il contient deux fois la même carte, ou une car
 erreur est dite en français. Le moteur sait jouer une partie où chaque joueur pioche dans son propre deck.
 
 ### Story 10.2: Écran de construction
+As a joueur, I want composer mon deck avec des filtres, So that je joue mes cartes préférées.
 **Acceptance Criteria :** **Given** toutes les cartes **When** je filtre par film, catégorie, rareté, coût **Then**
 j'ajoute ou retire des cartes, je vois le compteur « N / 50 » et les erreurs ; je nomme, enregistre, copie et
 supprime mes decks (enregistrés sur mon compte). Maquette d'abord.
 
 ### Story 10.3: Choisir son deck en salle
+As a joueur, I want sélectionner un deck sauvegardé, So that la partie l'utilise.
 **Acceptance Criteria :** **Given** un deck valide enregistré **When** je crée ou rejoins une salle en mode « Decks
 construits » **Then** je choisis mon deck et ma pioche est ce deck ; contre le Grimoire, il joue un deck de 50
 cartes tirées au hasard.

@@ -148,7 +148,7 @@ Covered in the Decision Summary below: state ownership, view redaction, effect D
 | Authentication (post-MVP) | Passwords: `node:crypto` scrypt with random salt. Passkeys: WebAuthn via `@simplewebauthn/server` + `@simplewebauthn/browser`, relying party = client host (`seven74ai.github.io`, `localhost` in dev). Opaque random session token stored hashed, sent as `Authorization: Bearer` to `/api/*` and in room join options; no cookies (cross-site, Safari) | — | E6 | Root's choice: passkey + recovery code, and nickname + password |
 | HTTP API (post-MVP) | `/api/*` on the game server's port, JSON, CORS limited to the client origin | — | E6, E8 | Accounts, friends, history, decks |
 | Presence (post-MVP) | Colyseus room `hub` joined by logged-in players: friends online, live invitations | 0.18 | E6 | Invitation without sharing a code |
-| Client hosting | GitHub Pages via GitHub Actions | — | All | Free, Root's preference |
+| Client hosting | Served by the game server on the VPS at `https://cinecards.sevend.io/` (same origin as `wss://` and `/api`), built in the Docker image; GitHub Pages kept during the move with a "moved" banner (amended 2026-11-22, story 8.6) | — | All | Passkeys bound to Root's domain; client and server deploy together |
 | Server hosting | Root's VPS, Docker + Caddy (auto TLS) | Node 24 | E4 | Always-on process needed |
 | Monorepo | pnpm workspaces | 12 | All | Shared packages, one install |
 | i18n | French UI strings in one module; card text in data | — | E3 | Code English, text French |
@@ -413,6 +413,7 @@ pnpm dev                  # client on :5173, server on :2567
 - **ADR-006 Derived stats with provenance.** No stat drift; delivers the GDD's "arbitre invisible" pillar (show where every bonus comes from).
 - **ADR-007 GitHub Pages + VPS.** Free static hosting per Root's preference; the always-on game server lives on the VPS behind Caddy for TLS.
 - **ADR-008 `node:sqlite` for post-MVP persistence** (2026-11-22). `@colyseus/database` 0.18 targets Postgres/PGlite and relies on `@colyseus/auth` (e-mail, OAuth), which Root ruled out. Node's built-in SQLite needs no extra service and fits a group of friends; the file lives on a Docker volume with a daily copy. *Rejected:* `@colyseus/database`, a hosted database, JSON files (no transactions).
+- **ADR-009 Client served by the game server** (2026-11-22). Passkeys belong to the page's domain, so the game moves from `seven74ai.github.io` to Root's `cinecards.sevend.io` before any key exists; serving the static build from the same Node process gives one origin (no CORS for the game itself), one deploy, and no client/server version skew. Amends ADR-007. *Rejected:* a separate static subdomain (second tunnel route, still two deploys).
 
 ## Architecture Validation
 

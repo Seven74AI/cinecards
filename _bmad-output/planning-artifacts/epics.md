@@ -1093,6 +1093,16 @@ As a joueur, I want envoyer des répliques prédéfinies, So that on se chambre 
 **Acceptance Criteria :** **Given** une partie en ligne **When** je choisis une réplique prédéfinie **Then**
 l'adversaire la voit 3 s ; une réplique toutes les 3 s au plus ; je peux couper les répliques adverses.
 
+### Story 8.6: Héberger le jeu sur cinecards.sevend.io
+As a Root, I want que le jeu soit servi par mon VPS à l'adresse du serveur, So that les clés d'accès soient liées à notre domaine et que le jeu se déploie en même temps que le serveur.
+**Acceptance Criteria :**
+- **Given** `https://cinecards.sevend.io/` **When** je l'ouvre **Then** le jeu complet s'affiche et se connecte au serveur à la même adresse (`wss://cinecards.sevend.io`), sans réglage.
+- **Given** un push sur `main` **When** le VPS se met à jour (~5 min) **Then** le jeu et le serveur sont à la même version (plus de décalage client / serveur, plus de déclenchement manuel de Pages pour ce site).
+- **Given** les clés d'accès **When** le jeu tourne sur `cinecards.sevend.io` **Then** elles sont activées (elles restent coupées sur l'ancien site).
+- **Given** l'ancien site `seven74ai.github.io/cinecards` **When** je l'ouvre **Then** un bandeau « CineCards a déménagé » mène à la nouvelle adresse ; le jeu y reste jouable pendant la transition.
+- Les routes du serveur (`/health`, `/api/*`, matchmaking Colyseus `/matchmake/*`, WebSocket) ne changent pas.
+Ajoutée le 2026-11-22 (choix de Root : jeu sur un sous-domaine du VPS ; « cinecards » pour l'instant). À faire juste après 8.2, avant 8.3.
+
 ## Epic 9: Pipeline de contenu (post-MVP)
 
 ### Story 9.1: Import des cartes de Root

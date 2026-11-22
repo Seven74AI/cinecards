@@ -200,3 +200,10 @@ l'agent dev, une story à la fois, dans l'ordre 8.1 → 8.5 → 10.1 → 10.3 (`
   10.3) ; poussée sur `main`, Pages relancé, serveur déployé.
 - Un invité joue comme avant à chaque étape.
 - Les comptes survivent à un redéploiement du serveur.
+
+## Addendum (2026-11-22) — hébergement du jeu
+
+Pendant l'epic 8, Root propose un sous-domaine du VPS. Comme une clé d'accès est liée au domaine de la page, le jeu
+déménage sur `cinecards.sevend.io` **avant** l'ouverture des clés d'accès : nouvelle story 8.6 (après 8.2, avant 8.3),
+ADR-009. En attendant, le build GitHub Pages coupe les clés d'accès (`VITE_PASSKEYS=off`). E-mail (Resend) : pas pour
+l'instant (Root).

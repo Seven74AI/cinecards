@@ -12,6 +12,7 @@ Coche ou corrige après ton prochain playtest.
 ## Choix de comportement (pas des règles du GDD)
 
 - [ ] **13.7** — Sur téléphone en portrait, un sort reprend les temps de la démo : vol depuis la main 0,62 s, agrandissement 0,3 s, maintien 0,25 s, brûlure 0,45 s, puis l’étiquette 0,26 s et l’orbe 0,52 s (impact vers 2,4 s après le clic, 1 s de plus qu’avant). Ces temps valent aussi pour l’effet d’un sort légendaire (sa pose garde le temps « légendaire » de 1,5 s). Ordinateur, tablette et paysage inchangés ; vitesse rapide = moitié.
+- [ ] **13.8** — Sur téléphone, une carte de la table (même modifiée) ouvre la même fiche complète qu’une carte de la main : la fiche abaissée de la story 13.3 et sa poignée « Agrandir la fiche » disparaissent.
 - [ ] **11.2** — La reprise d'un siège marche depuis le même navigateur (rechargement, nouvel onglet, lien, code), pas depuis un autre appareil : il faudrait des comptes (epic 8).
 - [ ] **11.2** — Sans jeton de siège, « salle complète » et « partie en cours » donnent le même message (« une partie y est en cours ; si c'est la tienne, rouvre-la depuis le même navigateur dans les 90 s »). Avec un jeton expiré : « ta place n'est plus réservée ».
 - [ ] **11.2** — En solo et en hot seat, « Quitter » ramène à l'accueil sans garder la partie ; « Abandonner » (avec confirmation) affiche la défaite.

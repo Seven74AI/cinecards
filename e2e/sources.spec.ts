@@ -21,6 +21,10 @@ test('a modified badge counts its sources; selecting the card links each source 
   await expect(page.locator('.src-line.malus')).toHaveCount(1);
 
   const sheet = page.getByRole('dialog', { name: LANCELOT });
+  // story 13.8: a table card opens the same full sheet as a hand card (no lowered sheet)
+  await expect(sheet).not.toHaveClass(/peek/);
+  const body = await sheet.locator('.sheet-body').boundingBox();
+  expect(body!.height).toBeGreaterThan(844 * 0.6);
   const mods = sheet.getByRole('region', { name: 'Bonus et malus' });
   await expect(mods.getByRole('listitem')).toHaveCount(5);
   // story 13.5: each line names the category of its source, with the cost-token icon

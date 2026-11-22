@@ -228,13 +228,6 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   }, [zoomKey]);
   // story 12.5: a played card leaves the hand at once (real state); its flight starts from where it was
   useLayoutEffect(() => noteHand());
-  // story 13.3, revisited: on the compact table the lowered sheet covers exactly what lies under my side (hero, hand)
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    const side = compact ? document.querySelector('.table .side.mine') : null;
-    if (!side) return void root.style.removeProperty('--peek-h');
-    root.style.setProperty('--peek-h', `${Math.max(120, Math.round(innerHeight - side.getBoundingClientRect().bottom - 2))}px`);
-  });
 
   const send = (a: Action) => {
     sfx('click');
@@ -597,7 +590,6 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         if (mode.k === 'hand') setMode({ k: 'idle' });
       }}
       docked={wide}
-      peek={sourceLinks.length > 0}
     />
   ) : null;
 

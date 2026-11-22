@@ -1,5 +1,4 @@
 import type { Card } from '@cinecards/cards';
-import { useState } from 'react';
 import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { cardArt, SET_TITLES } from '../game/catalog.ts';
 import { modifierLines, signed, type ModifierLine } from '../game/modifiers.ts';
@@ -34,7 +33,6 @@ export function CardSheet({
   onUseAbility,
   onClose,
   docked,
-  peek,
 }: {
   catalog: Catalog;
   state: GameState;
@@ -44,10 +42,7 @@ export function CardSheet({
   onUseAbility: (index: number, option?: number) => void;
   onClose: () => void;
   docked?: boolean;
-  /** Story 13.3: lower sheet, clear backdrop, so the lines from the sources show on the table. */
-  peek?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const inst = state.instances[iid];
   if (!inst) return null;
   const card = catalog.get(inst.cardId)!;
@@ -59,17 +54,12 @@ export function CardSheet({
   const myTurn = state.active === viewer && !state.pending && state.phase !== 'finished';
   const mods = stats ? modifierLines(catalog, state, iid, stats.sources) : [];
   return (
-    <aside className={'sheet' + (docked ? ' docked' : '') + (peek && !docked && !expanded ? ' peek' : '')} role="dialog" aria-label={card.name}>
+    <aside className={'sheet' + (docked ? ' docked' : '')} role="dialog" aria-label={card.name}>
       {!docked ? <button type="button" className="sheet-scrim" aria-label="Fermer" onClick={onClose} /> : null}
       <div className="sheet-body parchment">
         <button type="button" className="icon-btn sheet-close" onClick={onClose} aria-label="Fermer">
           <Icon name="close" size={18} />
         </button>
-        {peek && !docked ? (
-          <button type="button" className="sheet-grip" onClick={() => setExpanded((e) => !e)} aria-label={expanded ? 'Réduire la fiche' : 'Agrandir la fiche'} aria-expanded={expanded}>
-            <span />
-          </button>
-        ) : null}
         <div className="sheet-head">
           <CardView card={card} stats={stats} statuses={inst.statuses} size="big" cycle={cycle} />
           <div className="sheet-meta">

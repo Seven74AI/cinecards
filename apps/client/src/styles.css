@@ -2269,9 +2269,6 @@ body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-scrim {
   left: auto;
   right: -5px;
 }
-.sheet.peek .sheet-head .card-big {
-  width: 64px;
-}
 .src-lines {
   position: fixed;
   inset: 0;
@@ -2312,28 +2309,6 @@ body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-scrim {
   to {
     stroke-dashoffset: -15;
   }
-}
-.sheet.peek .sheet-scrim {
-  background: transparent;
-}
-.sheet.peek .sheet-body {
-  max-height: var(--peek-h, 34dvh);
-}
-.sheet-grip {
-  display: block;
-  margin: -8px auto 6px;
-  width: 64px;
-  height: 18px;
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-.sheet-grip span {
-  display: block;
-  height: 5px;
-  border-radius: 3px;
-  background: rgba(90, 55, 20, 0.45);
 }
 .mods {
   margin: 10px 0 4px;

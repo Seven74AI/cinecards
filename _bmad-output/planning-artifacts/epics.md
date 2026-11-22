@@ -1043,6 +1043,11 @@ Le mode Économie d'énergie d'iOS plafonne en plus Safari à 30 images/s.
 - **And** une mesure enregistrée (script du dépôt, Playwright en émulation iPhone, processeur ralenti ×4 via CDP sur Chromium et un passage WebKit) montre au moins 55 images/s de moyenne pendant une attaque mortelle et une pose, sans image de plus de 50 ms ; le rapport avant/après est joint
 - **And** rien ne change visuellement sur ordinateur (comparaison de captures) ; « réduire les animations » reste respecté
 
+### Idées en attente (à revoir avec Root après les stories 13.10 à 13.12, pas encore des stories)
+- Durée des déplacements proportionnelle à la distance parcourue, bornée entre un minimum et un maximum, au lieu d'une durée fixe.
+- Taille des effets (chiffres, particules, étoiles d'impact) relative à la carte concernée plutôt qu'en pixels fixes.
+- Amplitude du tremblement de la table proportionnelle à la taille de l'écran.
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 ### Story 8.1: Connexion

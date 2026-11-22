@@ -1,0 +1,25 @@
+# On the VPS:  cd deploy && DOMAIN=cinecards.example.com docker compose up -d --build
+services:
+  server:
+    build:
+      context: ..
+    restart: unless-stopped
+    expose:
+      - '2567'
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - server
+volumes:
+  caddy_data:
+  caddy_config:

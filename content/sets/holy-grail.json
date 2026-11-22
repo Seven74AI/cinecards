@@ -1,0 +1,521 @@
+{
+  "title": "Monty Python : Sacré Graal !",
+  "year": 1975,
+  "family": "Sacré Graal",
+  "cards": [
+    {
+      "id": "hg-arthur",
+      "name": "Arthur, roi des Bretons",
+      "rarity": "legendary",
+      "category": "character",
+      "role": "héros",
+      "cost": 9,
+      "hp": 520,
+      "atk": 130,
+      "abilities": [
+        {
+          "name": "Au galop !",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Si Patsy est sur votre table, Arthur peut attaquer dès le tour où il est posé.",
+          "effects": [
+            {
+              "op": "haste",
+              "ifAlly": "hg-patsy"
+            }
+          ]
+        },
+        {
+          "name": "Nous cherchons le Graal",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Tant qu'Arthur est en jeu, vos cartes Sacré Graal gagnent +20 ATQ.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "set": "holy-grail"
+              },
+              "atk": 20
+            }
+          ]
+        },
+        {
+          "name": "Fuyez ! Fuyez !",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "reaction",
+          "text": "Une fois par partie : quand un de vos personnages devrait mourir, il retourne dans votre main à la place.",
+          "effects": [
+            {
+              "op": "returnOnDeath",
+              "oncePerGame": true
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-black-knight",
+      "name": "Le Chevalier noir",
+      "rarity": "epic",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 7,
+      "hp": 350,
+      "atk": 110,
+      "abilities": [
+        {
+          "name": "Ce n'est qu'une égratignure",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Les 3 premières fois qu'il devrait mourir, il reste à 10 PV et perd 30 ATQ.",
+          "effects": [
+            {
+              "op": "surviveDeath",
+              "times": 3,
+              "hp": 10,
+              "atkLoss": 30
+            }
+          ]
+        },
+        {
+          "name": "Disons match nul ?",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Il ne peut pas être renvoyé dans la main ni détruit par un sort.",
+          "effects": [
+            {
+              "op": "immuneTo",
+              "kinds": [
+                "spells",
+                "bounce"
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-rabbit",
+      "name": "Le Lapin de Caerbannog",
+      "rarity": "epic",
+      "category": "character",
+      "role": "boss",
+      "cost": 6,
+      "hp": 90,
+      "atk": 200,
+      "abilities": [
+        {
+          "name": "Regardez ses dents !",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Ses attaques ne provoquent pas de riposte.",
+          "effects": [
+            {
+              "op": "noRetaliation"
+            }
+          ]
+        }
+      ],
+      "flavor": "Un lapin tout mignon. Enfin, presque.",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-ni",
+      "name": "Les Chevaliers qui disent « Ni ! »",
+      "rarity": "rare",
+      "category": "character",
+      "role": "traqueur",
+      "cost": 5,
+      "hp": 150,
+      "atk": 70,
+      "abilities": [
+        {
+          "name": "Ni !",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Réduit au silence un personnage adverse pendant 1 tour.",
+          "effects": [
+            {
+              "op": "status",
+              "target": "chosenEnemy",
+              "status": "silence",
+              "turns": 1
+            }
+          ]
+        },
+        {
+          "name": "Apportez-nous… un buisson !",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "flavor",
+          "text": "Les chevaliers réclament un buisson… mais n'en font rien (aucun effet de jeu)."
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-tim",
+      "name": "Tim l'Enchanteur",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 4,
+      "hp": 100,
+      "atk": 60,
+      "abilities": [
+        {
+          "name": "Certains m'appellent… Tim",
+          "power": {
+            "icon": "fist",
+            "count": 1
+          },
+          "kind": "onPlay",
+          "text": "À son arrivée : inflige 50 dégâts au personnage adverse de votre choix.",
+          "effects": [
+            {
+              "op": "damage",
+              "target": "chosenEnemy",
+              "amount": 50
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-lancelot",
+      "name": "Sire Lancelot le Brave",
+      "rarity": "rare",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 5,
+      "hp": 160,
+      "atk": 90,
+      "abilities": [
+        {
+          "name": "Charge héroïque",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Peut attaquer le tour où il est posé, mais subit 20 dégâts en le faisant.",
+          "effects": [
+            {
+              "op": "haste",
+              "selfDamage": 20
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-bridgekeeper",
+      "name": "Le Gardien du pont",
+      "rarity": "rare",
+      "category": "character",
+      "role": "traqueur",
+      "cost": 4,
+      "hp": 130,
+      "atk": 60,
+      "abilities": [
+        {
+          "name": "Quelle est votre couleur préférée ?",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Quand un personnage adverse l'attaque, lancez un dé : sur 1-2, l'attaquant tombe dans le gouffre (détruit).",
+          "effects": [
+            {
+              "op": "onAttacked",
+              "effects": [
+                {
+                  "op": "dice",
+                  "branches": [
+                    {
+                      "min": 1,
+                      "max": 2,
+                      "effects": [
+                        {
+                          "op": "cancelAttack"
+                        },
+                        {
+                          "op": "destroyAttacker"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-robin",
+      "name": "Sire Robin, pas si brave",
+      "rarity": "common",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 2,
+      "hp": 70,
+      "atk": 40,
+      "abilities": [
+        {
+          "name": "Bravement, il prit la fuite",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Quand il est attaqué, lancez un dé : sur 1-3, il retourne dans votre main au lieu de subir les dégâts.",
+          "effects": [
+            {
+              "op": "onAttacked",
+              "effects": [
+                {
+                  "op": "dice",
+                  "branches": [
+                    {
+                      "min": 1,
+                      "max": 3,
+                      "effects": [
+                        {
+                          "op": "cancelAttack"
+                        },
+                        {
+                          "op": "returnSelf"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-galahad",
+      "name": "Sire Galahad le Pur",
+      "rarity": "common",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 3,
+      "hp": 100,
+      "atk": 50,
+      "abilities": [
+        {
+          "name": "Le château Anthrax",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Ne peut pas être réduit au silence.",
+          "effects": [
+            {
+              "op": "immuneTo",
+              "kinds": [
+                "silence"
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-patsy",
+      "name": "Patsy",
+      "rarity": "common",
+      "category": "character",
+      "role": "soutien",
+      "cost": 1,
+      "hp": 40,
+      "atk": 10,
+      "abilities": [
+        {
+          "name": "Clip-clop",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Arthur peut attaquer dès son arrivée (voir « Au galop ! »).",
+          "effects": [
+            {
+              "op": "none"
+            }
+          ]
+        }
+      ],
+      "flavor": "Il porte les noix de coco. Et les bagages.",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-grenade",
+      "name": "La Sainte Grenade d'Antioche",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 6,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Tu compteras jusqu'à trois",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Inflige 150 dégâts à un personnage adverse et 50 dégâts aux personnages de ses socles voisins.",
+          "effects": [
+            {
+              "op": "damage",
+              "target": "chosenEnemy",
+              "amount": 150,
+              "adjacent": 50
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-run-away",
+      "name": "Fuyez ! Fuyez !",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 2,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Repli stratégique",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Renvoyez jusqu'à 2 de vos personnages dans votre main.",
+          "effects": [
+            {
+              "op": "returnToHand",
+              "target": "chosenAlly",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    },
+    {
+      "id": "hg-camelot",
+      "name": "Camelot",
+      "rarity": "terrain",
+      "category": "terrain",
+      "role": "terrain",
+      "cost": 3,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "C'est un endroit ridicule",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Vos cartes Sacré Graal gagnent +30 PV.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "set": "holy-grail"
+              },
+              "hp": 30
+            }
+          ]
+        },
+        {
+          "name": "Personne n'a envie d'y aller",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "onPlay",
+          "text": "À son arrivée : l'adversaire ne peut pas poser de terrain à son prochain tour.",
+          "effects": [
+            {
+              "op": "lockTerrain"
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "holy-grail",
+      "image": null
+    }
+  ],
+  "id": "holy-grail"
+}

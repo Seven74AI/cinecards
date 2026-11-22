@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+apps/client
+_bmad
+_bmad-output
+docs
+e2e
+.github

@@ -1,0 +1,91 @@
+# generated: 2026-11-22
+# project: cinecards
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+generated: 2026-11-22
+project: cinecards
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: done
+  1-1-initialiser-le-monorepo: done
+  1-2-schema-et-chargement-des-cartes: done
+  1-3-contrats-partages-actions-evenements-vue: done
+  epic-1-retrospective: optional
+  epic-2: done
+  2-1-creer-une-partie-et-alterner-les-tours: done
+  2-2-pieces: done
+  2-3-pioche-et-modes-de-deck: done
+  2-4-poser-des-cartes-dans-les-socles: done
+  2-5-attaque-riposte-et-victoire: done
+  2-6-stats-derivees-et-calcul-des-degats: done
+  2-7-journal-d-evenements: done
+  2-8-refus-types-des-actions-illegales: done
+  epic-2-retrospective: optional
+  epic-3: done
+  3-1-interprete-d-effets-et-chaine-de-resolut: done
+  3-2-declencheurs: done
+  3-3-ciblage-et-filtres: done
+  3-4-modificateurs-auras-et-terrains: done
+  3-5-statuts: done
+  3-6-effets-de-cartes-et-de-zones: done
+  3-7-des-et-choix: done
+  3-8-cycles-tous-les-n-tours: done
+  3-9-combat-avance-et-pieces: done
+  3-10-fenetre-de-reaction-moteur: done
+  epic-3-retrospective: optional
+  epic-4: done
+  4-1-encoder-le-set-matrix-18-cartes: done
+  4-2-encoder-le-set-sacre-graal-13-cartes: done
+  4-3-encoder-le-set-hot-shots-10-cartes: done
+  4-4-encoder-le-set-white-chicks-10-cartes: done
+  4-5-partie-simulee-complete: done
+  epic-4-retrospective: optional
+  epic-5: done
+  5-1-theme-grimoire-et-composant-carte: done
+  5-2-table-mobile-portrait: done
+  5-3-main-et-pose-de-cartes: done
+  5-4-attaquer-et-cibler: done
+  5-5-fiche-carte-et-inspecteur: done
+  5-6-journal: done
+  5-7-messages-de-refus: done
+  5-8-adaptation-paysage-tablette-ordinateur: done
+  5-9-mode-hot-seat-local: done
+  epic-5-retrospective: optional
+  epic-6: done
+  6-1-serveur-et-salle-de-duel: done
+  6-2-code-et-lien-d-invitation: done
+  6-3-vues-expurgees: done
+  6-4-chrono-de-tour: done
+  6-5-fenetre-de-reaction-en-ligne: done
+  6-6-deconnexion-et-reconnexion: done
+  6-7-deploiement: done
+  6-8-test-de-bout-en-bout-a-deux-navigateurs: done
+  epic-6-retrospective: optional
+  epic-7: done
+  7-1-ambiance-de-table: done
+  7-2-file-d-animations-des-evenements: done
+  7-3-moment-fort: done
+  7-4-effets-sonores: done
+  7-5-lancer-de-de-anime: done
+  epic-7-retrospective: optional
+  epic-8: backlog
+  8-1-connexion: backlog
+  8-2-liste-d-amis-et-invitation-directe: backlog
+  8-3-historique: backlog
+  8-4-emotes: backlog
+  epic-8-retrospective: optional
+  epic-9: backlog
+  9-1-import-des-cartes-de-root: backlog
+  9-2-illustrations: backlog
+  9-3-options-de-familles: backlog
+  epic-9-retrospective: optional
+  epic-10: backlog
+  10-1-regles-de-construction: backlog
+  10-2-ecran-de-construction: backlog
+  10-3-choisir-son-deck-en-salle: backlog
+  epic-10-retrospective: optional

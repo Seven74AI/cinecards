@@ -1,0 +1,23 @@
+{
+  "name": "cinecards",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -b",
+    "dev:client": "pnpm --filter @cinecards/client dev",
+    "build:client": "pnpm --filter @cinecards/client build",
+    "e2e": "playwright test",
+    "dev:server": "pnpm --filter @cinecards/server dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}

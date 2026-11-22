@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "composite": false,
+    "noEmit": true,
+    "emitDeclarationOnly": false
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": []
+}

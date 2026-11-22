@@ -1,0 +1,371 @@
+{
+  "title": "Hot Shots!",
+  "year": 1991,
+  "family": "Hot Shots!",
+  "cards": [
+    {
+      "id": "hs-topper",
+      "name": "Topper Harley",
+      "rarity": "legendary",
+      "category": "character",
+      "role": "héros",
+      "cost": 9,
+      "hp": 480,
+      "atk": 150,
+      "abilities": [
+        {
+          "name": "Compteur de victimes",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Gagne +10 ATQ chaque fois qu'il détruit une carte.",
+          "effects": [
+            {
+              "op": "onKill",
+              "effects": [
+                {
+                  "op": "modify",
+                  "target": "self",
+                  "atk": 10
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Pilote d'élite",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Une fois tous les 2 tours : attaque n'importe quelle carte, même protégée, et ignore la riposte.",
+          "effects": [
+            {
+              "op": "cooldown",
+              "every": 2
+            },
+            {
+              "op": "status",
+              "target": "self",
+              "status": "precision",
+              "turns": 1
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-ramada",
+      "name": "Ramada Thompson",
+      "rarity": "epic",
+      "category": "character",
+      "role": "soutien",
+      "cost": 6,
+      "hp": 240,
+      "atk": 70,
+      "abilities": [
+        {
+          "name": "Le dîner romantique",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "chosenAlly",
+              "filter": {
+                "ids": [
+                  "hs-topper"
+                ]
+              },
+              "atk": 40,
+              "hp": 40,
+              "turns": 1
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-kent",
+      "name": "Kent Gregory",
+      "rarity": "rare",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 5,
+      "hp": 160,
+      "atk": 90,
+      "abilities": [
+        {
+          "name": "Rival jaloux",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Gagne +30 ATQ quand il attaque une carte Hot Shots! adverse.",
+          "effects": [
+            {
+              "op": "attackBonusVs",
+              "filter": {
+                "set": "hot-shots"
+              },
+              "atk": 30
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-benson",
+      "name": "Amiral Benson",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 5,
+      "hp": 140,
+      "atk": 40,
+      "abilities": [
+        {
+          "name": "Vétéran de toutes les guerres",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Au début de votre tour, il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ.",
+          "effects": [
+            {
+              "op": "startOfTurn",
+              "effects": [
+                {
+                  "op": "damage",
+                  "target": "self",
+                  "amount": 10
+                },
+                {
+                  "op": "modify",
+                  "target": "allAllies",
+                  "filter": {
+                    "set": "hot-shots"
+                  },
+                  "atk": 20
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-washout",
+      "name": "Wash Out",
+      "rarity": "common",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 3,
+      "hp": 90,
+      "atk": 60,
+      "abilities": [
+        {
+          "name": "Vue approximative",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Lancez un dé à chaque attaque : sur 1-2, elle touche une carte au hasard, la vôtre comprise.",
+          "effects": [
+            {
+              "op": "onAttack",
+              "randomTargetOn": [
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-dead-meat",
+      "name": "Dead Meat",
+      "rarity": "common",
+      "category": "character",
+      "role": "soutien",
+      "cost": 2,
+      "hp": 60,
+      "atk": 30,
+      "abilities": [
+        {
+          "name": "Il n'y survivra pas",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "onDeath",
+          "text": "Quand il est détruit, piochez 2 cartes.",
+          "effects": [
+            {
+              "op": "draw",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "flavor": "Son surnom aurait dû l'alerter.",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-wingman",
+      "name": "Le Commandant de l'escadrille",
+      "rarity": "common",
+      "category": "character",
+      "role": "soutien",
+      "cost": 2,
+      "hp": 80,
+      "atk": 30,
+      "abilities": [
+        {
+          "name": "Briefing",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "onPlay",
+          "text": "À son arrivée : un de vos personnages peut attaquer une deuxième fois ce tour.",
+          "effects": [
+            {
+              "op": "extraAttack",
+              "target": "chosenAlly",
+              "count": 1,
+              "turns": 1
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-belly",
+      "name": "Le dîner sur le ventre",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 3,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Cuisson à point",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Soigne 100 PV à l'un de vos personnages.",
+          "effects": [
+            {
+              "op": "heal",
+              "target": "chosenAlly",
+              "amount": 100
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-missile",
+      "name": "Missile à tête chercheuse",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 7,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Il cherche… il cherche…",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Inflige 120 dégâts à la carte adverse qui a le plus d'ATQ.",
+          "effects": [
+            {
+              "op": "damage",
+              "target": "highestAtkEnemy",
+              "amount": 120
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    },
+    {
+      "id": "hs-carrier",
+      "name": "Le porte-avions",
+      "rarity": "terrain",
+      "category": "terrain",
+      "role": "terrain",
+      "cost": 3,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Tous sur le pont",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Vos cartes Hot Shots! gagnent +20 ATQ.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "set": "hot-shots"
+              },
+              "atk": 20
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "hot-shots",
+      "image": null
+    }
+  ],
+  "id": "hot-shots"
+}

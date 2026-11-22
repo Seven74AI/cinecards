@@ -1,0 +1,375 @@
+{
+  "title": "FBI : Fausses Blondes Infiltrées (White Chicks)",
+  "year": 2004,
+  "family": "White Chicks",
+  "cards": [
+    {
+      "id": "wc-latrell",
+      "name": "Latrell Spencer",
+      "rarity": "legendary",
+      "category": "character",
+      "role": "boss",
+      "cost": 9,
+      "hp": 520,
+      "atk": 140,
+      "abilities": [
+        {
+          "name": "A Thousand Miles",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "onPlay",
+          "text": "À son arrivée : les personnages adverses ne peuvent pas attaquer pendant 1 tour (ils sont sous le charme).",
+          "effects": [
+            {
+              "op": "status",
+              "target": "allEnemies",
+              "status": "stunned",
+              "turns": 1
+            }
+          ]
+        },
+        {
+          "name": "Coup de foudre",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Gagne +30 ATQ tant que Marcus est sur la table adverse.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "self",
+              "atk": 30,
+              "if": {
+                "enemyOnBoard": "wc-marcus"
+              }
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-marcus",
+      "name": "Marcus Copeland",
+      "rarity": "epic",
+      "category": "character",
+      "role": "héros",
+      "cost": 7,
+      "hp": 300,
+      "atk": 110,
+      "abilities": [
+        {
+          "name": "Déguisement parfait (ou presque)",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Ne peut pas être ciblé par les sorts adverses pendant 2 tours après sa pose.",
+          "effects": [
+            {
+              "op": "spellImmuneAfterPlay",
+              "turns": 2
+            }
+          ]
+        },
+        {
+          "name": "Duo infiltré",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Si Kevin est sur votre table, Marcus et Kevin gagnent +50 PV.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "ids": [
+                  "wc-marcus",
+                  "wc-kevin"
+                ]
+              },
+              "hp": 50,
+              "if": {
+                "allyOnBoard": "wc-kevin"
+              }
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-kevin",
+      "name": "Kevin Copeland",
+      "rarity": "epic",
+      "category": "character",
+      "role": "héros",
+      "cost": 7,
+      "hp": 280,
+      "atk": 120,
+      "abilities": [
+        {
+          "name": "Couverture grillée",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Une fois par partie : retire tous les effets (bonus et malus) d'une carte.",
+          "effects": [
+            {
+              "op": "oncePerGame"
+            },
+            {
+              "op": "reset",
+              "target": "chosen"
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-heiresses",
+      "name": "Brittany et Tiffany Wilson",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 4,
+      "hp": 110,
+      "atk": 40,
+      "abilities": [
+        {
+          "name": "Héritières",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "onPlay",
+          "text": "À leur arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond).",
+          "effects": [
+            {
+              "op": "coinBonus",
+              "amount": 3
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-vandergeld",
+      "name": "Heather et Megan Vandergeld",
+      "rarity": "rare",
+      "category": "character",
+      "role": "traqueur",
+      "cost": 5,
+      "hp": 150,
+      "atk": 70,
+      "abilities": [
+        {
+          "name": "Langue de vipère",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Un personnage adverse perd 30 ATQ jusqu'à la fin de la partie.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "chosenEnemy",
+              "atk": -30
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-warren",
+      "name": "Warren Vandergeld",
+      "rarity": "rare",
+      "category": "character",
+      "role": "boss",
+      "cost": 5,
+      "hp": 150,
+      "atk": 80,
+      "abilities": [
+        {
+          "name": "Le cerveau de l'affaire",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Vos cartes White Chicks traqueur gagnent +20 ATQ.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "set": "white-chicks",
+                "role": "traqueur"
+              },
+              "atk": 20
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-gomez",
+      "name": "Agent Gomez",
+      "rarity": "common",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 2,
+      "hp": 70,
+      "atk": 40,
+      "abilities": [
+        {
+          "name": "Rival du FBI",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Gagne +20 ATQ quand il attaque Marcus ou Kevin.",
+          "effects": [
+            {
+              "op": "attackBonusVs",
+              "filter": {
+                "ids": [
+                  "wc-marcus",
+                  "wc-kevin"
+                ]
+              },
+              "atk": 20
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-elliott",
+      "name": "Le Chef Elliott Gordon",
+      "rarity": "common",
+      "category": "character",
+      "role": "soutien",
+      "cost": 3,
+      "hp": 90,
+      "atk": 50,
+      "abilities": [
+        {
+          "name": "Vous êtes virés !",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "onPlay",
+          "text": "À son arrivée : l'adversaire défausse une carte au hasard.",
+          "effects": [
+            {
+              "op": "discardRandom"
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-dance",
+      "name": "Battle de danse",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 5,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Qui mène la danse ?",
+          "power": {
+            "icon": "fist",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Choisissez un de vos personnages et un personnage adverse : celui qui a le moins d'ATQ est détruit.",
+          "effects": [
+            {
+              "op": "duel"
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    },
+    {
+      "id": "wc-hamptons",
+      "name": "Les Hamptons",
+      "rarity": "terrain",
+      "category": "terrain",
+      "role": "terrain",
+      "cost": 3,
+      "hp": null,
+      "atk": null,
+      "abilities": [
+        {
+          "name": "Week-end mondain",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Vos cartes White Chicks gagnent +30 ATQ. Plafond de stock +3 (13 au lieu de 10) tant que ce terrain est en jeu.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "filter": {
+                "set": "white-chicks"
+              },
+              "atk": 30
+            },
+            {
+              "op": "coinCap",
+              "amount": 3
+            }
+          ]
+        }
+      ],
+      "flavor": "",
+      "set": "white-chicks",
+      "image": null
+    }
+  ],
+  "id": "white-chicks"
+}

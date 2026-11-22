@@ -1,0 +1,950 @@
+{
+  "id": "matrix",
+  "title": "Matrix",
+  "year": 1999,
+  "family": "Matrix",
+  "source": "Transcription des cartes papier de Root (docs/reference/paper-cards-matrix.jpg)",
+  "cards": [
+    {
+      "id": "mx-keymaker",
+      "set": "matrix",
+      "name": "Le maître des clés",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 4,
+      "hp": 90,
+      "atk": 50,
+      "element": "eye",
+      "abilities": [
+        {
+          "name": "Il y a un immeuble, dans cet immeuble il y a un étage auquel nul escalier ne conduit…",
+          "power": {
+            "icon": "eye",
+            "count": 4
+          },
+          "kind": "active",
+          "text": "Vous regardez les 6 prochaines cartes de VOTRE deck et en choisissez 3.",
+          "effects": [
+            {
+              "op": "lookAndPick",
+              "look": 6,
+              "pick": 3
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-keymaker.jpg"
+    },
+    {
+      "id": "mx-epok",
+      "set": "matrix",
+      "name": "Epok",
+      "rarity": "common",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 3,
+      "hp": 90,
+      "atk": 60,
+      "element": "star",
+      "abilities": [
+        {
+          "name": "« Lumière EPOK »",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Vous piochez 3 cartes.",
+          "effects": [
+            {
+              "op": "draw",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "J'espère que l'oracle t'a prédit de bonnes choses",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Vous boostez TOUTES les cartes du monde de « Matrix » : +30 ATQ / +50 PV.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "all",
+              "filter": {
+                "set": "matrix"
+              },
+              "atk": 30,
+              "hp": 50
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-epok.jpg"
+    },
+    {
+      "id": "mx-pills",
+      "set": "matrix",
+      "name": "Les pilules de Morpheus",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 7,
+      "hp": null,
+      "atk": null,
+      "element": "star",
+      "abilities": [
+        {
+          "name": "Choisis la pilule rouge et on descend avec le lapin blanc au fond du gouffre",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "choice",
+          "text": "Octroyez +100 PV / +100 ATQ à une de vos cartes.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "chosenAlly",
+              "atk": 100,
+              "hp": 100
+            }
+          ]
+        },
+        {
+          "name": "Choisis la pilule bleue et tu pourras rêver et continuer de penser ce que tu veux",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "choice",
+          "text": "Choisissez une carte adverse : −80 PV / −80 ATQ.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "chosenEnemy",
+              "atk": -80,
+              "hp": -80
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-pills.jpg",
+      "choice": "exclusive"
+    },
+    {
+      "id": "mx-dozer",
+      "set": "matrix",
+      "name": "Dozer",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 4,
+      "hp": 120,
+      "atk": 60,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "C'est des protéines assimilées, tous les besoins essentiels du corps…",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Toutes vos cartes gagnent +20 ATQ TANT QUE Dozer est sur le terrain.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "allies",
+              "atk": 20
+            }
+          ]
+        },
+        {
+          "name": "Ça dégraisse les moteurs et ça tue les cellules grises",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Cocktail de Dozer du Nebuchadnezzar : GUÉRIT TOUTES vos cartes des effets NÉGATIFS.",
+          "effects": [
+            {
+              "op": "cleanse",
+              "target": "allAllies"
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-dozer.jpg"
+    },
+    {
+      "id": "mx-apu",
+      "set": "matrix",
+      "name": "Unité A.P.U",
+      "rarity": "spell",
+      "category": "equipment",
+      "role": "équipement",
+      "cost": 6,
+      "hp": null,
+      "atk": null,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Commandant Lock, toutes les A.P.U sont en position !",
+          "power": {
+            "icon": "bolt",
+            "count": 4
+          },
+          "kind": "onPlay",
+          "text": "Si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Ne fonctionne qu'avec les cartes neutres du monde de « Matrix » : +100 ATQ.",
+          "effects": [
+            {
+              "op": "summonFrom",
+              "ids": [
+                "mx-iffune"
+              ],
+              "zones": [
+                "hand",
+                "graveyard",
+                "anyHand",
+                "anyGraveyard",
+                "enemyBoard"
+              ],
+              "double": true,
+              "else": [
+                {
+                  "op": "modify",
+                  "target": "chosenAlly",
+                  "filter": {
+                    "set": "matrix"
+                  },
+                  "atk": 100
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-apu.jpg"
+    },
+    {
+      "id": "mx-sentinels",
+      "set": "matrix",
+      "name": "Les sentinelles",
+      "rarity": "epic",
+      "category": "character",
+      "role": "traqueur",
+      "cost": 9,
+      "hp": [
+        100,
+        100,
+        100
+      ],
+      "atk": [
+        40,
+        40,
+        40
+      ],
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Des sentinelles ? Des tueurs mécaniques obsessionnels",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Si votre cible meurt, vous pouvez ré-attaquer.",
+          "effects": [
+            {
+              "op": "onKill",
+              "reattack": true
+            }
+          ]
+        },
+        {
+          "name": "Attaque groupée sur Sion",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Vous absorbez l'ATQ de vos cartes présentes sur le terrain pendant 1 tour (usage unique).",
+          "effects": [
+            {
+              "op": "absorbAllyAtk",
+              "turns": 1
+            }
+          ]
+        },
+        {
+          "name": "Ville des machines",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV.",
+          "effects": [
+            {
+              "op": "startOfTurn",
+              "effects": [
+                {
+                  "op": "heal",
+                  "target": "allAllies",
+                  "amount": 50
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-sentinels.jpg",
+      "bodies": 3
+    },
+    {
+      "id": "mx-emp",
+      "set": "matrix",
+      "name": "E.M.P",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 8,
+      "hp": null,
+      "atk": null,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "EMP armée et opérationnelle !",
+          "power": {
+            "icon": "bolt",
+            "count": 3
+          },
+          "kind": "active",
+          "text": "Détruit les cartes « Sentinelles », « A.P.U », « Smith », « Les Agents », « Le Lazar », « Le Lazer » et réduit TOUTES les cartes sur le terrain au SILENCE.",
+          "effects": [
+            {
+              "op": "destroyWhere",
+              "ids": [
+                "mx-sentinels",
+                "mx-apu",
+                "mx-smith"
+              ]
+            },
+            {
+              "op": "status",
+              "target": "all",
+              "status": "silence",
+              "turns": 1
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-emp.jpg"
+    },
+    {
+      "id": "mx-switch",
+      "set": "matrix",
+      "name": "Switch",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 5,
+      "hp": 130,
+      "atk": 80,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Écoute, on n'a pas le temps de jouer à question-réponse, obéis-moi ou bien casse-toi !",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes.",
+          "effects": [
+            {
+              "op": "status",
+              "target": "allAllies",
+              "status": "shield",
+              "amount": 40
+            }
+          ]
+        },
+        {
+          "name": "Nan pas comme ça… x_x",
+          "power": {
+            "icon": "bolt",
+            "count": 3
+          },
+          "kind": "reaction",
+          "text": "ANNULE la mort d'une de vos cartes.",
+          "effects": [
+            {
+              "op": "cancelDeath",
+              "hp": 10
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-switch.jpg"
+    },
+    {
+      "id": "mx-angel",
+      "set": "matrix",
+      "name": "L'ange sans ailes",
+      "rarity": "epic",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 8,
+      "hp": 290,
+      "atk": 120,
+      "element": "fist",
+      "abilities": [
+        {
+          "name": "Là-bas en face de l'ascenseur il y a un vestiaire… Vous avez la charge",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "onPlay",
+          "text": "Lors de votre arrivée, vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse.",
+          "effects": [
+            {
+              "op": "dice",
+              "branches": [
+                {
+                  "min": 3,
+                  "max": 6,
+                  "effects": [
+                    {
+                      "op": "destroy",
+                      "target": "chosenEnemy"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Un code est inséré dans le computer…",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "choice",
+          "text": "Piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci.",
+          "effects": [
+            {
+              "op": "chooseOne",
+              "options": [
+                [
+                  {
+                    "op": "draw",
+                    "count": 3,
+                    "who": "opponentPile"
+                  }
+                ],
+                [
+                  {
+                    "op": "playFree"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-angel.jpg"
+    },
+    {
+      "id": "mx-recharge",
+      "set": "matrix",
+      "name": "Ça pisse tu m'étonnes",
+      "rarity": "spell",
+      "category": "spell",
+      "role": "sort",
+      "cost": 12,
+      "hp": null,
+      "atk": null,
+      "element": "star",
+      "abilities": [
+        {
+          "name": "RECHAAARGE ! Ça pisse tu m'étonnes… GOW !!",
+          "power": {
+            "icon": "star",
+            "count": 4
+          },
+          "kind": "active",
+          "text": "Remet à NEUF 1 de vos cartes sur le terrain (la guérit de TOUS les effets néfastes : poison, silence…). Immunité totale AUX EFFETS durant tous les prochains tours.",
+          "effects": [
+            {
+              "op": "cleanse",
+              "target": "chosenAlly"
+            },
+            {
+              "op": "status",
+              "target": "previous",
+              "status": "immune"
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-recharge.jpg"
+    },
+    {
+      "id": "mx-matrix",
+      "set": "matrix",
+      "name": "La Matrice",
+      "rarity": "terrain",
+      "category": "terrain",
+      "role": "terrain",
+      "cost": null,
+      "hp": null,
+      "atk": null,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "La Matrice est universelle, elle est avec nous ici en ce moment même, elle est omniprésente",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Confère à TOUTES vos cartes du monde de MATRIX : −50 % des dégâts reçus.",
+          "effects": [
+            {
+              "op": "damageTaken",
+              "who": "allies",
+              "filter": {
+                "set": "matrix"
+              },
+              "multiplier": 0.5
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-matrix.jpg"
+    },
+    {
+      "id": "mx-iffune",
+      "set": "matrix",
+      "name": "Capitaine Iffune",
+      "rarity": "epic",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 7,
+      "hp": 310,
+      "atk": 120,
+      "element": "fist",
+      "abilities": [
+        {
+          "name": "Si l'heure est venue de mourir, c'est inéluctable, alors envoyons-les en enfer !",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Iffune est prêt à mourir pour Sion : lorsqu'il passe sous la barre des 100 PV, il gagne +80 ATQ.",
+          "effects": [
+            {
+              "op": "aura",
+              "who": "self",
+              "atk": 80,
+              "if": {
+                "selfHpBelow": 100
+              }
+            }
+          ]
+        },
+        {
+          "name": "RECHARGE ! Ça pisse tu m'étonnes",
+          "power": {
+            "icon": "fist",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Iffune attaque à distance 1 fois sur 2 et IGNORE les dégâts de sa cible.",
+          "effects": [
+            {
+              "op": "noRetaliation",
+              "alternate": true
+            }
+          ]
+        },
+        {
+          "name": "Si tu oses… tu verras que les machines et moi on a un point en commun",
+          "power": {
+            "icon": "fist",
+            "count": 1
+          },
+          "kind": "onDeath",
+          "text": "À votre mort, vous infligez −80 PV aux adversaires.",
+          "effects": [
+            {
+              "op": "damageEnemies",
+              "amount": 80
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-iffune.jpg"
+    },
+    {
+      "id": "mx-tank",
+      "set": "matrix",
+      "name": "Tank",
+      "rarity": "common",
+      "category": "character",
+      "role": "soutien",
+      "cost": 1,
+      "hp": 50,
+      "atk": 30,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Opérateur ?! Eh, l'magicien, fais-moi sortir maintenant !",
+          "power": {
+            "icon": "bolt",
+            "count": 3
+          },
+          "kind": "active",
+          "text": "Les agents sont à vos trousses : choisissez 3 cartes sur le terrain avant de les renvoyer dans la main de leur propriétaire.",
+          "effects": [
+            {
+              "op": "returnToHand",
+              "target": "chosenCard",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "Waboch & Lake",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "flavor",
+          "text": "Vous êtes le p'tit frère de Dozer."
+        }
+      ],
+      "image": "matrix/mx-tank.jpg"
+    },
+    {
+      "id": "mx-smith",
+      "set": "matrix",
+      "name": "Smith a.k.a The Virus",
+      "rarity": "legendary",
+      "category": "character",
+      "role": "boss/traqueur",
+      "cost": 13,
+      "hp": 300,
+      "atk": 150,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Je hais cette planète, ce zoo, cette prison, cette réalité peu importe comment vous la nommez",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain.",
+          "effects": [
+            {
+              "op": "absorb",
+              "target": "all",
+              "pct": 50
+            }
+          ]
+        },
+        {
+          "name": "Je n'peux plus la supporter, elle sent la MERDE !",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Vous piochez dans votre cimetière jusqu'à 15 cartes max. dans votre main.",
+          "effects": [
+            {
+              "op": "draw",
+              "from": "graveyard",
+              "count": 15
+            }
+          ]
+        },
+        {
+          "name": "Tellement vous me répugnez, PIGÉ ? J'ai besoin de m'échapper",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Vous attaquez 3 cibles par tour.",
+          "effects": [
+            {
+              "op": "multiAttack",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-smith.jpg"
+    },
+    {
+      "id": "mx-mouse",
+      "set": "matrix",
+      "name": "Le Mulo",
+      "rarity": "rare",
+      "category": "character",
+      "role": "soutien",
+      "cost": 4,
+      "hp": 110,
+      "atk": 60,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Ah au fait, on m'a dit que t'as eu droit à mon programme spécial « la femme en robe rouge »…",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Vos adversaires se battent pour la femme en robe rouge : chaque ennemi attaque ses alliés adjacents.",
+          "effects": [
+            {
+              "op": "enemiesHitAdjacent"
+            }
+          ]
+        },
+        {
+          "name": "Le p'tit derrière toi c'est l'Mulo",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "TOUTES les cartes du monde de « MATRIX » gagnent +40 ATQ / +50 PV.",
+          "effects": [
+            {
+              "op": "modify",
+              "target": "all",
+              "filter": {
+                "set": "matrix"
+              },
+              "atk": 40,
+              "hp": 50
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-mouse.jpg"
+    },
+    {
+      "id": "mx-trinity",
+      "set": "matrix",
+      "name": "Trinity",
+      "rarity": "epic",
+      "category": "character",
+      "role": "guerrier",
+      "cost": 7,
+      "hp": 300,
+      "atk": 100,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Évite celle-là !",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Tous les 2 tours, les dégâts qu'elle inflige sont MORTELS pour sa cible.",
+          "effects": [
+            {
+              "op": "cycleLethal",
+              "every": 2
+            }
+          ]
+        },
+        {
+          "name": "Je crois en la prophétie de l'Oracle",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Pendant 2 tours, TOUTES les cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS.",
+          "effects": [
+            {
+              "op": "extraAttack",
+              "target": "allAllies",
+              "filter": {
+                "set": "matrix"
+              },
+              "count": 1,
+              "turns": 2
+            },
+            {
+              "op": "dice",
+              "branches": [
+                {
+                  "min": 1,
+                  "max": 3,
+                  "effects": [
+                    {
+                      "op": "status",
+                      "target": "allAllies",
+                      "filter": {
+                        "set": "matrix"
+                      },
+                      "status": "insensible",
+                      "turns": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-trinity.jpg"
+    },
+    {
+      "id": "mx-neo",
+      "set": "matrix",
+      "name": "Néo a.k.a L'élu",
+      "rarity": "legendary",
+      "category": "character",
+      "role": "héros",
+      "cost": 10,
+      "hp": 600,
+      "atk": 160,
+      "element": "bolt",
+      "abilities": [
+        {
+          "name": "Je connais l'kung fu",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "reaction",
+          "text": "Néo peut attaquer PENDANT le tour de votre adversaire.",
+          "effects": [
+            {
+              "op": "counterAttack"
+            }
+          ]
+        },
+        {
+          "name": "Y m'faut des armes, un maximum d'armes",
+          "power": {
+            "icon": "bolt",
+            "count": 2
+          },
+          "kind": "passive",
+          "text": "Néo s'équipe dans la Matrice : tous les 2 tours, ses dégâts sont doublés.",
+          "effects": [
+            {
+              "op": "cycleAttackMultiplier",
+              "every": 2,
+              "multiplier": 2
+            }
+          ]
+        },
+        {
+          "name": "Trinity ! Aide-moi !",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "active",
+          "text": "Si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain.",
+          "effects": [
+            {
+              "op": "summonFrom",
+              "ids": [
+                "mx-trinity"
+              ],
+              "zones": [
+                "hand",
+                "graveyard",
+                "anyHand",
+                "anyGraveyard"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Élu de Sion",
+          "power": {
+            "icon": "bolt",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Tous les 2 tours, Néo devient INSENSIBLE aux dégâts et aux effets adverses.",
+          "effects": [
+            {
+              "op": "cycleInsensible",
+              "every": 2
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-neo.jpg"
+    },
+    {
+      "id": "mx-cypher",
+      "set": "matrix",
+      "name": "Cypher",
+      "rarity": "rare",
+      "category": "character",
+      "role": "snitch",
+      "cost": 5,
+      "hp": 150,
+      "atk": 70,
+      "element": "star",
+      "abilities": [
+        {
+          "name": "Je veux être… quelqu'un d'important… comme un acteur. Les ignorants sont bénis",
+          "power": {
+            "icon": "star",
+            "count": 2
+          },
+          "kind": "active",
+          "text": "Vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ.",
+          "effects": [
+            {
+              "op": "copyStats",
+              "target": "otherAllies"
+            }
+          ]
+        },
+        {
+          "name": "Dis-moi, est-ce que t'as mordu au baratin de Morpheus ?",
+          "power": {
+            "icon": "star",
+            "count": 1
+          },
+          "kind": "passive",
+          "text": "Vos adversaires sont dans la Matrice : ils ne vous infligent que la moitié de leurs dégâts.",
+          "effects": [
+            {
+              "op": "damageTaken",
+              "who": "allies",
+              "multiplier": 0.5
+            }
+          ]
+        }
+      ],
+      "image": "matrix/mx-cypher.jpg"
+    }
+  ]
+}

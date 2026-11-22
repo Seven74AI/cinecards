@@ -4,7 +4,7 @@ baseline_commit: dfe526e8f23075dcb6c6a5f63861fc0089fc42da
 
 # Story 8.6: Héberger le jeu sur cinecards.sevend.io
 
-Status: review
+Status: done
 
 ## Story
 
@@ -207,3 +207,4 @@ Agent de développement (Claude Code)
 - 2026-11-22 : le serveur sert le jeu (`CLIENT_DIR`), client en même origine (`VITE_SERVER_URL=same-origin`), bandeau
   de déménagement sur Pages (`VITE_MOVED_TO`), image Docker client + serveur, origines par défaut, documentation.
   Statut : review.
+- 2026-11-22 — Revue : garde-fous des fichiers statiques vérifiés (traversée, routes réservées, WebSocket), image Docker construite et testée par l'agent. typecheck, 208 tests ; e2e 39/40, `play-draw` échoue seulement en parallèle sous charge (3/3 seul), fragilité antérieure à cette story. Story terminée.

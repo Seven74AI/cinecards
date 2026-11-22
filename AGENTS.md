@@ -24,13 +24,17 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
   `PW_CHANNEL=chromium pnpm e2e -- --trace off`. When several agents work in parallel worktrees, give each its own ports
   (`E2E_SERVER_PORT` / `E2E_CLIENT_PORT`, e.g. 2667/5274) so their e2e servers don't collide. If the story touches the engine or the cards, the
   200-game simulation must also pass.
-- **Ship:** commit and push straight to `main`. Pushes don't start GitHub Actions (account-level
-  issue), so then start the Pages workflow yourself with the GitHub MCP tool `actions_run_trigger`
+- **Ship:** commit and push straight to `main`. The game lives at https://cinecards.sevend.io/: the
+  game server also serves the built client (story 8.6, `CLIENT_DIR` in the Docker image), so the VPS
+  autodeploy below ships client and server together. GitHub Pages is now the old site (a "moved"
+  banner, no passkeys); pushes don't start GitHub Actions (account-level issue), so to refresh the old
+  site start the Pages workflow yourself with the GitHub MCP tool `actions_run_trigger`
   (`run_workflow`, workflow `pages.yml`, ref `main`) and check the run succeeds with `actions_list`.
 - **Server:** the VPS pulls `main` and rebuilds within about 5 minutes
-  (`deploy/autodeploy.sh`, systemd timer). The client (Pages) and the server update at different
-  moments, so keep each protocol change backward compatible for one release: the new server
-  accepts the old client's messages, and the new client tolerates the old server's view.
+  (`deploy/autodeploy.sh`, systemd timer), client included. The old Pages site and pages already open
+  in a browser still run an older client, so keep each protocol change backward compatible for one
+  release: the new server accepts the old client's messages, and the new client tolerates the old
+  server's view.
 - **Commits:** end messages with the Co-Authored-By / Claude-Session lines given in the session.
   Never put model names in commits or code.
 

@@ -284,7 +284,7 @@ describe('8.1 HTTP API and rooms', () => {
     expect(pre.headers.get('access-control-max-age')).toBe('600');
     expect(originAllowed('http://127.0.0.1:2567', [])).toBe(true);
     expect(originAllowed('http://localhost.evil.test', [])).toBe(false);
-    expect(parseOrigins(undefined)).toEqual(['https://seven74ai.github.io']);
+    expect(parseOrigins(undefined)).toEqual(['https://cinecards.sevend.io', 'https://seven74ai.github.io']);
     expect(parseOrigins('https://a.test/, https://b.test')).toEqual(['https://a.test', 'https://b.test']);
   });
 

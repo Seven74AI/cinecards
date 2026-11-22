@@ -1,8 +1,38 @@
 /** Online settings, kept apart from the Colyseus SDK so the SDK loads only when needed. */
 const env = import.meta.env as Record<string, string | undefined>;
+
+/**
+ * WebSocket URL of the game server from the build's `VITE_SERVER_URL` and the page's address; empty = online play
+ * disabled. `same-origin` (story 8.6: the game served by the server itself) = the page's own host, wss on https.
+ * Unset on localhost = the dev server on port 2567.
+ */
+export function serverUrl(value: string | undefined, loc: Pick<Location, 'protocol' | 'host' | 'hostname'> | undefined): string {
+  if (value === 'same-origin') return loc ? `${loc.protocol === 'https:' ? 'wss' : 'ws'}://${loc.host}` : '';
+  if (value !== undefined) return value;
+  return loc && (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') ? `ws://${loc.hostname}:2567` : '';
+}
+
+/**
+ * The game's new address on the old GitHub Pages site (story 8.6, `VITE_MOVED_TO`), keeping an invitation's
+ * `?salle=CODE`; null when this build has not moved.
+ */
+export function movedUrl(movedTo: string | undefined, search: string): string | null {
+  if (!movedTo) return null;
+  let url: URL;
+  try {
+    url = new URL(movedTo);
+  } catch {
+    return null;
+  }
+  if (url.pathname === '') url.pathname = '/';
+  const room = new URLSearchParams(search).get('salle');
+  if (room && /^[A-Za-z0-9]{1,8}$/.test(room)) url.searchParams.set('salle', room.toUpperCase());
+  return url.href;
+}
+export const MOVED_URL: string | null = movedUrl(env.VITE_MOVED_TO, typeof location !== 'undefined' ? location.search : '');
+
 /** WebSocket URL of the game server; empty = online play disabled in this build. */
-export const SERVER_URL: string =
-  env.VITE_SERVER_URL ?? (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? `ws://${location.hostname}:2567` : '');
+export const SERVER_URL: string = serverUrl(env.VITE_SERVER_URL, typeof location !== 'undefined' ? location : undefined);
 
 /**
  * Seat reconnection tokens, kept in localStorage by room code so a reload or a new tab can come back

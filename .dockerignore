@@ -1,9 +1,16 @@
 **/node_modules
 **/dist
 **/*.tsbuildinfo
-apps/client
+**/test-results
+playwright-report
+.claude
+.git
 _bmad
-_bmad-output
 docs
 e2e
 .github
+# the client imports the keyword glossary (game/glossary.ts): keep only that file of _bmad-output
+_bmad-output/*
+!_bmad-output/planning-artifacts
+_bmad-output/planning-artifacts/*
+!_bmad-output/planning-artifacts/glossaire-mots-cles.md

@@ -4,6 +4,7 @@ import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
 import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
 import { AccountPanel } from '../account/AccountPanel.tsx';
 import { signOut, useAccount } from '../account/session.ts';
+import { MOVED_URL } from '../net/config.ts';
 import { CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
 
@@ -49,6 +50,17 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
           <span key={i} className="ember" style={{ left: `${(i * 29) % 100}%`, animationDelay: `${(i * 1.3) % 9}s` }} />
         ))}
       </div>
+      {MOVED_URL ? (
+        // old GitHub Pages site only (story 8.6): the game stays playable here during the move
+        <aside className="moved-banner parchment" role="note">
+          <p>
+            CineCards a déménagé : <strong>cinecards.sevend.io</strong>
+          </p>
+          <a className="btn primary" href={MOVED_URL}>
+            Y aller
+          </a>
+        </aside>
+      ) : null}
       <header className="home-title">
         <span className="seal-big" aria-hidden="true" />
         <h1>CineCards</h1>

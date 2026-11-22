@@ -2,8 +2,11 @@ import type http from 'node:http';
 import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/passkeys.ts';
 import type { AccountService, AuthResult } from '../auth/service.ts';
 
-/** Default client origin (GitHub Pages); override with CLIENT_ORIGINS (comma-separated). */
-export const DEFAULT_CLIENT_ORIGINS = ['https://seven74ai.github.io'];
+/**
+ * Default client origins: the game on Root's domain (story 8.6) and the old GitHub Pages site during the move;
+ * override with CLIENT_ORIGINS (comma-separated).
+ */
+export const DEFAULT_CLIENT_ORIGINS = ['https://cinecards.sevend.io', 'https://seven74ai.github.io'];
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const MAX_BODY = 8 * 1024;
 

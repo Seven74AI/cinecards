@@ -1609,6 +1609,30 @@ h3 {
   padding: 28px 16px 40px;
   overflow-x: hidden;
 }
+/* old GitHub Pages site only (story 8.6) */
+.moved-banner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  font-family: var(--display);
+}
+.moved-banner p {
+  margin: 0;
+  flex: 1 1 180px;
+}
+.moved-banner .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
 .home-title {
   text-align: center;
 }

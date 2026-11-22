@@ -10,13 +10,16 @@ import { AccountService } from './auth/service.ts';
 import { startMaintenance } from './db/backup.ts';
 import { dbPath, openDb } from './db/db.ts';
 import { DuelRoom, roomConfig } from './room.ts';
+import { createStatic } from './static.ts';
 
 export interface ServerOptions {
   /** Folder of the SQLite file and its daily copies; ':memory:' keeps nothing (tests). Default: DATA_DIR or ./data. */
   dataDir?: string;
-  /** Allowed browser origins for `/api/*` (localhost is always allowed). Default: CLIENT_ORIGINS or GitHub Pages. */
+  /** Allowed browser origins for `/api/*` (localhost is always allowed). Default: CLIENT_ORIGINS or DEFAULT_CLIENT_ORIGINS. */
   clientOrigins?: string[];
   now?: () => number;
+  /** Folder of the built client (story 8.6), served at `/`; unset = no game files (dev, tests). Default: CLIENT_DIR. */
+  clientDir?: string;
 }
 
 export async function startServer(
@@ -32,8 +35,9 @@ export async function startServer(
   roomConfig.accounts = accounts;
   const stopMaintenance = startMaintenance(db, dataDir, accounts.purge);
   const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS));
+  const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
-  // answer the health check and the JSON API before Colyseus' own HTTP routes see the request
+  // answer the health check, the JSON API and the game's files (GET/HEAD only) before Colyseus' own HTTP routes see the request
   const emit = httpServer.emit.bind(httpServer) as (event: string, ...args: unknown[]) => boolean;
   httpServer.emit = ((event: string, ...args: unknown[]) => {
     if (event === 'request') {
@@ -43,6 +47,7 @@ export async function startServer(
         return true;
       }
       if (api(req, res)) return true;
+      if (files(req, res)) return true;
     }
     return emit(event, ...args);
   }) as typeof httpServer.emit;

@@ -1,6 +1,10 @@
+---
+baseline_commit: dfe526e8f23075dcb6c6a5f63861fc0089fc42da
+---
+
 # Story 8.6: Héberger le jeu sur cinecards.sevend.io
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -37,50 +41,50 @@ so that les clés d'accès soient liées à notre domaine et que le jeu se dépl
 
 ## Tasks / Subtasks
 
-- [ ] **Serveur : fichiers du jeu** — `apps/server/src/static.ts` + `main.ts` (AC 1, 2, 6)
-  - [ ] `createStatic(clientDir)` → gestionnaire `(req, res) => boolean` dans le même style que `createApi`
+- [x] **Serveur : fichiers du jeu** — `apps/server/src/static.ts` + `main.ts` (AC 1, 2, 6)
+  - [x] `createStatic(clientDir)` → gestionnaire `(req, res) => boolean` dans le même style que `createApi`
         (`apps/server/src/api/http.ts`). `clientDir` = `process.env.CLIENT_DIR` ; absent ou dossier inexistant →
         aucun fichier servi (le serveur marche comme aujourd'hui, utile en dev et dans les tests existants).
-  - [ ] Ordre dans le `httpServer.emit` de `main.ts` : `/health` → `/api/*` → **fichiers du jeu** (GET/HEAD seulement,
+  - [x] Ordre dans le `httpServer.emit` de `main.ts` : `/health` → `/api/*` → **fichiers du jeu** (GET/HEAD seulement,
         jamais `/matchmake/*` ni une requête `upgrade`) → Colyseus. Les WebSocket passent par l'événement `upgrade`,
         pas `request` : ne pas y toucher.
-  - [ ] Résolution sûre : `decodeURIComponent` dans un `try`, refus des octets nuls, `path.resolve(clientDir, '.' +
+  - [x] Résolution sûre : `decodeURIComponent` dans un `try`, refus des octets nuls, `path.resolve(clientDir, '.' +
         pathname)` puis vérifier que le résultat commence par `clientDir + sep` (ou égale `index.html`). Lire avec
         `fs.createReadStream` ; `Content-Length` depuis `stat`.
-  - [ ] Tests `apps/server/src/static.test.ts` (dossier temporaire avec `index.html`, `assets/app-abc123.js`) : types
+  - [x] Tests `apps/server/src/static.test.ts` (dossier temporaire avec `index.html`, `assets/app-abc123.js`) : types
         MIME, en-têtes de cache, `HEAD`, repli sur `index.html` pour `/salle-xyz` et `/?salle=AB12C`, `404` pour
         `/manque.js`, traversée refusée (`/../package.json`, `/%2e%2e/…`, `%00`), `/health`, `/api/health` et
         `POST /matchmake/…` intacts quand `CLIENT_DIR` est défini.
-- [ ] **Client : même origine** — `apps/client/src/net/config.ts`, `account/api.ts` (AC 1, 8)
-  - [ ] `SERVER_URL` : si `VITE_SERVER_URL === 'same-origin'` → `` `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}` `` ;
+- [x] **Client : même origine** — `apps/client/src/net/config.ts`, `account/api.ts` (AC 1, 8)
+  - [x] `SERVER_URL` : si `VITE_SERVER_URL === 'same-origin'` → `` `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}` `` ;
         sinon comportement actuel (valeur explicite, ou `localhost` → port 2567, ou vide = en ligne désactivé).
         `API_URL` en découle déjà (`apiUrl(SERVER_URL)`).
-  - [ ] Test unitaire de la déduction (fonction pure prenant `env` et `location`).
-- [ ] **Client : bandeau de déménagement** — `ui/Home.tsx` (AC 5)
-  - [ ] Si `import.meta.env.VITE_MOVED_TO` est défini : bandeau en tête de l'accueil (style parchemin existant, cible
+  - [x] Test unitaire de la déduction (fonction pure prenant `env` et `location`).
+- [x] **Client : bandeau de déménagement** — `ui/Home.tsx` (AC 5)
+  - [x] Si `import.meta.env.VITE_MOVED_TO` est défini : bandeau en tête de l'accueil (style parchemin existant, cible
         de 44 px), lien qui garde `?salle=`. Rien sinon.
-- [ ] **Image Docker** — `Dockerfile` (AC 3, 4)
-  - [ ] Copier aussi `apps/client` (sans `node_modules` ni `dist`) ; installer avec
+- [x] **Image Docker** — `Dockerfile` (AC 3, 4)
+  - [x] Copier aussi `apps/client` (sans `node_modules` ni `dist`) ; installer avec
         `pnpm install --frozen-lockfile --filter @cinecards/server... --filter @cinecards/client...` ;
         `VITE_SERVER_URL=same-origin pnpm --filter @cinecards/client build` ; `ENV CLIENT_DIR=/app/apps/client/dist`.
         Garder `node:24-alpine`, le `HEALTHCHECK` et le `CMD` actuels. Vérifier que `.dockerignore` (créer s'il manque)
         exclut `node_modules`, `**/dist`, `test-results`, `.claude`, `_bmad-output`.
-  - [ ] Si Docker n'est pas disponible dans l'environnement de dev, simuler l'image : `pnpm --filter @cinecards/client
+  - [x] Si Docker n'est pas disponible dans l'environnement de dev, simuler l'image : `pnpm --filter @cinecards/client
         build` avec `VITE_SERVER_URL=same-origin`, puis `CLIENT_DIR=apps/client/dist DATA_DIR=<tmp> PORT=<p> pnpm
         --filter @cinecards/server start`, et vérifier dans Chromium (Playwright) : l'accueil s'affiche, un duel en ligne
         se crée et un second contexte le rejoint par code, un compte se crée, l'API répond sans CORS (même origine).
         Joindre deux captures (390×844) sous `_bmad-output/implementation-artifacts/screens/8-6/`.
-- [ ] **Origines et Pages** (AC 4, 5, 7)
-  - [ ] `DEFAULT_CLIENT_ORIGINS` (`apps/server/src/api/http.ts`) = `['https://cinecards.sevend.io',
+- [x] **Origines et Pages** (AC 4, 5, 7)
+  - [x] `DEFAULT_CLIENT_ORIGINS` (`apps/server/src/api/http.ts`) = `['https://cinecards.sevend.io',
         'https://seven74ai.github.io']`.
-  - [ ] `.github/workflows/pages.yml` : ajouter `VITE_MOVED_TO: https://cinecards.sevend.io` (garder
+  - [x] `.github/workflows/pages.yml` : ajouter `VITE_MOVED_TO: https://cinecards.sevend.io` (garder
         `VITE_PASSKEYS: 'off'`).
-- [ ] **Documentation** (AC 3)
-  - [ ] `docs/deploy.md` : le jeu est servi par le serveur (`CLIENT_DIR`), adresse `https://cinecards.sevend.io/` ;
+- [x] **Documentation** (AC 3)
+  - [x] `docs/deploy.md` : le jeu est servi par le serveur (`CLIENT_DIR`), adresse `https://cinecards.sevend.io/` ;
         GitHub Pages devient l'ancien site (bandeau) ; tableau des variables (`CLIENT_DIR`, `CLIENT_ORIGINS`).
-  - [ ] `AGENTS.md` : section « Ship » — le jeu se déploie avec le serveur (autodeploy) ; relancer Pages seulement pour
+  - [x] `AGENTS.md` : section « Ship » — le jeu se déploie avec le serveur (autodeploy) ; relancer Pages seulement pour
         l'ancien site. `HANDOFF-CLAUDE.md` : adresse du jeu.
-  - [ ] `a-valider-par-root.md` (section « Epics 8 et 10 ») : bandeau sans redirection automatique ; Pages gardé pendant
+  - [x] `a-valider-par-root.md` (section « Epics 8 et 10 ») : bandeau sans redirection automatique ; Pages gardé pendant
         la transition ; reconnexion de compte attendue après le déménagement.
 
 ## Dev Notes
@@ -131,10 +135,75 @@ so that les clés d'accès soient liées à notre domaine et que le jeu se dépl
 
 ### Agent Model Used
 
+Agent de développement (Claude Code)
+
 ### Debug Log References
+
+### Debug Log
+
+- Premier `docker build` : échec à `pnpm install` (certificat du proxy de l'environnement de dev, `SELF_SIGNED_CERT_IN_CHAIN`),
+  sans rapport avec le Dockerfile. Reconstruit avec une copie de test du Dockerfile qui ajoute seulement le certificat
+  du proxy (`--build-context`, `NODE_EXTRA_CA_CERTS`, `--network host`) : image construite, client compris.
+- e2e complète : 39/40, `play-draw` (animation sensible à la charge) en échec une fois ; relancée seule : 2/2 vertes.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- **Serveur** : `apps/server/src/static.ts` (`createStatic(clientDir)`, même style que `createApi`), branché dans
+  `main.ts` après `/health` et `/api/*`, avant Colyseus (option `clientDir`, défaut `CLIENT_DIR`). GET/HEAD seulement,
+  jamais une requête `upgrade` ; `/health`, `/api/*`, `/matchmake/*` et `/__*` (routes internes de Colyseus, ex.
+  `/__healthcheck`) sont laissés au serveur. Décodage dans un `try`, octet nul refusé, `path.resolve` + vérification du
+  préfixe `clientDir + sep`, `createReadStream`, `Content-Length` depuis `stat`. Cache : `.html` en `no-cache`,
+  `assets/*` en `immutable` 1 an, autres fichiers 1 h. `nosniff` + `Referrer-Policy: same-origin`. Inerte sans dossier
+  ou sans `index.html`.
+- **Client** : `serverUrl(value, location)` pure dans `net/config.ts` (`same-origin` → `ws(s)://<hôte>`) ;
+  `movedUrl(movedTo, search)` + bandeau `.moved-banner` en tête de l'accueil (`VITE_MOVED_TO`), bouton « Y aller » de
+  44 px qui garde `?salle=CODE` (code limité à 8 caractères alphanumériques, mis en majuscules).
+- **Origines** : `DEFAULT_CLIENT_ORIGINS` = `cinecards.sevend.io` + `seven74ai.github.io`. `pages.yml` : `VITE_MOVED_TO`.
+- **Dockerfile** : copie `apps/client`, tout `content/` (le client importe `content/art`) et le glossaire
+  `_bmad-output/planning-artifacts/glossaire-mots-cles.md` (importé par `game/glossary.ts`, non prévu par la story :
+  sans lui le build du client échoue). `.dockerignore` réécrit : `apps/client` n'est plus exclu ; `_bmad-output` exclu
+  sauf ce glossaire ; ajout de `.claude`, `.git`, `**/test-results`, `playwright-report`.
+- **Vérification de l'image (Docker réel, pas seulement simulé)** : conteneur lancé (`-p 127.0.0.1:2687:2567`), état
+  `healthy` ; `/health` = `ok`, `/` = `text/html` `no-cache` + en-têtes de sécurité, `/api/health` OK. Playwright
+  Chromium 390×844 : accueil affiché, compte créé (code de secours), duel en ligne créé puis rejoint par code depuis un
+  second contexte, l'adversaire voit le pseudo du compte ; WebSocket `ws://localhost:2687` et appels `/api/*` sur la
+  même origine, aucune requête vers un autre hôte (hors Google Fonts, déjà présentes). Build « Pages » simulé
+  (`VITE_MOVED_TO`, `VITE_PASSKEYS=off`) : bandeau visible, lien `https://cinecards.sevend.io/?salle=AB12C`.
+  Captures : `screens/8-6/01-accueil-cinecards-sevend-io.png`, `02-duel-en-ligne-meme-origine.png`,
+  `03-ancien-site-bandeau.png`.
+- **Tests** : `static.test.ts` (7 tests : types MIME, cache, HEAD, repli `index.html`, 404, traversée `..`/`%2e%2e`/
+  `%00`/encodage invalide, `/health`, `/api`, `/matchmake`, `/__healthcheck`, POST, inerte sans dossier) ;
+  `config.test.ts` (4 tests : déduction de l'adresse, lien du bandeau). `pnpm typecheck` OK, `pnpm test` 208/208.
+- Choix ajoutés à `a-valider-par-root.md` (section Epics 8 et 10) : bandeau sans redirection, Pages gardé, reconnexion
+  attendue, règles de repli/404/cache.
 
 ### File List
+
+- `apps/server/src/static.ts` (nouveau)
+- `apps/server/src/static.test.ts` (nouveau)
+- `apps/server/src/main.ts`
+- `apps/server/src/api/http.ts`
+- `apps/server/src/accounts.test.ts`
+- `apps/client/src/net/config.ts`
+- `apps/client/src/net/config.test.ts` (nouveau)
+- `apps/client/src/ui/Home.tsx`
+- `apps/client/src/styles.css`
+- `Dockerfile`
+- `.dockerignore`
+- `.github/workflows/pages.yml`
+- `docs/deploy.md`
+- `AGENTS.md`
+- `HANDOFF-CLAUDE.md`
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/8-6-heberger-le-jeu-sur-cinecards-sevend-io.md`
+- `_bmad-output/implementation-artifacts/screens/8-6/01-accueil-cinecards-sevend-io.png` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-6/02-duel-en-ligne-meme-origine.png` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-6/03-ancien-site-bandeau.png` (nouveau)
+
+### Change Log
+
+- 2026-11-22 : le serveur sert le jeu (`CLIENT_DIR`), client en même origine (`VITE_SERVER_URL=same-origin`), bandeau
+  de déménagement sur Pages (`VITE_MOVED_TO`), image Docker client + serveur, origines par défaut, documentation.
+  Statut : review.

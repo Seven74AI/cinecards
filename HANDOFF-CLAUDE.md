@@ -5,11 +5,13 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 
 ## Where we are
 - **Live:**
-  - Client: https://seven74ai.github.io/cinecards/
-  - Server: `wss://cinecards.sevend.io` (`/health` → `ok`)
+  - Game: https://cinecards.sevend.io/ (served by the game server itself since story 8.6, same origin as
+    `wss://cinecards.sevend.io` and `/api`; `/health` → `ok`)
+  - Old site: https://seven74ai.github.io/cinecards/ (GitHub Pages, "CineCards a déménagé" banner, no passkeys)
 - **Done:** epics 1–7 (MVP), 11 (playtest-1 fixes), 12 (per-action animations) and 13 (playtest-2 fixes, stories 13.1–13.12). `main` passes typecheck and 152 unit tests (including the 200-game simulation). The last full e2e run reported 38/38.
 - **Deploy:**
-  - **Client:** push to `main`, then start the Pages workflow yourself (GitHub MCP `actions_run_trigger`, `run_workflow`, `pages.yml`, ref `main`). Push-triggered Actions are broken on the GitHub account side, and Hermes and Root agreed not to chase it.
+  - **Game:** deployed with the server below (the Docker image builds the client with `VITE_SERVER_URL=same-origin`).
+  - **Old site (Pages):** push to `main`, then start the Pages workflow yourself (GitHub MCP `actions_run_trigger`, `run_workflow`, `pages.yml`, ref `main`). Push-triggered Actions are broken on the GitHub account side, and Hermes and Root agreed not to chase it.
   - **Server:** the VPS pulls `main` and rebuilds within ~5 min (`deploy/autodeploy.sh`, systemd timer set up by Hermes). Keep protocol changes backward compatible for one release.
 - **Tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`. Plan: `_bmad-output/planning-artifacts/epics.md`. Rules: the GDD (`planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`). History of decisions: `decision-log.md` next to it.
 

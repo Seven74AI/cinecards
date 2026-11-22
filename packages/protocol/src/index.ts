@@ -19,8 +19,12 @@ export interface ViewMessage {
   view: PlayerView;
   events: GameEvent[];
   seq: number;
+  /** Server epoch ms. Kept one release for older clients; prefer the `*MsLeft` fields (story 11.3). */
   turnEndsAt: number | null;
   reactionEndsAt: number | null;
+  /** Milliseconds left on the turn timer when the message was sent (absent from older servers). */
+  turnMsLeft?: number | null;
+  reactionMsLeft?: number | null;
 }
 
 export interface LobbyMessage {

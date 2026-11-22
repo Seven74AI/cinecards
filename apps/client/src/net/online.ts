@@ -19,6 +19,13 @@ export function joinErrorMessage(err: unknown, hadSeat: boolean): string {
   return 'Connexion au serveur impossible. Vérifie le code ou réessaie plus tard.';
 }
 
+/**
+ * Turns the server's remaining time into a deadline on this device's clock, so a skewed clock does not
+ * shift the countdown (story 11.3). Older servers only send the absolute time.
+ */
+export const localDeadline = (msLeft: number | null | undefined, endsAt: number | null, now = Date.now()): number | null =>
+  msLeft === undefined ? endsAt : msLeft === null ? null : now + msLeft;
+
 const codeOfToken = (token: string) => token.split(':')[0] ?? '';
 
 /** Online duel through the Colyseus server (stories 6.1–6.6, 11.2). The engine runs on the server; we only render views. */
@@ -59,8 +66,8 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
         log: m.events.length ? appendLog(store.snap, m.events, m.view.state, seq) : store.snap.log,
         viewer: m.view.you,
         names: m.view.names,
-        turnEndsAt: m.turnEndsAt,
-        reactionEndsAt: m.reactionEndsAt,
+        turnEndsAt: localDeadline(m.turnMsLeft, m.turnEndsAt),
+        reactionEndsAt: localDeadline(m.reactionMsLeft, m.reactionEndsAt),
         status: store.snap.status === 'opponentAway' ? 'opponentAway' : 'playing',
         roomCode: r.roomId,
       });

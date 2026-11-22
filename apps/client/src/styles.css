@@ -745,10 +745,16 @@ h3 {
   text-overflow: ellipsis;
 }
 .timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-family: var(--display);
   font-weight: 900;
   color: var(--ink);
   font-size: 14px;
+}
+.timer.paused {
+  opacity: 0.6;
 }
 .timer.low {
   color: var(--crimson);

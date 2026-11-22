@@ -1,4 +1,4 @@
-import { apply, createGame, RULES, type Action, type Catalog, type DeckMode, type GameEvent, type GameState, type PlayerId, type RuleError } from '@cinecards/engine';
+import { apply, createGame, RULES, timeoutAction, type Action, type Catalog, type DeckMode, type GameEvent, type GameState, type PlayerId, type RuleError } from '@cinecards/engine';
 import type { ViewMessage } from '@cinecards/protocol';
 import { redactEvents, redactState } from './redact.ts';
 
@@ -89,6 +89,9 @@ export class Duel {
       seq: this.seq,
       turnEndsAt: this.turnEndsAt,
       reactionEndsAt: this.reactionEndsAt,
+      // remaining time, so clients with a skewed clock still show the right countdown (story 11.3)
+      turnMsLeft: this.turnEndsAt === null ? null : Math.max(0, this.turnEndsAt - this.clock.now()),
+      reactionMsLeft: this.reactionEndsAt === null ? null : Math.max(0, this.reactionEndsAt - this.clock.now()),
     };
   }
 
@@ -124,14 +127,15 @@ export class Duel {
     }
   }
 
-  /** Time is up: resolve whatever is pending, then end the turn of the active player. */
+  /** Time is up: resolve whatever is pending with its default, then end the turn of the active player. */
   private onTurnTimeout() {
     this.turnTimer = null;
-    for (let guard = 0; guard < 5 && this.state.pending && !this.finished; guard++) {
-      const p = this.state.pending;
-      if (p.kind === 'reaction') this.act(p.player, { type: 'pass', player: p.player });
-      else this.act(p.player, { type: 'choose', player: p.player, picks: p.options.slice(0, p.count) });
+    const turn = this.state.players[this.state.active].turnNumber;
+    const active = this.state.active;
+    for (let guard = 0; guard < 8; guard++) {
+      const a = timeoutAction(this.state);
+      if (!a || !this.act(a.player, a)) break;
+      if (a.type === 'endTurn' || this.state.active !== active || this.state.players[active].turnNumber !== turn) break;
     }
-    if (!this.finished) this.act(this.state.active, { type: 'endTurn', player: this.state.active });
   }
 }

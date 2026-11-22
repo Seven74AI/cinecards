@@ -65,7 +65,11 @@ describe('6.4 / 6.5 timers', () => {
     const duel = new Duel(catalog, { seed: 3, mode: 'shared' }, ['A', 'B'], { view: (p, m) => views[p].push(m), rejected: () => {} }, clock);
     const first = duel.state.active;
     expect(views[0][0]!.turnEndsAt).toBe(1000 + 75000);
-    clock.advance(75000);
+    expect(views[0][0]!.turnMsLeft).toBe(75000);
+    clock.advance(30000);
+    duel.resend(0);
+    expect(views[0].at(-1)!.turnMsLeft).toBe(45000);
+    clock.advance(45000);
     expect(duel.state.active).not.toBe(first);
     // force a reaction window and check the 5 s auto-pass
     duel.state.pending = { kind: 'reaction', player: first, options: [], key: 'x' };

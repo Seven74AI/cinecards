@@ -373,7 +373,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   };
 
   // ----- banner -----
-  const secondsLeft = snap.turnEndsAt ? Math.max(0, Math.ceil((snap.turnEndsAt - now) / 1000)) : null;
+  const secondsLeft = snap.turnEndsAt ? Math.max(0, Math.ceil((snap.turnEndsAt - now) / 1000)) : snap.turnMsLeft != null ? Math.ceil(snap.turnMsLeft / 1000) : null;
+  const timerLow = secondsLeft !== null && secondsLeft <= RULES.TURN_ALERT_SECONDS;
   const banner = (() => {
     if (state.phase === 'finished') return { title: 'Fin de la partie', sub: '' };
     if (mode.k === 'targets') {
@@ -487,7 +488,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             <strong>{banner.title}</strong>
             <span>{banner.sub}</span>
           </div>
-          {secondsLeft !== null && state.phase === 'main' ? <span className={'timer' + (secondsLeft <= 10 ? ' low' : '')}>{secondsLeft}s</span> : null}
+          {secondsLeft !== null && state.phase === 'main' ? (
+            <span className={'timer' + (timerLow ? ' low' : '') + (snap.turnEndsAt ? '' : ' paused')} role="timer" aria-label={`${secondsLeft} secondes restantes`}>
+              <Icon name="hourglass" size={14} />
+              {secondsLeft}s
+            </span>
+          ) : null}
           {mode.k !== 'idle' ? (
             <button type="button" className="btn small ghost" onClick={() => setMode({ k: 'idle' })}>
               Annuler
@@ -569,7 +575,14 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           <div className="parchment card-panel">
             <h2>Au tour de {names[handoffFor]}</h2>
             <p>Passe l’appareil à {names[handoffFor]}. Ses cartes restent cachées jusqu’à ce qu’il ou elle soit prêt·e.</p>
-            <button type="button" className="btn primary" onClick={() => setHandoffFor(null)}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => {
+                setHandoffFor(null);
+                session.ready?.();
+              }}
+            >
               Je suis prêt·e
             </button>
           </div>

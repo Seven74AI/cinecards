@@ -18,6 +18,9 @@ test('two friends play an online duel from an invitation link', async ({ browser
   await expect(alice.locator('.banner')).toBeVisible();
   await expect(bob.locator('.banner')).toBeVisible();
   await expect(alice.locator('.room-code')).toContainText(code);
+  // the turn timer is shown on both sides (story 11.3)
+  await expect(alice.getByRole('timer')).toContainText(/\d+s/);
+  await expect(bob.getByRole('timer')).toContainText(/\d+s/);
 
   // whoever starts ends the turn; the other player sees it is their turn
   const aliceStarts = await alice.getByRole('button', { name: 'Fin du tour' }).isEnabled();

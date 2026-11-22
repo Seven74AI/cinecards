@@ -8,3 +8,4 @@ export { rollD6, nextRandom } from './rng.ts';
 export * from './query.ts';
 export { unsupportedReason, playableCardIds, KNOWN_OPS } from './support.ts';
 export { botRandom, botStep, candidateActions } from './bot.ts';
+export { timeoutAction } from './timeout.ts';

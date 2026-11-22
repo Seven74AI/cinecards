@@ -12,6 +12,8 @@ export const RULES = {
   DAMAGE_ROUNDING: 10,
   CHAIN_LIMIT: 50,
   TURN_SECONDS: 75,
+  /** The turn timer turns red and pulses for the last seconds (story 11.3). */
+  TURN_ALERT_SECONDS: 10,
   REACTION_SECONDS: 5,
   RECONNECT_SECONDS: 90,
 } as const;

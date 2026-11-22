@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { loadSetsFromDir } from '@cinecards/cards/node';
-import { apply, computeStats, createGame, RULES, type Action, type Catalog, type GameState } from './index.ts';
+import { apply, computeStats, createGame, RULES, timeoutAction, type Action, type Catalog, type GameState } from './index.ts';
 import { catalogOf, char, put, setup, spell } from './test-utils.ts';
 
 const { catalog: MVP } = loadSetsFromDir(fileURLToPath(new URL('../../../content/sets', import.meta.url)));
@@ -238,5 +238,15 @@ describe('2.8 typed refusals', () => {
     expect(apply(MVP, state, { type: 'playCard', player: state.active, iid: 'nope' })).toEqual({ ok: false, error: { code: 'CARD_NOT_IN_HAND' } });
     expect(JSON.stringify(state)).toBe(before);
     expect(RULES.MAX_HAND).toBe(10);
+  });
+});
+
+describe('11.3 timeoutAction', () => {
+  it('passes a reaction, keeps the first cards of a pick, otherwise ends the turn', () => {
+    const { state } = createGame(MVP, { seed: 2, mode: 'shared' });
+    expect(timeoutAction(state)).toEqual({ type: 'endTurn', player: state.active });
+    expect(timeoutAction({ ...state, pending: { kind: 'reaction', player: 1, options: [], key: 'k' } })).toEqual({ type: 'pass', player: 1 });
+    expect(timeoutAction({ ...state, pending: { kind: 'pick', player: 0, options: ['a', 'b', 'c'], count: 2, source: 's', label: 'l' } })).toEqual({ type: 'choose', player: 0, picks: ['a', 'b'] });
+    expect(timeoutAction({ ...state, phase: 'finished' })).toBeNull();
   });
 });

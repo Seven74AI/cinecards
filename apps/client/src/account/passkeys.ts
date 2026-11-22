@@ -9,7 +9,13 @@ import { loginOptions, loginVerify, registerOptions, registerVerify, type Accoun
  * Same test as the library's `browserSupportsWebAuthn()`, without loading it: the home screen decides whether to show
  * the passkey buttons before anyone presses one.
  */
-export const webAuthnSupported = () => typeof globalThis.PublicKeyCredential === 'function';
+export const webAuthnSupported = () => PASSKEYS_ENABLED && typeof globalThis.PublicKeyCredential === 'function';
+
+/**
+ * Off in the GitHub Pages build (`VITE_PASSKEYS=off`): a passkey belongs to the domain of the page that creates it, and
+ * the game is moving to cinecards.sevend.io. Keys made on seven74ai.github.io would stop working after the move.
+ */
+export const PASSKEYS_ENABLED = (import.meta.env as Record<string, string | undefined>).VITE_PASSKEYS !== 'off';
 
 const load = () => import('@simplewebauthn/browser').catch(() => null);
 

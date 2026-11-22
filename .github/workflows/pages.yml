@@ -29,6 +29,8 @@ jobs:
         env:
           # Repository variable, e.g. wss://cinecards.example.com (Settings > Variables > Actions)
           VITE_SERVER_URL: ${{ vars.CINECARDS_SERVER_URL }}
+          # passkeys are bound to the page's domain: none on github.io, the game moves to cinecards.sevend.io
+          VITE_PASSKEYS: 'off'
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/client/dist

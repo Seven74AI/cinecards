@@ -4,7 +4,7 @@ baseline_commit: fff4d48b1d06d13f41c749d58cf9c396b017b714
 
 # Story 8.2: Clé d'accès et code de secours
 
-Status: review
+Status: done
 
 ## Story
 
@@ -246,3 +246,4 @@ Agent de développement Claude Code (gds-dev-story).
 ### Change Log
 
 - 2026-11-22 — Story 8.2 implémentée : clés d'accès (création de compte, connexion sans pseudo, ajout et retrait dans « Mon compte »), mot de passe depuis « Mon compte », code de secours → nouvelle clé, migration 2. Statut : review.
+- 2026-11-22 — Revue : vérifications WebAuthn conformes (origine et rpID de la cérémonie, défi à usage unique, clé d'un autre domaine refusée). Ajout de `VITE_PASSKEYS=off` dans le build GitHub Pages : Root fait déménager le jeu sur `cinecards.sevend.io` (une clé d'accès est liée au domaine de la page), donc aucune clé n'est créée sur `seven74ai.github.io`. typecheck, 197 tests, 40 e2e au vert. Story terminée.

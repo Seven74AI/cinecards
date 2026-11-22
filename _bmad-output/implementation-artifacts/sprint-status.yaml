@@ -87,7 +87,7 @@ development_status:
   # epic-8 révisé le 2026-11-22 (sprint-change-proposal-2026-11-22-epics-8-10.md) : à faire maintenant, puis 10, puis 9
   epic-8: in-progress
   8-1-compte-avec-pseudo-et-mot-de-passe: done
-  8-2-cle-d-acces-et-code-de-secours: review
+  8-2-cle-d-acces-et-code-de-secours: done
   8-3-liste-d-amis-et-invitation-directe: backlog
   8-4-historique: backlog
   8-5-emotes: backlog

@@ -21,6 +21,26 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   renvoi: [['hg-lancelot'], ['hg-ni', 'hg-black-knight'], ['mx-tank']],
   // Patsy's text cites Arthur (story 13.1): tapping the name previews Arthur, whose slot glows
   renvois: [['hg-patsy', 'hg-arthur'], ['hs-ramada', 'hs-topper']],
+  // Lancelot's bonuses and penalties come from Arthur's aura, the Camelot terrain, Heather and Megan (foe)
+  // and the red pill, a spell already in the graveyard (story 13.3, see EXTRA)
+  sources: [['hg-lancelot', 'hg-arthur'], ['wc-vandergeld', 'hs-topper']],
+};
+
+type Take = (cardId: string, player: PlayerId) => string | null;
+/** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
+const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
+  sources: (state, take, iidOf) => {
+    const camelot = take('hg-camelot', 0)!;
+    state.instances[camelot]!.playedOnTurn = 1;
+    state.players[0].terrains[0] = camelot;
+    const pills = take('mx-pills', 0)!;
+    state.players[0].graveyard.push(pills);
+    const lancelot = state.instances[iidOf('hg-lancelot')]!;
+    lancelot.modifiers.push(
+      { source: iidOf('wc-vandergeld'), label: 'Langue de vipère', atk: -30, hp: 0 },
+      { source: pills, label: 'Choisis la pilule rouge et on descend avec le lapin blanc au fond du gouffre', atk: 100, hp: 100 },
+    );
+  },
 };
 
 export function devScene(catalog: Catalog, name: string): GameState | null {
@@ -62,5 +82,6 @@ export function devScene(catalog: Catalog, name: string): GameState | null {
       P.hand.push(iid);
     }
   });
+  EXTRA[name]?.(state, take, (cardId) => byCard.get(cardId)!);
   return state;
 }

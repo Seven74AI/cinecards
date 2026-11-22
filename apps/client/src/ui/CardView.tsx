@@ -3,6 +3,7 @@ import type { ComputedStats, Status } from '@cinecards/engine';
 import { cardArt } from '../game/catalog.ts';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 import { Counter } from './Counter.tsx';
+import { sourceCounts } from '../game/modifiers.ts';
 
 export { abilityBody, abilityTag } from '../game/labels.ts';
 
@@ -117,6 +118,8 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
+  // story 13.3: on the table, a modified badge shows how many sources change it
+  const srcN = size === 'board' ? sourceCounts(stats?.sources) : { atk: 0, hp: 0 };
   const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
     <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
@@ -134,10 +137,12 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
           <span className={'badge atk' + statClass(stats.atk, stats.baseAtk)}>
             <Icon name="sword" size={10} />
             {multi ? multi.filter((b) => b.alive).map((b) => b.atk).join('·') : stats.atk}
+            {srcN.atk ? <i className="src-n" title={`${srcN.atk} source(s)`}>{srcN.atk}</i> : null}
           </span>
           <span className={'badge hp' + (stats.hp < stats.maxHp ? ' down' : statClass(stats.maxHp, stats.baseHp))}>
             <Icon name="heart" size={10} />
             {multi ? `${multi.filter((b) => b.alive).length}/${multi.length}` : <Counter value={stats.hp} ms={count} />}
+            {srcN.hp ? <i className="src-n" title={`${srcN.hp} source(s)`}>{srcN.hp}</i> : null}
           </span>
         </span>
       ) : null}

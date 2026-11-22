@@ -191,6 +191,16 @@ describe('2.6 derived stats with provenance', () => {
     expect(computeStats(catalog, state, t).atk).toBe(100);
   });
 
+  it('tells how long each modifier lasts (story 13.3)', () => {
+    const { catalog, state } = setup([char('trinity', 0, 300, 100)]);
+    const t = put(state, 'trinity', 0, 'characters', 0);
+    state.instances[t]!.modifiers.push({ source: 'c9', label: 'Langue de vipère', atk: -30, hp: 0 }, { source: 'c8', label: 'Le dîner romantique', atk: 40, hp: 40, turnsLeft: 1 });
+    expect(computeStats(catalog, state, t).sources).toEqual([
+      { source: 'c9', label: 'Langue de vipère', atk: -30, hp: 0 },
+      { source: 'c8', label: 'Le dîner romantique', atk: 40, hp: 40, turnsLeft: 1 },
+    ]);
+  });
+
   it('shields absorb first and damage rounds down to tens', () => {
     const { catalog, state } = setup([char('a', 0, 100, 75), char('b', 0, 200, 0)]);
     const a = put(state, 'a', 0, 'characters', 0);

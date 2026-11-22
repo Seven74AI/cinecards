@@ -357,6 +357,8 @@ describe('4.2 Sacré Graal', () => {
     const { state, id } = scene({ chars: ['hg-galahad'], hand: ['hg-camelot'] }, { hand: ['hs-carrier'] });
     let r = act(state, { type: 'playCard', player: 0, iid: id('hg-camelot') });
     expect(st(r.state, id('hg-galahad')).hp).toBe(130);
+    // story 13.3: the terrain is the source of the aura
+    expect(st(r.state, id('hg-galahad')).sources).toEqual([{ source: id('hg-camelot'), label: "C'est un endroit ridicule", atk: 0, hp: 30, aura: true }]);
     r = act(r.state, { type: 'endTurn', player: 0 });
     expect(() => act(r.state, { type: 'playCard', player: 1, iid: id('hs-carrier') })).toThrow('TERRAIN_LOCKED');
   });

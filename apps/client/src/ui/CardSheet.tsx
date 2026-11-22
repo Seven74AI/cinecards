@@ -1,8 +1,10 @@
 import type { Card } from '@cinecards/cards';
+import { useState } from 'react';
 import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
-import { SET_TITLES } from '../game/catalog.ts';
+import { cardArt, SET_TITLES } from '../game/catalog.ts';
+import { modifierLines, signed, type ModifierLine } from '../game/modifiers.ts';
 import { CardView, CATEGORY_FR, RARITY_FR } from './CardView.tsx';
-import { AbilityText } from './Refs.tsx';
+import { AbilityText, useRefs } from './Refs.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
 export interface SheetAction {
@@ -32,6 +34,7 @@ export function CardSheet({
   onUseAbility,
   onClose,
   docked,
+  peek,
 }: {
   catalog: Catalog;
   state: GameState;
@@ -41,7 +44,10 @@ export function CardSheet({
   onUseAbility: (index: number, option?: number) => void;
   onClose: () => void;
   docked?: boolean;
+  /** Story 13.3: lower sheet, clear backdrop, so the lines from the sources show on the table. */
+  peek?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const inst = state.instances[iid];
   if (!inst) return null;
   const card = catalog.get(inst.cardId)!;
@@ -51,13 +57,19 @@ export function CardSheet({
   const cycle = onBoard ? cycleCountdown(catalog, state, iid) : null;
   const mine = inst.owner === viewer;
   const myTurn = state.active === viewer && !state.pending && state.phase !== 'finished';
+  const mods = stats ? modifierLines(catalog, state, iid, stats.sources) : [];
   return (
-    <aside className={'sheet' + (docked ? ' docked' : '')} role="dialog" aria-label={card.name}>
+    <aside className={'sheet' + (docked ? ' docked' : '') + (peek && !docked && !expanded ? ' peek' : '')} role="dialog" aria-label={card.name}>
       {!docked ? <button type="button" className="sheet-scrim" aria-label="Fermer" onClick={onClose} /> : null}
       <div className="sheet-body parchment">
         <button type="button" className="icon-btn sheet-close" onClick={onClose} aria-label="Fermer">
           <Icon name="close" size={18} />
         </button>
+        {peek && !docked ? (
+          <button type="button" className="sheet-grip" onClick={() => setExpanded((e) => !e)} aria-label={expanded ? 'Réduire la fiche' : 'Agrandir la fiche'} aria-expanded={expanded}>
+            <span />
+          </button>
+        ) : null}
         <div className="sheet-head">
           <CardView card={card} stats={stats} statuses={inst.statuses} size="big" cycle={cycle} />
           <div className="sheet-meta">
@@ -75,16 +87,6 @@ export function CardSheet({
                 </span>
               </p>
             ) : null}
-            {stats && stats.sources.length ? (
-              <ul className="sources">
-                {stats.sources.map((s, i) => (
-                  <li key={i}>
-                    {s.label} : {s.atk ? `${s.atk > 0 ? '+' : ''}${s.atk} ATQ ` : ''}
-                    {s.hp ? `${s.hp > 0 ? '+' : ''}${s.hp} PV` : ''}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
             {inst.statuses.length ? (
               <p className="sheet-statuses">
                 {inst.statuses.map((s, i) => (
@@ -98,6 +100,7 @@ export function CardSheet({
             ) : null}
           </div>
         </div>
+        {mods.length ? <Modifiers catalog={catalog} lines={mods} /> : null}
         <ol className="abilities">
           {card.abilities.map((ab, index) => {
             const usable = mine && onBoard && myTurn && card.category === 'character' && (ab.kind === 'active' || ab.kind === 'attack' || ab.kind === 'choice');
@@ -161,5 +164,54 @@ export function CardSheet({
         ) : null}
       </div>
     </aside>
+  );
+}
+
+/**
+ * Story 13.3: each bonus or penalty with its source card (thumbnail, name), the ability, the value and how long
+ * it lasts. A tap opens the source's preview (story 13.1); a source no longer on the table is "carte partie".
+ */
+function Modifiers({ catalog, lines }: { catalog: Catalog; lines: ModifierLine[] }) {
+  const { previewCard } = useRefs();
+  return (
+    <section className="mods" aria-label="Bonus et malus">
+      <h3>Bonus et malus</h3>
+      <ul>
+        {lines.map((l, i) => {
+          const src = l.cardId ? catalog.get(l.cardId) : undefined;
+          const art = src ? cardArt(src) : undefined;
+          const body = (
+            <>
+              <span className="mod-thumb" aria-hidden="true">
+                {art ? <img src={art} alt="" draggable={false} /> : <Icon name="star" size={14} />}
+              </span>
+              <span className="mod-txt">
+                <b>{src ? (l.self ? `${src.name} (elle-même)` : src.name) : l.label}</b>
+                {src ? <small>« {l.label} »</small> : null}
+              </span>
+              <span className="mod-val">
+                {l.atk ? <span className={l.atk > 0 ? 'up' : 'down'}>{signed(l.atk, 'ATQ')}</span> : null}
+                {l.hp ? <span className={l.hp > 0 ? 'up' : 'down'}>{signed(l.hp, 'PV')}</span> : null}
+              </span>
+              <span className="mod-dur">
+                {src && !l.inPlay ? <em className="gone">carte partie</em> : null}
+                {l.duration}
+              </span>
+            </>
+          );
+          return (
+            <li key={i}>
+              {src ? (
+                <button type="button" className={'mod-src ' + l.tone} onClick={() => previewCard(src.id, l.ability)} aria-label={`${src.name} : ${l.label}`}>
+                  {body}
+                </button>
+              ) : (
+                <span className={'mod-src ' + l.tone}>{body}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

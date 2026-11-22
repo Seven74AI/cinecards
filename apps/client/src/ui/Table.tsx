@@ -21,6 +21,8 @@ import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
+import { modifierLines } from '../game/modifiers.ts';
+import { SourceLines, type SourceLink } from './SourceLines.tsx';
 import { Icon } from './Icon.tsx';
 import { Dice } from './Dice.tsx';
 
@@ -337,7 +339,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           const card = catalog.get(shown.instances[iid]?.cardId ?? '');
           if (!card) return null;
           return (
-            <button key={slot} type="button" className={(kind === 'terrains' ? 'seal' : 'rune') + ' filled' + (targetable(iid) ? ' is-target' : '') + cited(iid)} onClick={() => tapCard(iid)} title={card.name}>
+            <button key={slot} type="button" data-iid={iid} className={(kind === 'terrains' ? 'seal' : 'rune') + ' filled' + (targetable(iid) ? ' is-target' : '') + cited(iid)} onClick={() => tapCard(iid)} title={card.name}>
               <MiniArt card={card} />
             </button>
           );
@@ -427,8 +429,22 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     }
   }
 
+  // story 13.3: a selected character on the table is linked to each of its sources in play
+  const sourceLinks: SourceLink[] = (() => {
+    const inst = inspect ? state.instances[inspect] : undefined;
+    if (!inspect || !inst || !state.players[inst.owner].characters.includes(inspect)) return [];
+    try {
+      return modifierLines(catalog, state, inspect, computeStats(catalog, state, inspect).sources)
+        .filter((l) => l.inPlay && !l.self)
+        .map((l) => ({ source: l.source, tone: l.tone }));
+    } catch {
+      return [];
+    }
+  })();
+
   const sheet = inspect ? (
     <CardSheet
+      key={inspect}
       catalog={catalog}
       state={state}
       iid={inspect}
@@ -444,6 +460,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         if (mode.k === 'hand') setMode({ k: 'idle' });
       }}
       docked={wide}
+      peek={sourceLinks.length > 0}
     />
   ) : null;
 
@@ -571,6 +588,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
       </main>
       {wide ? <div className="col-right">{sheet ?? <div className="inspector-empty parchment-dark">Touche une carte pour voir ses détails.</div>}</div> : sheet}
       {!wide && journalOpen ? <div className="drawer">{journal}</div> : null}
+      {inspect && sourceLinks.length ? <SourceLines target={inspect} links={sourceLinks} /> : null}
 
       {pending && pending.player === me && pending.kind === 'pick' ? (
         <PickModal

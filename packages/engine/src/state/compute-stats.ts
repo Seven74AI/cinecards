@@ -3,10 +3,15 @@ import type { Catalog, GameState, Modifier } from '../types.ts';
 import { cardOf } from './helpers.ts';
 
 export interface StatSource {
+  /** Instance id of the card granting it (may have left the table), or a rule name. */
   source: string;
   label: string;
   atk: number;
   hp: number;
+  /** Owner turns left before it ends; absent = permanent (story 13.3). */
+  turnsLeft?: number;
+  /** Recomputed aura (terrain, "tant que…"): lasts while its source is on the table (story 13.3). */
+  aura?: true;
 }
 
 export interface ComputedStats {
@@ -30,7 +35,10 @@ export function computeStats(catalog: Catalog, state: GameState, iid: string, ex
   const mods = [...inst.modifiers, ...extraModifiers];
   const dAtk = mods.reduce((s, m) => s + m.atk, 0);
   const dHp = mods.reduce((s, m) => s + m.hp, 0);
-  const sources = mods.map((m) => ({ source: m.source, label: m.label, atk: m.atk, hp: m.hp }));
+  const sources: StatSource[] = [
+    ...inst.modifiers.map((m) => ({ source: m.source, label: m.label, atk: m.atk, hp: m.hp, ...(m.turnsLeft !== undefined ? { turnsLeft: m.turnsLeft } : {}) })),
+    ...extraModifiers.map((m) => ({ source: m.source, label: m.label, atk: m.atk, hp: m.hp, aura: true as const })),
+  ];
 
   if (Array.isArray(card.hp) && Array.isArray(card.atk) && inst.bodyDamage) {
     const bodies = card.hp.map((h, i) => {

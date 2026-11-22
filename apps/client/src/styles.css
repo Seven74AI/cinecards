@@ -2209,3 +2209,200 @@ body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-scrim {
     box-shadow: 0 0 0 2px var(--gold2), 0 0 28px 10px rgba(242, 210, 122, 0.9);
   }
 }
+
+/* where bonuses and penalties come from (story 13.3) */
+.badge {
+  position: relative;
+}
+.src-n {
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  min-width: 12px;
+  height: 12px;
+  padding: 0 2px;
+  border-radius: 6px;
+  background: var(--gold2);
+  color: #3b2600;
+  border: 1px solid #5a3d0c;
+  font: 900 8px/10px var(--text);
+  font-style: normal;
+  text-align: center;
+  box-shadow: 0 0 4px rgba(242, 210, 122, 0.8);
+}
+.badge.hp .src-n {
+  left: auto;
+  right: -5px;
+}
+.sheet.peek .sheet-head .card-big {
+  width: 64px;
+}
+.src-lines {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 29;
+  pointer-events: none;
+  overflow: visible;
+}
+.src-line {
+  --c: #5ee08a;
+}
+.src-line.malus {
+  --c: #ff5a4a;
+}
+.src-line line {
+  stroke: var(--c);
+  stroke-linecap: round;
+}
+.src-line .glow {
+  stroke-width: 7;
+  opacity: 0.35;
+  filter: blur(3px);
+}
+.src-line .flow {
+  stroke-width: 2.5;
+  stroke-dasharray: 9 6;
+  animation: srcFlow 0.7s linear infinite;
+  filter: drop-shadow(0 0 3px var(--c));
+}
+.src-line circle {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 4px var(--c));
+}
+@keyframes srcFlow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+.sheet.peek .sheet-scrim {
+  background: transparent;
+}
+.sheet.peek .sheet-body {
+  max-height: 34dvh;
+}
+.sheet-grip {
+  display: block;
+  margin: -8px auto 6px;
+  width: 64px;
+  height: 18px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.sheet-grip span {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(90, 55, 20, 0.45);
+}
+.mods {
+  margin: 10px 0 4px;
+}
+.mods h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--gold-dark);
+}
+.mods ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.mod-src {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-areas: 'thumb txt val' 'thumb dur dur';
+  align-items: center;
+  column-gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border: 0;
+  border-left: 3px solid #2f8a55;
+  border-radius: 0 6px 6px 0;
+  background: rgba(47, 138, 85, 0.1);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+span.mod-src {
+  cursor: default;
+}
+.mod-src.malus {
+  border-left-color: #a32020;
+  background: rgba(163, 32, 32, 0.1);
+}
+.mod-thumb {
+  grid-area: thumb;
+  width: 34px;
+  height: 46px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--gold-dark);
+  background: #2a1a0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mod-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mod-txt {
+  grid-area: txt;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.mod-txt b {
+  font-size: 13px;
+}
+.mod-txt small {
+  font-style: italic;
+  font-size: 12px;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mod-val {
+  grid-area: val;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 12px;
+}
+.mod-val .up {
+  color: #1e6b3f;
+}
+.mod-val .down {
+  color: #a32020;
+}
+.mod-dur {
+  grid-area: dur;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.mod-dur .gone {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #5a4a3a;
+  color: var(--parch);
+  font-style: normal;
+  font-weight: 700;
+}

@@ -6,6 +6,7 @@
     {
       "id": "hg-arthur",
       "name": "Arthur, roi des Bretons",
+      "aliases": ["Arthur"],
       "rarity": "legendary",
       "category": "character",
       "role": "héros",
@@ -221,6 +222,7 @@
     {
       "id": "hg-lancelot",
       "name": "Sire Lancelot le Brave",
+      "aliases": ["Lancelot"],
       "rarity": "rare",
       "category": "character",
       "role": "guerrier",
@@ -294,6 +296,7 @@
     {
       "id": "hg-robin",
       "name": "Sire Robin, pas si brave",
+      "aliases": ["Robin"],
       "rarity": "common",
       "category": "character",
       "role": "guerrier",
@@ -337,6 +340,7 @@
     {
       "id": "hg-galahad",
       "name": "Sire Galahad le Pur",
+      "aliases": ["Galahad"],
       "rarity": "common",
       "category": "character",
       "role": "guerrier",

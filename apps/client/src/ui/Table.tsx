@@ -66,7 +66,9 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const wide = useWide();
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   const [inspect, setInspect] = useState<string | null>(null);
-  const { openRules } = useRefs();
+  const { openRules, previewId } = useRefs();
+  /** Story 13.1: the slot of a card cited in an open preview glows. */
+  const cited = (iid: string | null) => (iid && previewId && shown.instances[iid]?.cardId === previewId ? ' ref-glow' : '');
   const [journalOpen, setJournalOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; at: number } | null>(null);
   const [dice, setDice] = useState<{ value: number; label: string; key: number } | null>(null);
@@ -300,7 +302,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           return (
             <div
               key={slot}
-              className={'slot' + (iid ? ' filled' : '') + (placing && !iid ? ' placeable' : '')}
+              className={'slot' + (iid ? ' filled' : '') + (placing && !iid ? ' placeable' : '') + cited(iid)}
               onClick={() => (!iid ? tapSlot(player, 'characters', slot) : undefined)}
               role={!iid && placing ? 'button' : undefined}
               aria-label={!iid ? `Socle ${ROMAN[slot]}` : undefined}
@@ -335,7 +337,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           const card = catalog.get(shown.instances[iid]?.cardId ?? '');
           if (!card) return null;
           return (
-            <button key={slot} type="button" className={(kind === 'terrains' ? 'seal' : 'rune') + ' filled' + (targetable(iid) ? ' is-target' : '')} onClick={() => tapCard(iid)} title={card.name}>
+            <button key={slot} type="button" className={(kind === 'terrains' ? 'seal' : 'rune') + ' filled' + (targetable(iid) ? ' is-target' : '') + cited(iid)} onClick={() => tapCard(iid)} title={card.name}>
               <MiniArt card={card} />
             </button>
           );

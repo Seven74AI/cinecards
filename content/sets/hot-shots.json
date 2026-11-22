@@ -6,6 +6,7 @@
     {
       "id": "hs-topper",
       "name": "Topper Harley",
+      "aliases": ["Topper"],
       "rarity": "legendary",
       "category": "character",
       "role": "héros",
@@ -58,6 +59,7 @@
     {
       "id": "hs-ramada",
       "name": "Ramada Thompson",
+      "aliases": ["Ramada"],
       "rarity": "epic",
       "category": "character",
       "role": "soutien",
@@ -129,6 +131,7 @@
     {
       "id": "hs-benson",
       "name": "Amiral Benson",
+      "aliases": ["Benson"],
       "rarity": "rare",
       "category": "character",
       "role": "soutien",

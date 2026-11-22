@@ -20,10 +20,37 @@ test('a keyword shows its definition and « Au galop ! » opens Arthur', async (
   const patsy = page.getByRole('dialog', { name: 'Patsy' });
   await patsy.getByRole('button', { name: 'hâte' }).click();
   await expect(patsy.locator('.kw-bubble')).toContainText('Peut attaquer dès le tour où il est posé.');
+  // story 13.1: a cited card opens a preview over the sheet, which stays open underneath
   await patsy.getByRole('button', { name: '« Au galop ! »' }).click();
-  const arthur = page.getByRole('dialog', { name: /Arthur/ });
+  const preview = page.getByRole('dialog', { name: 'Aperçu : Arthur, roi des Bretons' });
+  await expect(preview).toBeVisible();
+  await expect(preview.locator('.ability.is-highlighted')).toContainText('Au galop !');
+  await page.keyboard.press('Escape');
+  await expect(preview).toBeHidden();
+  await expect(patsy).toBeVisible();
+  // "Arthur", unquoted, is a link too; "Voir la fiche" opens the full sheet, closing it goes back to Patsy
+  await patsy.getByRole('button', { name: 'Arthur', exact: true }).click();
+  await preview.getByRole('button', { name: 'Voir la fiche' }).click();
+  const arthur = page.getByRole('dialog', { name: 'Arthur, roi des Bretons' });
   await expect(arthur).toBeVisible();
-  await expect(arthur.locator('.ability.is-highlighted')).toContainText('Au galop !');
+  await arthur.getByRole('button', { name: 'Fermer' }).last().click();
+  await expect(arthur).toBeHidden();
+  await expect(patsy).toBeVisible();
+});
+
+test('in a game, a cited card in play glows on the table; a tap outside closes the preview', async ({ page }) => {
+  await page.goto('/?scene=renvois');
+  await page.locator('.board.mine').getByRole('button', { name: 'Patsy' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Patsy' });
+  await sheet.getByRole('button', { name: 'Arthur', exact: true }).click();
+  const preview = page.getByRole('dialog', { name: 'Aperçu : Arthur, roi des Bretons' });
+  await expect(preview).toBeVisible();
+  await expect(page.locator('.board.mine .slot.ref-glow')).toHaveCount(1);
+  await expect(page.locator('.board.mine .slot.ref-glow').getByRole('button', { name: 'Arthur, roi des Bretons' })).toBeVisible();
+  await page.mouse.click(5, 420);
+  await expect(preview).toBeHidden();
+  await expect(page.locator('.ref-glow')).toHaveCount(0);
+  await expect(sheet).toBeVisible();
 });
 
 test('in a game, the ability label explains its trigger', async ({ page }) => {

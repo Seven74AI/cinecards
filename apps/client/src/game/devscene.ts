@@ -19,6 +19,8 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   sauve: [['hs-topper'], ['hg-black-knight+hurt250']],
   // Tank sends up to 3 cards on the table back to their owner's hand when he arrives
   renvoi: [['hg-lancelot'], ['hg-ni', 'hg-black-knight'], ['mx-tank']],
+  // Patsy's text cites Arthur (story 13.1): tapping the name previews Arthur, whose slot glows
+  renvois: [['hg-patsy', 'hg-arthur'], ['hs-ramada', 'hs-topper']],
 };
 
 export function devScene(catalog: Catalog, name: string): GameState | null {

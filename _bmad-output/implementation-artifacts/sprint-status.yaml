@@ -111,8 +111,8 @@ development_status:
   12-7-rythme-du-tour: backlog
   epic-12-retrospective: optional
   # epic-13 (retours du playtest 2) : après les stories 12.1 à 12.4, avant 12.5
-  epic-13: backlog
-  13-1-apercu-des-cartes-citees: backlog
+  epic-13: in-progress
+  13-1-apercu-des-cartes-citees: done
   13-2-table-sans-defilement-vertical-sur-mobile: backlog
   13-3-origine-des-bonus-et-malus-sur-la-carte: backlog
   epic-13-retrospective: optional

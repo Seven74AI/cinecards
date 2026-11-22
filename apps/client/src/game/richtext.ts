@@ -101,7 +101,50 @@ function keywords(text: string): Segment[] {
   return out;
 }
 
-/** Splits a card text into plain text, keywords and references to other cards or abilities. */
+/**
+ * Names a card goes by in other texts, without quotes (story 13.1): its full name, the part before
+ * "a.k.a", and its `aliases` ("Arthur", "Topper"). Case-sensitive: "la Matrice" is not the terrain.
+ */
+export function mentionForms(card: Card): string[] {
+  return [...new Set([card.name, card.name.split(' a.k.a ')[0]!, ...(card.aliases ?? [])].map((f) => f.trim()).filter((f) => f.length >= 3))];
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const mentionCache = new WeakMap<ReadonlyMap<string, Card>, { re: RegExp | null; ids: Map<string, string> }>();
+
+/** One regex for every unquoted card name of the catalog; a form two cards share is left out. */
+function mentions(catalog: ReadonlyMap<string, Card>) {
+  let m = mentionCache.get(catalog);
+  if (m) return m;
+  const owners = new Map<string, Set<string>>();
+  for (const c of catalog.values()) for (const f of mentionForms(c)) owners.set(f, (owners.get(f) ?? new Set()).add(c.id));
+  const ids = new Map([...owners].filter(([, s]) => s.size === 1).map(([f, s]) => [f, [...s][0]!]));
+  const forms = [...ids.keys()].sort((a, b) => b.length - a.length);
+  const re = forms.length ? new RegExp(`(?<![\\p{L}\\p{N}])(?:${forms.map(escapeRe).join('|')})(?![\\p{L}\\p{N}])`, 'gu') : null;
+  m = { re, ids };
+  mentionCache.set(catalog, m);
+  return m;
+}
+
+/** Plain text → unquoted card mentions (never the card itself) and keywords. */
+function plain(text: string, catalog: ReadonlyMap<string, Card>, selfId?: string): Segment[] {
+  const { re, ids } = mentions(catalog);
+  if (!re) return keywords(text);
+  const out: Segment[] = [];
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    const cardId = ids.get(m[0])!;
+    if (cardId === selfId) continue;
+    const at = m.index ?? 0;
+    out.push(...keywords(text.slice(last, at)));
+    out.push({ kind: 'card', text: m[0], cardId });
+    last = at + m[0].length;
+  }
+  out.push(...keywords(text.slice(last)));
+  return out;
+}
+
+/** Splits a card text into plain text, keywords and references to other cards or abilities (quoted or not). */
 export function segmentText(text: string, catalog: ReadonlyMap<string, Card>, selfId?: string): Segment[] {
   const out: Segment[] = [];
   let last = 0;
@@ -109,10 +152,10 @@ export function segmentText(text: string, catalog: ReadonlyMap<string, Card>, se
     const ref = resolveReference(m[1]!, catalog);
     if (!ref || (ref.kind === 'card' && ref.cardId === selfId)) continue;
     const at = m.index ?? 0;
-    out.push(...keywords(text.slice(last, at)));
+    out.push(...plain(text.slice(last, at), catalog, selfId));
     out.push({ ...ref, text: m[0] });
     last = at + m[0].length;
   }
-  out.push(...keywords(text.slice(last)));
+  out.push(...plain(text.slice(last), catalog, selfId));
   return out;
 }

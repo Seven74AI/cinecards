@@ -54,6 +54,8 @@ export const CardSchema = z
     id: z.string().regex(/^[a-z]{2}-[a-z0-9-]+$/, 'id must look like "mx-neo"'),
     set: z.string().min(1),
     name: z.string().min(1),
+    /** Short names other card texts use for this card ("Arthur", "Topper"), linked to it in those texts (story 13.1). */
+    aliases: z.array(z.string().min(1)).optional(),
     rarity: RaritySchema,
     category: CategorySchema,
     role: z.string().min(1),

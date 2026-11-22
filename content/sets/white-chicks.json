@@ -6,6 +6,7 @@
     {
       "id": "wc-latrell",
       "name": "Latrell Spencer",
+      "aliases": ["Latrell"],
       "rarity": "legendary",
       "category": "character",
       "role": "boss",
@@ -57,6 +58,7 @@
     {
       "id": "wc-marcus",
       "name": "Marcus Copeland",
+      "aliases": ["Marcus"],
       "rarity": "epic",
       "category": "character",
       "role": "héros",
@@ -112,6 +114,7 @@
     {
       "id": "wc-kevin",
       "name": "Kevin Copeland",
+      "aliases": ["Kevin"],
       "rarity": "epic",
       "category": "character",
       "role": "héros",
@@ -241,6 +244,7 @@
     {
       "id": "wc-gomez",
       "name": "Agent Gomez",
+      "aliases": ["Gomez"],
       "rarity": "common",
       "category": "character",
       "role": "guerrier",
@@ -277,6 +281,7 @@
     {
       "id": "wc-elliott",
       "name": "Le Chef Elliott Gordon",
+      "aliases": ["Elliott"],
       "rarity": "common",
       "category": "character",
       "role": "soutien",

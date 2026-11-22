@@ -62,6 +62,7 @@ function noise(dur: number, gain = 0.1, filter = 1200, delay = 0) {
 
 const SOUNDS: Record<string, () => void> = {
   play: () => noise(0.18, 0.08, 2500),
+  draw: () => noise(0.09, 0.05, 5000),
   spell: () => {
     tone(660, 0.25, 'triangle', 0.08, 400);
     tone(990, 0.3, 'sine', 0.05, 300, 0.05);

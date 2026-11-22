@@ -24,6 +24,9 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // Lancelot's bonuses and penalties come from Arthur's aura, the Camelot terrain, Heather and Megan (foe)
   // and the red pill, a spell already in the graveyard (story 13.3, see EXTRA)
   sources: [['hg-lancelot', 'hg-arthur'], ['wc-vandergeld', 'hs-topper']],
+  // a spell, a terrain and an equipment in hand (stories 12.5, 12.6): the missile seeks the strongest ATK, Camelot
+  // lifts the Holy Grail family
+  pose: [['hs-topper', 'hg-lancelot'], ['hg-ni', 'hg-black-knight'], ['hs-missile', 'hg-camelot', 'mx-apu']],
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;

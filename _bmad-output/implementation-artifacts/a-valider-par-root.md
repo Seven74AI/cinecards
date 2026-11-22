@@ -50,6 +50,8 @@ _(aucune pour l'instant)_
 - [ ] **13.2** — Zoom automatique : quand on choisit un attaquant, le camp adverse s'agrandit dès que la fiche est fermée (« Choisir une cible ») ; une demande de cibles agrandit le camp qui a le plus de cibles. Le zoom reste pendant l'animation de l'action puis revient à la vue d'ensemble. Pas de zoom pour poser une carte (la fiche « Jouer » s'en charge) ni quand seule la tête adverse est attaquable.
 - [ ] **13.2** — Fiche abaissée (13.3) revue : sur la table compacte, elle couvre exactement la zone sous mon camp (mon héros et ma main), au moins 120 px, au lieu d'un tiers de l'écran : les deux camps et leurs traits restent visibles.
 - [ ] **13.2** — Sur la table compacte, la main adverse n'a plus de rangée de dos de cartes : son nombre est dans la ligne du héros (comme dans la maquette). La main déborde du bas comme dans la maquette : ATQ/PV des cartes en main se lisent sur la fiche. Au-delà de 7 cartes, la main défile horizontalement (chaque carte garde 44 px touchables).
+- [ ] **12.5** — Durées : une pose dure 0,62 s (au lieu de 0,35 s, vol en arc de la démo), un sort instantané 0,7 s (il grandit au centre de la table puis brûle), une pioche 0,42 s ; à partir de la 3ᵉ carte piochée d'un coup (Epok…), les pioches se chevauchent (0,14 s d'écart). Une carte piochée reste cachée dans ma main jusqu'à son tour dans l'animation.
+- [ ] **12.5** — L'« onde de famille » d'un terrain est une onde verte qui part de son sceau ; l'onde qui parcourt les cartes de sa famille arrive avec son effet (12.6). Un équipement fait un reflet métallique et des éclats argentés. Une carte invoquée (Néo → Trinity…) vole depuis le cimetière, la main ou l'autre camp.
 
 ## Textes de cartes modifiés (story 11.8)
 

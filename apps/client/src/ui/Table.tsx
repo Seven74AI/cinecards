@@ -13,7 +13,7 @@ import {
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
-import { captureLayout, direct, flipLayout, type Layout } from './director.ts';
+import { captureLayout, direct, flipLayout, noteHand, type Layout } from './director.ts';
 import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
@@ -215,6 +215,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (flipFrom.current) flipLayout(flipFrom.current);
     flipFrom.current = null;
   }, [zoomKey]);
+  // story 12.5: a played card leaves the hand at once (real state); its flight starts from where it was
+  useLayoutEffect(() => noteHand());
   // story 13.3, revisited: on the compact table the lowered sheet covers exactly what lies under my side (hero, hand)
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -719,7 +721,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
                 cost={state.players[me].freePlay ? 0 : undefined}
                 state={mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null}
                 onClick={() => tapCard(iid)}
-                style={{ '--k': i - (hand.length - 1) / 2 } as CSSProperties}
+                style={{ '--k': i - (hand.length - 1) / 2, ...(view.incoming.has(iid) ? { opacity: 0 } : {}) } as CSSProperties}
               />
             );
           })}

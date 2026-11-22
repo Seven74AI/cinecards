@@ -1,6 +1,6 @@
 import type { Catalog, GameEvent, GameState } from '@cinecards/engine';
 import { planBeats, type Beat } from './fx.ts';
-import { idleView, shownView, type ShownView } from './present.ts';
+import { drawnBy, idleView, shownView, type ShownView } from './present.ts';
 
 /** "Vitesse des animations" (story 12.1). */
 export type AnimSpeed = 'normal' | 'fast' | 'instant';
@@ -155,6 +155,9 @@ export class Playback {
   }
 
   private emit() {
+    // cards drawn in batches still waiting in line stay hidden too (story 12.5)
+    const queued = this.queue.flatMap((b) => drawnBy(b.events));
+    if (queued.length) this.view = { ...this.view, incoming: new Set([...this.view.incoming, ...queued]) };
     for (const l of this.listeners) l();
   }
 

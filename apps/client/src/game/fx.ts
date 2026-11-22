@@ -22,7 +22,10 @@ export const TIMING = {
   status: 260,
   save: 600,
   death: 1200, // freeze 0.1 + crack 0.2 + shake 0.25 + burn 0.65; the ashes fly during the next beats
-  play: 350,
+  play: 620, // arc from the hand, grows over the slot, lands (story 12.5)
+  spellCast: 700, // an instant spell grows over the table and burns
+  draw: 420, // deck → hand, then the card turns over; later draws of the same batch overlap
+  drawMore: 140,
   legend: 1500,
   summon: 420,
   returned: 500,
@@ -35,6 +38,7 @@ export const TIMING = {
 
 /** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1); `ui/director.ts` stages them. */
 export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
+  const draws = [0, 0];
   return events.map((e, index) => {
     const b: Beat = { index, event: e, gap: 0 };
     switch (e.type) {
@@ -82,10 +86,14 @@ export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
           b.gap = TIMING.legend;
         } else {
           b.sound = card?.category === 'spell' ? 'spell' : 'play';
-          b.gap = TIMING.play;
+          b.gap = e.zone === 'resolved' ? TIMING.spellCast : TIMING.play;
         }
         break;
       }
+      case 'cardDrawn':
+        b.sound = 'draw';
+        b.gap = draws[e.player]!++ < 2 ? TIMING.draw : TIMING.drawMore;
+        break;
       case 'summoned':
         b.sound = 'play';
         b.gap = TIMING.summon;

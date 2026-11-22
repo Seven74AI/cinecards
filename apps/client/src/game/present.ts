@@ -18,11 +18,16 @@ export interface ShownView {
   dying: ReadonlySet<string>;
   /** Cards sent back to hand, still in their slot while they lift off (story 12.4). */
   returning: ReadonlySet<string>;
+  /** Cards drawn by events not played yet: the hand (real state) keeps them hidden until their beat (story 12.5). */
+  incoming: ReadonlySet<string>;
 }
 
 const ZONES: SlotKind[] = ['characters', 'terrains', 'spells'];
 
-export const idleView = (state: GameState): ShownView => ({ state, stats: {}, statuses: {}, dying: new Set(), returning: new Set() });
+export const idleView = (state: GameState): ShownView => ({ state, stats: {}, statuses: {}, dying: new Set(), returning: new Set(), incoming: new Set() });
+
+/** Cards drawn by these events (story 12.5). */
+export const drawnBy = (events: GameEvent[]): string[] => events.flatMap((e) => (e.type === 'cardDrawn' ? [e.iid] : []));
 
 const onBoard = (s: GameState, iid: string): { player: PlayerId; zone: SlotKind; slot: number } | null => {
   for (const player of [0, 1] as const)
@@ -128,7 +133,7 @@ export function shownView(catalog: Catalog, before: GameState, after: GameState,
     for (const zone of ['terrains', 'spells'] as const)
       for (const iid of p[zone]) if (iid && !onBoard(after, iid) && before.instances[iid]) instances[iid] = before.instances[iid]!;
 
-  return { state, stats, statuses, dying, returning };
+  return { state, stats, statuses, dying, returning, incoming: new Set(drawnBy(todo)) };
 }
 
 const neg = (d: Delta): Delta => ({ atk: -d.atk, hp: -d.hp });

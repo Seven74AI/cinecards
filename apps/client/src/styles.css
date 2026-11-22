@@ -2724,3 +2724,58 @@ span.mod-src {
   margin: 0 auto 40%;
   pointer-events: auto;
 }
+
+/* story 12.5: cards travel (hand → slot, deck → hand) and land with an effect of their category */
+.fx-rune {
+  border-radius: 50%;
+  border: 2px solid var(--gold2);
+  box-shadow: 0 0 18px var(--gold2), inset 0 0 18px var(--gold2);
+  background: repeating-conic-gradient(from 0deg, rgba(242, 210, 122, 0.45) 0 3deg, transparent 3deg 20deg);
+  -webkit-mask: radial-gradient(circle, transparent 0 55%, #000 56%);
+  mask: radial-gradient(circle, transparent 0 55%, #000 56%);
+}
+.fx-seal {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #9fd36a, #3e7a1c 55%, #1d3a0c);
+  box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(127, 184, 74, 0.9);
+}
+.fx-wave {
+  border-radius: 50%;
+  border: 3px solid rgba(127, 220, 90, 0.85);
+  box-shadow: 0 0 14px rgba(127, 220, 90, 0.7);
+}
+.fx-glint {
+  overflow: hidden;
+  border-radius: 6px;
+}
+.fx-glint i {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+}
+.fx-card {
+  z-index: 61;
+}
+.fx-card .card {
+  width: 100%;
+  cursor: default;
+}
+.fx-burn {
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  opacity: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(255, 138, 61, 0.85), rgba(142, 31, 31, 0.85) 45%, rgba(20, 6, 0, 0.95));
+}
+.fx-back {
+  aspect-ratio: 5 / 7;
+  border-radius: 5px;
+  background: repeating-linear-gradient(45deg, #5a1414 0 4px, #3a0c0c 4px 8px);
+  box-shadow: 0 0 0 2px var(--gold), 0 4px 10px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%);
+}
+.fx-anchor {
+  opacity: 1;
+}

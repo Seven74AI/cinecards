@@ -143,3 +143,26 @@ describe('12.1 playback', () => {
     expect(pb.get().state).toBe(after);
   });
 });
+
+describe('12.5 play and draw', () => {
+  it('a drawn card is "incoming" until its beat; draws and plays get their own timing', async () => {
+    const { planBeats, TIMING } = await import('./fx.ts');
+    const { state } = scene({ chars: ['hs-topper'] }, { chars: ['hg-ni'] });
+    const r = act(state, { type: 'endTurn', player: 0 });
+    const draws = r.events.flatMap((e, i) => (e.type === 'cardDrawn' ? [{ i, iid: e.iid }] : []));
+    expect(draws.length).toBeGreaterThan(0);
+    const first = draws[0]!;
+    expect(shownView(MVP, state, r.state, r.events, first.i).incoming.has(first.iid)).toBe(true);
+    expect(shownView(MVP, state, r.state, r.events, first.i + 1).incoming.has(first.iid)).toBe(false);
+    expect(shownView(MVP, state, r.state, r.events, r.events.length).incoming.size).toBe(0);
+    const beats = planBeats(r.events, MVP);
+    expect(beats[first.i]!.gap).toBe(TIMING.draw);
+    expect(beats[first.i]!.sound).toBe('draw');
+
+    const hand = r.state.players[1].hand.find((iid) => MVP.get(r.state.instances[iid]!.cardId)?.category === 'character');
+    if (!hand) return;
+    const p = act(r.state, { type: 'playCard', player: 1, iid: hand });
+    const played = planBeats(p.events, MVP).find((b) => b.event.type === 'cardPlayed')!;
+    expect(played.gap === TIMING.play || played.gap === TIMING.legend).toBe(true);
+  });
+});

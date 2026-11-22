@@ -1,8 +1,9 @@
-import type { GameEvent, PlayerId, Target } from '@cinecards/engine';
+import type { GameEvent, GameState, PlayerId, Target } from '@cinecards/engine';
 import type { Cue } from '../game/playback.ts';
 import { animate, cardEl, EASE } from './anim.ts';
 import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
+import { CATALOG, cardArt } from '../game/catalog.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -412,6 +413,243 @@ function backToHand(iid: string, owner: PlayerId, ms: number) {
   );
 }
 
+// ---------------------------------------------------------------------------------------------------------
+// Story 12.5: cards travel. Hand → slot (arc, grows over the slot, lands with an effect of its category),
+// deck → hand (a card back slides, then turns over), and summons from their zone of origin.
+// ---------------------------------------------------------------------------------------------------------
+
+type Pt = { x: number; y: number; w: number };
+const ptOf = (el: Element | null | undefined): Pt | null => {
+  const r = el?.getBoundingClientRect();
+  return r && r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width } : null;
+};
+
+/** Where each card of my hand was lately: the hand follows the real state, so a played card has left it already. */
+const handSeen = new Map<string, { pt: Pt; at: number }>();
+export function noteHand() {
+  const now = performance.now();
+  document.querySelectorAll<HTMLElement>('.table .hand .card[data-iid]').forEach((el) => {
+    const pt = ptOf(el);
+    if (pt) handSeen.set(el.dataset.iid!, { pt, at: now });
+  });
+  for (const [k, v] of handSeen) if (now - v.at > 20000) handSeen.delete(k);
+}
+
+/** The player at the bottom of the table (the last hero). */
+const myId = (): PlayerId => {
+  const heroes = document.querySelectorAll<HTMLElement>('.table [data-hero]');
+  return Number(heroes[heroes.length - 1]?.dataset.hero ?? 0) as PlayerId;
+};
+const counterEl = (p: PlayerId, title: 'Pioche' | 'Cimetière' | 'Main') => heroEl(p)?.querySelector<HTMLElement>(`[title="${title}"]`) ?? heroEl(p);
+/** A player's hand on the table: mine, or the foe's row of card backs (on the compact table, their hand counter). */
+const handZone = (p: PlayerId): HTMLElement | null =>
+  p === myId() ? document.querySelector<HTMLElement>('.table .hand') : (document.querySelector<HTMLElement>('.table .foe-hand') ?? counterEl(p, 'Main'));
+
+/** Any card on the table: a character, or a terrain / equipment in its strip. */
+const boardEl = (iid: string) => cardEl(iid) ?? document.querySelector<HTMLElement>(`.table .zones [data-iid="${CSS.escape(iid)}"]`);
+
+/** The card flies in an arc from `from`, grows over its place and lands (demo `flyCard`). */
+function flyIn(el: HTMLElement, from: Pt, ms: number, tilt = 0) {
+  const to = ptOf(el);
+  if (!to) return;
+  const dx = from.x - to.x;
+  const dy = from.y - to.y;
+  const s0 = Math.min(2, Math.max(0.3, from.w / to.w));
+  el.style.zIndex = '30';
+  void animate(
+    el,
+    [
+      { transform: `translate(${dx}px, ${dy}px) scale(${s0}) rotate(${tilt}deg)`, opacity: 0.9 },
+      { transform: `translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3) rotate(0deg)`, opacity: 1, offset: 0.55 },
+      { transform: 'translate(0px, -18px) scale(1.15) rotate(0deg)', opacity: 1, offset: 0.82 },
+      { transform: 'translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1 },
+    ],
+    ms,
+  ).then(() => {
+    el.style.zIndex = '';
+  });
+}
+
+/** Character landing: a ring of runes lights up under the card, golden dust, a small thud. */
+function runeLanding(el: HTMLElement, r: number) {
+  const c = ptOf(el);
+  if (!c) return;
+  const ring = overlay('fx-rune', c.x, c.y);
+  ring.style.width = ring.style.height = `${Math.round(c.w * 1.15)}px`;
+  void animate(
+    ring,
+    [
+      { transform: 'translate(-50%,-50%) scale(.6) rotate(0deg)', opacity: 0 },
+      { transform: 'translate(-50%,-50%) scale(1.1) rotate(40deg)', opacity: 1, offset: 0.3 },
+      { transform: 'translate(-50%,-50%) scale(1.4) rotate(90deg)', opacity: 0 },
+    ],
+    700 * r,
+  ).then(() => ring.remove());
+  particles(el, 12, ['#f2d27a', '#fff4c4'], r, 30, 600);
+  shake(20, r);
+}
+
+/** Terrain landing: its seal is stamped, then a green wave spreads from it. */
+function sealLanding(el: HTMLElement, r: number) {
+  const c = ptOf(el);
+  if (!c) return;
+  const size = Math.max(28, c.w);
+  const seal = overlay('fx-seal', c.x, c.y);
+  seal.style.width = seal.style.height = `${size}px`;
+  void animate(
+    seal,
+    [
+      { transform: 'translate(-50%,-50%) scale(2.2)', opacity: 0 },
+      { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.45 },
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.65 },
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 0 },
+    ],
+    650 * r,
+  ).then(() => seal.remove());
+  const wave = overlay('fx-wave', c.x, c.y);
+  wave.style.width = wave.style.height = `${size}px`;
+  void animate(wave, [{ transform: 'translate(-50%,-50%) scale(1)', opacity: 0.9 }, { transform: 'translate(-50%,-50%) scale(6)', opacity: 0 }], 800 * r, { delay: 260 * r, easing: 'ease-out' }).then(() => wave.remove());
+}
+
+/** Equipment landing: it locks onto the rune stone with a metallic glint. */
+function metalLanding(el: HTMLElement, r: number) {
+  const rect = el.getBoundingClientRect();
+  const g = overlay('fx-glint', rect.left, rect.top);
+  g.style.width = `${rect.width}px`;
+  g.style.height = `${rect.height}px`;
+  const shine = g.appendChild(document.createElement('i'));
+  void animate(shine, [{ transform: 'translateX(-120%) skewX(-20deg)' }, { transform: 'translateX(220%) skewX(-20deg)' }], 450 * r, { easing: 'ease-in-out' }).then(() => g.remove());
+  particles(el, 8, ['#e6ecf2', '#9fb3c4', '#ffffff'], r, 24, 450, 'fx-shard');
+}
+
+/** A card face drawn over the table for a moment (an instant spell has no slot to fly to). */
+function ghostCard(cardId: string, at: Pt, w: number): HTMLElement {
+  const card = CATALOG.get(cardId);
+  const art = card ? cardArt(card) : undefined;
+  const el = overlay('fx-card', at.x, at.y);
+  el.style.width = `${w}px`;
+  el.innerHTML = '<span class="card card-hand cat-spell"><span class="card-frame"><span class="card-name"></span><span class="card-art"></span><span class="card-foot"></span></span><span class="fx-burn"></span></span>';
+  el.querySelector('.card-name')!.textContent = card?.name ?? '';
+  if (art) {
+    const img = document.createElement('img');
+    img.src = art;
+    img.alt = '';
+    el.querySelector('.card-art')!.appendChild(img);
+  }
+  return el;
+}
+
+/** Where the middle of the table is (the turn banner). */
+const tableMid = (): Pt => ptOf(document.querySelector('.table .banner')) ?? { x: innerWidth / 2, y: innerHeight / 2, w: 0 };
+
+/** Instant spell: the card leaves the hand, grows over the middle of the table and burns away in embers. */
+function castSpell(cardId: string, from: Pt, ms: number, r: number) {
+  const mid = tableMid();
+  const w = 96;
+  const g = ghostCard(cardId, mid, w);
+  const dx = from.x - mid.x;
+  const dy = from.y - mid.y;
+  const s0 = Math.max(0.3, from.w / w);
+  void animate(
+    g,
+    [
+      { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${s0})`, opacity: 0.9 },
+      { transform: `translate(-50%,-50%) translate(${dx * 0.4}px, ${dy * 0.4 - 50}px) scale(1.1)`, opacity: 1, offset: 0.3 },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: 0.55 },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.3)', opacity: 1, offset: 0.7 },
+      { transform: 'translate(-50%,-50%) translate(0px, -6px) scale(1.2)', opacity: 0 },
+    ],
+    ms,
+    { easing: 'linear' },
+  ).then(() => g.remove());
+  void animate(g.querySelector('.fx-burn'), [{ opacity: 0 }, { opacity: 0, offset: 0.55 }, { opacity: 1 }], ms, { easing: 'linear' });
+  later(() => {
+    const box = overlay('fx-anchor', mid.x - w * 0.65, mid.y - w * 0.9);
+    box.style.width = `${w * 1.3}px`;
+    box.style.height = `${w * 1.8}px`;
+    particles(box, 18, ['#ff8a3d', '#ffd27a', '#c0392b'], r, 90, 700);
+    later(() => box.remove(), 1200 * r);
+  }, ms * 0.6);
+}
+
+/** Where a card leaves its owner's hand from. */
+function handOrigin(iid: string, owner: PlayerId): Pt | null {
+  const seen = handSeen.get(iid);
+  if (seen && owner === myId()) return seen.pt;
+  return ptOf(handZone(owner));
+}
+
+function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: number) {
+  const from = handOrigin(e.iid, e.player);
+  if (e.zone === 'resolved') {
+    if (from) castSpell(e.cardId, from, ms, r);
+    return;
+  }
+  const el = boardEl(e.iid);
+  if (!el) return;
+  const fly = Math.min(ms, 620 * r);
+  if (from) flyIn(el, from, fly, e.player === myId() ? 0 : -8);
+  const cat = CATALOG.get(e.cardId)?.category;
+  later(() => {
+    const at = boardEl(e.iid);
+    if (!at) return;
+    if (cat === 'terrain') sealLanding(at, r);
+    else if (cat === 'equipment') metalLanding(at, r);
+    else runeLanding(at, r);
+  }, fly * 0.82);
+}
+
+/** Deck → hand. Mine: a back slides to the card's place in the hand, then the card turns over. Foe's: a back only. */
+function drawn(iid: string, player: PlayerId, r: number) {
+  const deck = ptOf(counterEl(player, 'Pioche'));
+  if (!deck) return;
+  const total = 540 * r;
+  const slide = total * 0.7;
+  const real = player === myId() ? document.querySelector<HTMLElement>(`.table .hand .card[data-iid="${CSS.escape(iid)}"]`) : null;
+  const to = real ? ptOf(real) : ptOf(handZone(player));
+  if (!to) return;
+  const b = overlay('fx-back', deck.x, deck.y);
+  b.style.width = `${real ? to.w : 34}px`;
+  const dx = to.x - deck.x;
+  const dy = to.y - deck.y;
+  const end = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+  void animate(
+    b,
+    [
+      { transform: 'translate(-50%,-50%) scale(.45) rotate(0deg)', opacity: 0.9 },
+      { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 50}px)) scale(.9) rotate(-10deg)`, opacity: 1, offset: 0.5 },
+      { transform: `${end} scale(${real ? 1 : 0.5}) rotate(0deg)`, opacity: 1 },
+    ],
+    slide,
+    { fill: 'forwards' },
+  ).then(() => {
+    if (!real) {
+      void animate(b, [{ transform: `${end} scale(.5)`, opacity: 1 }, { transform: `${end} scale(.3)`, opacity: 0 }], 160 * r, { fill: 'forwards' }).then(() => b.remove());
+      return;
+    }
+    // the back turns to its edge while the real card turns from its edge
+    void animate(b, [{ transform: `${end} scaleX(1)`, opacity: 1 }, { transform: `${end} scaleX(0)`, opacity: 0.6 }], total - slide, { easing: 'ease-in', fill: 'forwards' }).then(() => b.remove());
+  });
+  if (real) void animate(real, [{ opacity: 0, scale: '0 1' }, { opacity: 0, scale: '0 1', offset: 0.7 }, { opacity: 1, scale: '1 1' }], total, { easing: 'linear' });
+}
+
+/** A summoned card comes from its zone of origin: a graveyard, a hand, or the other side of the table. */
+function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameState, ms: number, r: number) {
+  const el = cardEl(e.iid);
+  if (!el) return;
+  const holder = ([0, 1] as const).find((p) => before.players[p].hand.includes(e.iid) || before.players[p].graveyard.includes(e.iid));
+  let from: Pt | null;
+  if (e.from === 'graveyard' && holder !== undefined) from = ptOf(counterEl(holder, 'Cimetière'));
+  else if (e.from === 'hand' && holder !== undefined) from = handOrigin(e.iid, holder);
+  else from = ptOf(document.querySelector(`.table .board${e.player === myId() ? '.theirs' : '.mine'}`));
+  const fly = Math.min(ms, 620 * r);
+  if (from) flyIn(el, { ...from, w: Math.min(from.w, 40) }, fly);
+  later(() => {
+    const at = cardEl(e.iid);
+    if (at) runeLanding(at, r);
+  }, fly * 0.82);
+}
+
 /** Positions of the cards on the table, read before a change of layout (story 13.2). */
 export type Layout = Map<HTMLElement, DOMRect>;
 export function captureLayout(): Layout {
@@ -489,6 +727,22 @@ export function direct(cue: Cue) {
       const { iid, owner } = e;
       // the dying card gets its cracks and scorch layers on this beat's render
       requestAnimationFrame(() => death(iid, owner, Math.max(0, cue.ms - 16), r));
+      break;
+    }
+    case 'cardPlayed': {
+      const ms = Math.max(0, cue.ms - 16);
+      requestAnimationFrame(() => played(e, ms, r));
+      break;
+    }
+    case 'cardDrawn': {
+      const { iid, player } = e;
+      requestAnimationFrame(() => drawn(iid, player, r));
+      break;
+    }
+    case 'summoned': {
+      const ms = Math.max(0, cue.ms - 16);
+      const before = cue.before;
+      requestAnimationFrame(() => summonedIn(e, before, ms, r));
       break;
     }
     case 'deathPrevented':

@@ -1,0 +1,9 @@
+[Unit]
+Description=CineCards server auto-deploy (pull main, rebuild if changed)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=REPO_DIR=/root/cinecards
+ExecStart=/root/cinecards/deploy/autodeploy.sh

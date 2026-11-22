@@ -57,3 +57,13 @@ pnpm e2e             # duel complet avec deux navigateurs
 
 Chrono : 75 s par tour, 5 s pour une réaction, 90 s pour revenir après une déconnexion
 (sinon défaite). Ces valeurs sont dans `packages/engine/src/rules.ts`.
+
+## Mise à jour automatique du serveur
+
+Sur le VPS, un minuteur systemd (`deploy/systemd/cinecards-autodeploy.timer`) lance
+`deploy/autodeploy.sh` toutes les 5 minutes. Le script récupère `main` et ne reconstruit le
+serveur que si le commit a changé, puis vérifie `/health`. L'installation est décrite dans
+`HANDOFF-HERMES.md`. Pour suspendre les mises à jour : `systemctl stop cinecards-autodeploy.timer`.
+
+Les push sur `main` ne déclenchent pas GitHub Actions pour l'instant : lancer le workflow
+« Deploy client to GitHub Pages » à la main (onglet Actions → Run workflow).

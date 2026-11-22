@@ -980,6 +980,19 @@ As a joueur, I want que Néo devienne de plus en plus fort, So that sa carte fas
 As a joueur, I want voir d'un coup d'œil si un bonus vient d'un personnage, d'un sort, d'un équipement ou d'un terrain, So that je sache comment l'enlever.
 **Acceptance Criteria:** **Given** la liste « Bonus et malus » d'une fiche **Then** chaque ligne montre le type de la carte source avec son icône de jeton (blason, sceau, écrou, losange) et son nom (« Personnage », « Sort », « Équipement », « Terrain »), lisible à 390 px ; l'aperçu de la source (13.1) reste accessible d'un appui.
 
+### Story 13.6: Main lisible et mise en scène à l'échelle de la démo
+As a joueur sur téléphone, I want lire ma main et voir les animations comme dans la démo validée, So that le jeu soit lisible et ait du punch.
+**Constat (test de Root après 13.2 et 12.5-12.7, captures comparées à la démo) :**
+- **Main :** elle déborde du bas de l'écran. On ne voit que le haut des cartes : coût, nom minuscule, illustration. ATQ et PV sont coupés, alors qu'une bande vide d'environ un quart de l'écran reste au-dessus.
+- **Animations :** en vue d'ensemble, les cartes font 47 à 63 px (100 px dans la démo). Pendant une attaque, le zoom replie mon camp en miniatures d'environ 40 px, donc l'attaquant fonce depuis une vignette. L'élan s'arrête aussi avant la cible.
+**Acceptance Criteria:**
+- **Given** un téléphone en portrait (360 × 640 à 430 × 932), en vue d'ensemble comme en zoom
+- **Then** les cartes de la main sont entièrement visibles (coût, nom lisible, ATQ/PV), dimensionnées pour occuper l'espace libre sans défilement, et un appui soulève et agrandit la carte (aperçu lisible) avant de la jouer
+- **And** il ne reste pas de bande vide de plus de 24 px : les grilles de la vue d'ensemble grandissent pour occuper l'espace
+- **And** pendant ma propre attaque, mon camp ne se replie plus en miniatures. L'attaquant et sa cible sont mis en scène au moins à la taille de la démo (100 px de large), puis reviennent à leur socle. Valeurs reprises de `docs/design/animations/demo.html` : élévation ×1,12, élan jusqu'à 78 % de la distance, durées
+- **And** pose, sort, mort et déclencheurs gardent aussi l'échelle de la démo : une carte qui meurt ou atterrit est montrée à au moins 90 px
+- **And** **preuve visuelle :** pour une attaque mortelle, une pose de personnage et un sort, une planche côte à côte (démo à gauche, jeu à droite, une image toutes les 100 ms à 390 × 844) est générée par un script du dépôt et jointe au rapport ; les e2e existants (pas de défilement, cibles de 44 px, ordre des temps) restent verts
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 ### Story 8.1: Connexion

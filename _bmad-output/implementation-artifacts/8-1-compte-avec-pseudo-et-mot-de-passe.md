@@ -4,7 +4,7 @@ baseline_commit: 78525c023a64a64bc33e0940b1e63fdf7a749931
 
 # Story 8.1: Compte avec pseudo et mot de passe
 
-Status: review
+Status: done
 
 ## Story
 
@@ -306,3 +306,4 @@ Agent dev (workflow gds-dev-story)
 
 - 2026-11-22 : story 8.1 implémentée (base SQLite, comptes pseudo + mot de passe, sessions, code de secours, API `/api/*`,
   pseudo du compte dans les salles, volume Docker et copies quotidiennes, écrans de compte) ; statut → review.
+- 2026-11-22 — Revue : la fenêtre de compte s'ouvrait sous le panneau d'accueil (hors de vue sur téléphone) → rendue dans `<body>` (portail) ; le code de secours ne se coupe plus au milieu d'un groupe ; ligne « Connecté : Pseudo » sans point isolé. typecheck, 180 tests, 39 e2e au vert. Story terminée.

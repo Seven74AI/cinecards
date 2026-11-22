@@ -3281,3 +3281,20 @@ span.mod-src {
     color: #000;
   }
 }
+
+/* story 8.1 review: nickname and logout on one row; recovery code wraps between groups only */
+.account-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.recovery-code {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.recovery-code > span {
+  white-space: nowrap;
+}

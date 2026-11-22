@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { createAccount, formatRecoveryCode, login, recover, type ApiResult } from './api.ts';
 import { signIn } from './session.ts';
 
@@ -79,7 +80,10 @@ export function RecoveryCode({ nickname, code, onDone }: { nickname: string; cod
       <div className="recovery-sheet">
         <span className="recovery-for">CineCards · {nickname}</span>
         <code className="recovery-code" aria-label="Code de secours">
-          {code}
+          {/* one unbreakable span per group, so a narrow screen wraps between groups, never inside one */}
+          {code.split('-').map((g, i, all) => (
+            <span key={i}>{i < all.length - 1 ? `${g}-` : g}</span>
+          ))}
         </code>
       </div>
       <div className="row">
@@ -143,7 +147,9 @@ export function AccountDialog({ initial, onClose }: { initial: AccountMode; onCl
     else onClose();
   };
 
-  return (
+  // rendered into <body>: an ancestor of the home screen creates a containing block, which pinned the
+  // fixed overlay below the home panel, out of sight on a phone
+  return createPortal(
     <div className="overlay" role="dialog" aria-modal="true" aria-label={shown ? 'Code de secours' : TITLES[mode]}>
       <div className="card-panel parchment account-panel">
         <h2>{shown ? 'Ton code de secours' : TITLES[mode]}</h2>
@@ -192,6 +198,7 @@ export function AccountDialog({ initial, onClose }: { initial: AccountMode; onCl
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

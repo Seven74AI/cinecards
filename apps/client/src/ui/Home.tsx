@@ -94,7 +94,9 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
           <div className="home-actions">
             {signedIn ? (
               <p className="account-line">
-                Connecté : <strong>{signedIn.nickname}</strong> ·{' '}
+                <span>
+                  Connecté : <strong>{signedIn.nickname}</strong>
+                </span>
                 <button type="button" className="link" onClick={signOut}>
                   Se déconnecter
                 </button>

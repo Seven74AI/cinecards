@@ -8,6 +8,13 @@ Coche ou corrige après ton prochain playtest.
 
 _(aucune pour l'instant)_
 
+## Choix de comportement (pas des règles du GDD)
+
+- [ ] **11.2** — La reprise d'un siège marche depuis le même navigateur (rechargement, nouvel onglet, lien, code), pas depuis un autre appareil : il faudrait des comptes (epic 8).
+- [ ] **11.2** — Sans jeton de siège, « salle complète » et « partie en cours » donnent le même message (« une partie y est en cours ; si c'est la tienne, rouvre-la depuis le même navigateur dans les 90 s »). Avec un jeton expiré : « ta place n'est plus réservée ».
+- [ ] **11.2** — En solo et en hot seat, « Quitter » ramène à l'accueil sans garder la partie ; « Abandonner » (avec confirmation) affiche la défaite.
+- [ ] **11.2** — Une salle d'attente vide expire 10 min après le départ de son dernier joueur ; une partie terminée et vide est fermée tout de suite.
+
 ## Textes de cartes modifiés (story 11.6)
 
 | Carte | Ancien texte | Nouveau texte | OK ? |

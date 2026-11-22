@@ -19,6 +19,8 @@ export interface Snapshot {
   roomCode?: string;
   seats?: [string | null, string | null];
   awayUntil?: number | null;
+  /** Online: the connection dropped and the SDK is retrying. */
+  reconnecting?: boolean;
 }
 
 export interface Session {

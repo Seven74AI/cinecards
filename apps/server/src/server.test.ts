@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '@colyseus/sdk';
 import { loadSetsFromDir } from '@cinecards/cards/node';
 import { createGame, type PlayerId } from '@cinecards/engine';
-import type { LobbyMessage, ViewMessage } from '@cinecards/protocol';
+import type { AwayMessage, LobbyMessage, ViewMessage } from '@cinecards/protocol';
 import { Duel, type Clock } from './duel.ts';
 import { redactEvents, redactState } from './redact.ts';
 import { roomCode } from './codes.ts';
@@ -119,11 +119,66 @@ describe('6.1 / 6.6 duel room over WebSocket', () => {
     expect(viewsA.at(-1)!.view.state.active).toBe(active === 0 ? 1 : 0);
     // a third player cannot join
     await expect(new Client(`ws://localhost:${port}`).joinById(roomA.roomId, {})).rejects.toBeTruthy();
-    // a player who leaves for good forfeits
+    // a player who leaves ("Quitter") keeps the seat, then forfeits once the window is over (2 s in tests)
     await roomB.leave(true);
     await new Promise((r) => setTimeout(r, 300));
+    expect(viewsA.at(-1)!.view.state.phase).toBe('main');
+    await new Promise((r) => setTimeout(r, 2200));
     expect(viewsA.at(-1)!.view.state.phase).toBe('finished');
     expect(viewsA.at(-1)!.view.state.winner).toBe(0);
     await roomA.leave(true);
+  }, 20000);
+
+  const url = () => `ws://localhost:${port}`;
+  const pair = async () => {
+    const roomA = await new Client(url()).create('duel', { mode: 'shared', nickname: 'Hôte' });
+    roomA.onMessage('lobby', () => {});
+    roomA.onMessage('view', () => {});
+    const roomB = await new Client(url()).joinById(roomA.roomId, { nickname: 'Invité' });
+    roomB.onMessage('lobby', () => {});
+    roomB.onMessage('view', () => {});
+    await new Promise((r) => setTimeout(r, 200));
+    return { roomA, roomB };
+  };
+  const nextView = (room: { onMessage(t: string, cb: (m: ViewMessage) => void): unknown }) => new Promise<ViewMessage>((res) => room.onMessage('view', res));
+
+  it('11.2 a player who left comes back to the same seat with the reconnection token', async () => {
+    const { roomA, roomB } = await pair();
+    const tokenB = roomB.reconnectionToken;
+    const awayA: AwayMessage[] = [];
+    roomA.onMessage('away', (m: AwayMessage) => awayA.push(m));
+    await roomB.leave(true);
+    await new Promise((r) => setTimeout(r, 200));
+    expect(awayA.at(-1)).toMatchObject({ player: 1 });
+    expect(awayA.at(-1)!.until).not.toBeNull();
+    // a stranger cannot take the reserved seat
+    await expect(new Client(url()).joinById(roomA.roomId, {})).rejects.toThrow(/locked/);
+    const back = await new Client(url()).reconnect(tokenB);
+    const view = await nextView(back);
+    expect(view.view.you).toBe(1);
+    expect(view.view.names).toEqual(['Hôte', 'Invité']);
+    await new Promise((r) => setTimeout(r, 2200));
+    expect(awayA.at(-1)!.until).toBeNull();
+    // the guest is still in the game after the window: it did not forfeit
+    back.send('action', { type: 'concede', player: 1 });
+    const end = await nextView(roomA);
+    expect(end.view.state.winner).toBe(0);
+    await back.leave(true);
+    await roomA.leave(true);
+  }, 20000);
+
+  it('11.2 a waiting room survives its host leaving, then expires', async () => {
+    roomConfig.lobbyTtlMs = 800;
+    const a = await new Client(url()).create('duel', { mode: 'shared', nickname: 'Hôte' });
+    a.onMessage('lobby', () => {});
+    const code = a.roomId;
+    await a.leave(true);
+    await new Promise((r) => setTimeout(r, 300));
+    const again = await new Client(url()).joinById(code, { nickname: 'Hôte' });
+    again.onMessage('lobby', () => {});
+    await again.leave(true);
+    await new Promise((r) => setTimeout(r, 1200));
+    await expect(new Client(url()).joinById(code, {})).rejects.toThrow(/not found/);
+    roomConfig.lobbyTtlMs = undefined;
   }, 20000);
 });

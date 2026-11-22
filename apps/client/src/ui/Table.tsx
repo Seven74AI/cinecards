@@ -71,7 +71,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const [highlight, setHighlight] = useState<{ name: string; cardId: string; key: number } | null>(null);
   const [muted, setMutedState] = useState(isMuted());
   const [handoffFor, setHandoffFor] = useState<PlayerId | null>(session.kind === 'hotseat' ? viewer : null);
-  const [confirmQuit, setConfirmQuit] = useState(false);
+  const [confirmQuit, setConfirmQuit] = useState<null | 'quit' | 'concede'>(null);
   const prevState = useRef<GameState>(state);
   const now = useNow(!!snap.turnEndsAt || !!snap.reactionEndsAt || !!snap.awayUntil);
 
@@ -449,7 +449,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
       {wide ? <div className="col-left">{journal}</div> : null}
       <main className="table">
         <div className="topbar">
-          <button type="button" className="icon-btn" onClick={() => setConfirmQuit(true)} aria-label="Quitter">
+          <button type="button" className="icon-btn" onClick={() => setConfirmQuit('quit')} aria-label="Quitter">
             <Icon name="flag" size={16} />
           </button>
           {snap.roomCode ? <span className="room-code">Salle {snap.roomCode}</span> : <span className="room-code">CineCards</span>}
@@ -554,9 +554,14 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           {toast.text}
         </div>
       ) : null}
+      {snap.reconnecting ? (
+        <div className="toast info" role="status">
+          Reconnexion…
+        </div>
+      ) : null}
       {snap.status === 'opponentAway' ? (
         <div className="toast info" role="status">
-          {names[foe]} s’est déconnecté·e{snap.awayUntil ? ` — victoire par forfait dans ${Math.max(0, Math.ceil((snap.awayUntil - now) / 1000))}s` : ''}
+          {names[foe]} s’est absenté·e{snap.awayUntil ? ` — victoire par forfait dans ${Math.max(0, Math.ceil((snap.awayUntil - now) / 1000))}s` : ''}
         </div>
       ) : null}
       {handoffFor !== null && session.kind === 'hotseat' ? (
@@ -571,24 +576,51 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         </div>
       ) : null}
       {state.phase === 'finished' ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
-      {confirmQuit ? (
+      {confirmQuit === 'quit' ? (
         <div className="overlay">
           <div className="parchment card-panel">
             <h2>Quitter la partie ?</h2>
-            <p>{state.phase === 'finished' ? 'Retour à l’accueil.' : 'Quitter compte comme un abandon.'}</p>
+            <p>
+              {state.phase === 'finished'
+                ? 'Retour à l’accueil.'
+                : session.kind === 'online'
+                  ? `Tu pourras revenir pendant ${RULES.RECONNECT_SECONDS} s avec le code ${snap.roomCode ?? ''}. Passé ce délai, ${names[foe]} gagne par forfait.`
+                  : 'Retour à l’accueil : cette partie ne sera pas conservée.'}
+            </p>
             <div className="row">
-              <button type="button" className="btn ghost" onClick={() => setConfirmQuit(false)}>
+              <button type="button" className="btn ghost" onClick={() => setConfirmQuit(null)}>
                 Rester
+              </button>
+              {state.phase !== 'finished' ? (
+                <button type="button" className="btn ghost" onClick={() => setConfirmQuit('concede')}>
+                  Abandonner
+                </button>
+              ) : null}
+              <button type="button" className="btn primary" onClick={onLeave}>
+                Quitter
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {confirmQuit === 'concede' ? (
+        <div className="overlay">
+          <div className="parchment card-panel">
+            <h2>Abandonner la partie ?</h2>
+            <p>{names[foe]} gagne immédiatement. Tu ne pourras pas revenir.</p>
+            <div className="row">
+              <button type="button" className="btn ghost" onClick={() => setConfirmQuit(null)}>
+                Annuler
               </button>
               <button
                 type="button"
                 className="btn primary"
                 onClick={() => {
+                  setConfirmQuit(null);
                   if (state.phase !== 'finished') session.send({ type: 'concede', player: me });
-                  onLeave();
                 }}
               >
-                Quitter
+                Abandonner
               </button>
             </div>
           </div>

@@ -7,13 +7,21 @@ import { uniqueCode } from './codes.ts';
 const usedCodes = new Set<string>();
 
 /** Catalog injected at startup (main.ts) so the room stays free of file-system code. */
-export const roomConfig: { catalog: Catalog | null; turnMs?: number; reactionMs?: number; reconnectSeconds?: number } = { catalog: null };
+export const roomConfig: { catalog: Catalog | null; turnMs?: number; reactionMs?: number; reconnectSeconds?: number; lobbyTtlMs?: number } = { catalog: null };
+
+/** An empty waiting room stays joinable this long after its last player left (story 11.2). */
+export const LOBBY_TTL_MS = 10 * 60 * 1000;
 
 const cleanName = (n: unknown, fallback: string) => (typeof n === 'string' && n.trim() ? n.trim().slice(0, 16) : fallback);
 
-/** A private 1v1 room joined by code or link (stories 6.1, 6.2, 6.6). */
+/**
+ * A private 1v1 room joined by code or link (stories 6.1, 6.2, 6.6, 11.2).
+ * Leaving a running duel, voluntarily or not, keeps the seat for 90 s; only the `concede` action forfeits.
+ */
 export class DuelRoom extends Room {
   maxClients = 2;
+  autoDispose = false;
+  private expiry: ReturnType<typeof setTimeout> | null = null;
   private mode: DeckMode = 'shared';
   private seats: [Client | null, Client | null] = [null, null];
   private names: [string, string] = ['Joueur 1', 'Joueur 2'];
@@ -27,11 +35,13 @@ export class DuelRoom extends Room {
       const seat = this.seatOf(client);
       if (seat === null || !this.duel || !action || typeof action !== 'object') return;
       this.duel.act(seat, action);
-      if (this.duel.finished) this.unlock();
     });
+    // the creator joins right away; this only matters if that join fails
+    this.armExpiry();
   }
 
   onJoin(client: Client, options: RoomOptions) {
+    this.clearExpiry();
     const seat: PlayerId = this.seats[0] ? 1 : 0;
     this.seats[seat] = client;
     this.names[seat] = cleanName(options?.nickname, seat === 0 ? 'Joueur 1' : 'Joueur 2');
@@ -39,37 +49,57 @@ export class DuelRoom extends Room {
     if (this.seats[0] && this.seats[1] && !this.duel) this.startDuel();
   }
 
-  async onDrop(client: Client) {
+  onReconnect(client: Client) {
+    this.clearExpiry();
     const seat = this.seatOf(client);
-    if (seat === null || !this.duel || this.duel.finished) return;
+    if (seat !== null && this.duel) this.duel.resend(seat);
+  }
+
+  /** Called for consented leaves and drops alike (no `onDrop`), so "Quitter" and a lost connection behave the same. */
+  async onLeave(client: Client) {
+    const seat = this.seatOf(client);
+    if (seat !== null) {
+      if (this.duel && !this.duel.finished) await this.holdSeat(client, seat);
+      else if (!this.duel) {
+        this.seats[seat] = null;
+        this.sendLobby();
+      }
+    }
+    this.armExpiry();
+  }
+
+  private async holdSeat(client: Client, seat: PlayerId) {
     const seconds = roomConfig.reconnectSeconds ?? RULES.RECONNECT_SECONDS;
     this.away({ player: seat, until: Date.now() + seconds * 1000 });
     try {
       const back = await this.allowReconnection(client, seconds);
       this.seats[seat] = back;
       this.away({ player: seat, until: null });
-      this.duel.resend(seat);
+      this.duel?.resend(seat);
     } catch {
       this.duel?.concede(seat);
     }
   }
 
-  onReconnect(client: Client) {
-    const seat = this.seatOf(client);
-    if (seat !== null && this.duel) this.duel.resend(seat);
+  /** Disposes the room once nobody can come back: a finished duel at once, an empty lobby after 10 min. */
+  private armExpiry() {
+    if (this.clients.length > 0) return;
+    if (this.duel && !this.duel.finished) return; // seats are still reserved
+    this.clearExpiry();
+    if (this.duel) {
+      void this.disconnect();
+      return;
+    }
+    this.expiry = setTimeout(() => void this.disconnect(), roomConfig.lobbyTtlMs ?? LOBBY_TTL_MS);
   }
 
-  onLeave(client: Client) {
-    const seat = this.seatOf(client);
-    if (seat === null) return;
-    if (this.duel && !this.duel.finished) this.duel.concede(seat);
-    if (!this.duel) {
-      this.seats[seat] = null;
-      this.sendLobby();
-    }
+  private clearExpiry() {
+    if (this.expiry) clearTimeout(this.expiry);
+    this.expiry = null;
   }
 
   onDispose() {
+    this.clearExpiry();
     usedCodes.delete(this.roomId);
     this.duel?.dispose();
   }

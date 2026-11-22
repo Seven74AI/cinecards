@@ -30,8 +30,10 @@ test('two friends play an online duel from an invitation link', async ({ browser
   // the opponent's hand is hidden: only card backs
   await expect(first.locator('.foe-hand .card-back').first()).toBeVisible();
 
-  // quitting concedes: the other player wins
+  // conceding (after confirmation) makes the other player win
   await first.getByRole('button', { name: 'Quitter' }).click();
-  await first.locator('.overlay').getByRole('button', { name: 'Quitter' }).click();
+  await first.locator('.overlay').getByRole('button', { name: 'Abandonner' }).click();
+  await first.locator('.overlay').getByRole('button', { name: 'Abandonner' }).click();
   await expect(second.locator('.end')).toContainText('Victoire');
+  await expect(first.locator('.end')).toBeVisible();
 });

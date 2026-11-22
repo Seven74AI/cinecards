@@ -33,7 +33,8 @@ export const TIMING = {
   ability: 550, // pulse + label, then the beam or projectile (story 12.6)
   special: 650, // glow + label + beam of a special attack or a reaction
   coin: 60,
-  turn: 200,
+  turn: 650, // the turn banner unrolls (story 12.7)
+  end: 2000, // victory or defeat moment, before the end screen
 } as const;
 
 /** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1); `ui/director.ts` stages them. */
@@ -119,6 +120,7 @@ export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
         break;
       case 'gameOver':
         b.sound = 'end';
+        b.gap = TIMING.end;
         break;
       default:
         break;

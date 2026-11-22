@@ -797,7 +797,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           </div>
         </div>
       ) : null}
-      {state.phase === 'finished' ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
+      {/* story 12.7: the end screen waits for the victory or defeat moment */}
+      {state.phase === 'finished' && !pb.playing ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
       {confirmQuit === 'quit' ? (
         <div className="overlay">
           <div className="parchment card-panel">

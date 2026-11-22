@@ -742,6 +742,73 @@ function familyWave(terrainIid: string, owner: PlayerId, cardId: string, r: numb
   }
 }
 
+// ---------------------------------------------------------------------------------------------------------
+// Story 12.7: the rhythm of the turn. A banner unrolls ("À toi de jouer", or a quieter "Tour adverse"), the
+// hourglass turns over and my playable cards light up; the end of the game breaks the loser's portrait.
+// ---------------------------------------------------------------------------------------------------------
+
+function turnBanner(mine: boolean, r: number) {
+  const mid = tableMid();
+  const b = overlay(`fx-turn${mine ? ' mine' : ''}`, innerWidth / 2, mid.y);
+  b.innerHTML = '<div></div>';
+  b.firstElementChild!.textContent = mine ? 'À toi de jouer' : 'Tour adverse';
+  const inner = b.firstElementChild!;
+  const open = (mine ? 450 : 320) * r;
+  const hold = (mine ? 450 : 250) * r;
+  const out = (mine ? 300 : 220) * r;
+  void animate(inner, [{ transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1.05)', opacity: 1, offset: 0.5 }, { transform: 'scaleX(1)', opacity: 1 }], open)
+    .then(() => new Promise((res) => later(() => res(undefined), hold)))
+    .then(() => animate(inner, [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-30px)', opacity: 0 }], out, { fill: 'forwards' }))
+    .then(() => b.remove());
+  // the hourglass turns over
+  void animate(document.querySelector('.table .timer svg'), [{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }], 500 * r);
+  if (mine) later(() => playableGlow(r), open + hold);
+}
+
+/** My playable cards light up for a moment (hand cards I can afford, characters ready to attack). */
+export function playableGlow(r: number) {
+  document.querySelectorAll<HTMLElement>('.table .hand .card.is-ready, .table .board.mine .card.is-ready').forEach((el, i) => {
+    const rect = el.getBoundingClientRect();
+    if (!rect.width) return;
+    const g = overlay('fx-glow playable', rect.left, rect.top);
+    g.style.width = `${rect.width}px`;
+    g.style.height = `${rect.height}px`;
+    void animate(g, [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], 1200 * Math.max(r, 0.5), { delay: i * 40 * r, easing: 'ease-in-out' }).then(() => g.remove());
+  });
+}
+
+/** End of the game: the loser's portrait cracks and shatters; gold rains for my victory, the table darkens for my defeat. */
+function gameEnd(winner: PlayerId | 'draw', ms: number, r: number) {
+  const me = myId();
+  const loser = winner === 'draw' ? null : (winner === 0 ? 1 : 0);
+  const k = Math.max(r, 0.5);
+  if (loser !== null) {
+    const face = portraitEl(loser);
+    if (face) {
+      const c = ptOf(face)!;
+      const cr = overlay('fx-crack portrait', c.x, c.y, CRACKS_SVG);
+      cr.style.width = cr.style.height = `${c.w * 1.4}px`;
+      void animate(cr, [{ transform: 'translate(-50%,-50%) scale(.8)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6 }, { transform: 'translate(-50%,-50%) scale(1.3)', opacity: 0 }], 900 * k).then(() => cr.remove());
+      void animate(face, [{ transform: 'scale(1) rotate(0deg)', opacity: 1 }, { transform: 'scale(1.1) rotate(-4deg)', opacity: 1, offset: 0.35 }, { transform: 'scale(1.1) rotate(4deg)', opacity: 1, offset: 0.5 }, { transform: 'scale(.4) rotate(0deg)', opacity: 0 }], 900 * k, { fill: 'forwards' });
+      later(() => {
+        particles(face, 16, ['#f2d27a', '#8e1f1f', '#fff3d6', '#5a3d0c'], r, 70, 800, 'fx-shard');
+        shake(120, r);
+      }, 500 * k);
+    }
+  }
+  if (winner === me) {
+    for (let i = 0; i < 36; i++) {
+      const x = (innerWidth * ((i * 37) % 100)) / 100;
+      const coin = overlay('fx-gold', x, -12);
+      void animate(coin, [{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translateY(${innerHeight + 30}px) rotate(${(i % 2 ? 1 : -1) * 540}deg)`, opacity: 0.9 }], (1300 + ((i * 53) % 700)) * k, { delay: (500 + ((i * 29) % 900)) * k, easing: 'ease-in' }).then(() => coin.remove());
+    }
+  } else {
+    const veil = overlay('fx-veil', 0, 0);
+    void animate(veil, [{ opacity: 0 }, { opacity: winner === 'draw' ? 0.35 : 0.6 }], ms * 0.7, { fill: 'forwards', easing: 'ease-in' });
+    later(() => veil.remove(), ms + 200);
+  }
+}
+
 /** Positions of the cards on the table, read before a change of layout (story 13.2). */
 export type Layout = Map<HTMLElement, DOMRect>;
 export function captureLayout(): Layout {
@@ -869,6 +936,12 @@ export function direct(cue: Cue) {
     }
     case 'abilityUsed':
       abilityFired(e, events, beat.index, cue.ms, r, cue.after);
+      break;
+    case 'turnStarted':
+      turnBanner(e.player === myId(), r);
+      break;
+    case 'gameOver':
+      gameEnd(e.winner, cue.ms, r);
       break;
     default:
       break;

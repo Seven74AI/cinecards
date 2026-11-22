@@ -54,6 +54,7 @@ _(aucune pour l'instant)_
 - [ ] **12.5** — L'« onde de famille » d'un terrain est une onde verte qui part de son sceau ; l'onde qui parcourt les cartes de sa famille arrive avec son effet (12.6). Un équipement fait un reflet métallique et des éclats argentés. Une carte invoquée (Néo → Trinity…) vole depuis le cimetière, la main ou l'autre camp.
 - [ ] **12.6** — Toute capacité qui se déclenche (à l'arrivée, à la mort, début de tour, quand son camp pose une carte…) a sa pulsation et son étiquette « déclencheur · « nom » » (0,55 s avant la suite) ; les attaques spéciales et réactions gardent leur trait sans attente (0,65 s). Couleur du trait : vert pour un déclencheur, bleu pour une attaque spéciale, doré pour une réaction ; un sort envoie un projectile depuis le centre de la table.
 - [ ] **12.6** — L'onde d'un terrain parcourt les personnages de son monde du côté de son propriétaire (les cartes que son aura renforce), de proche en proche.
+- [ ] **12.7** — Le bandeau dit « À toi de jouer » (tutoiement, comme le reste de la table) au lieu de « À vous de jouer ». Le début de tour dure 0,65 s ; le moment de fin de partie 2 s, puis l'écran de fin (tout de suite en vitesse instantanée). En hot seat, le portrait qui se brise est celui du perdant, la pluie d'or ou le voile suivent le joueur qui tient l'appareil.
 
 ## Textes de cartes modifiés (story 11.8)
 

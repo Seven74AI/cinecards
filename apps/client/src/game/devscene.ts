@@ -27,11 +27,16 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // a spell, a terrain and an equipment in hand (stories 12.5, 12.6): the missile seeks the strongest ATK, Camelot
   // lifts the Holy Grail family
   pose: [['hs-topper', 'hg-lancelot'], ['hg-ni', 'hg-black-knight'], ['hs-missile', 'hg-camelot', 'mx-apu']],
+  // Le Grimoire is down to 100 PV with no character: Topper's hit wins the game (story 12.7, see EXTRA)
+  victoire: [['hs-topper'], []],
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;
 /** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
+  victoire: (state) => {
+    state.players[1].hp = 100;
+  },
   sources: (state, take, iidOf) => {
     const camelot = take('hg-camelot', 0)!;
     state.instances[camelot]!.playedOnTurn = 1;

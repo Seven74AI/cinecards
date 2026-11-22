@@ -29,6 +29,7 @@ export function candidateActions(catalog: Catalog, state: GameState, player: Pla
   const pending = state.pending;
   if (pending) {
     if (pending.player !== player) return [];
+    // keeping cards is never worse: take as many as allowed
     if (pending.kind === 'pick') return [{ type: 'choose', player, picks: sample(rnd, pending.options, pending.count) }];
     if (pending.kind === 'option') return [{ type: 'chooseOption', player, option: Math.floor(rnd() * pending.choices) }];
     if (pending.kind === 'targets') {

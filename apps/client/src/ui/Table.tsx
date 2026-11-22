@@ -27,7 +27,7 @@ type Mode =
   | { k: 'idle' }
   | { k: 'hand'; iid: string }
   | { k: 'attack'; iid: string; targets: Target[] }
-  | { k: 'targets'; total: number; reqs: Req[]; picked: string[]; label: string };
+  | { k: 'targets'; total: number; reqs: Req[]; picked: string[][]; label: string };
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
@@ -131,7 +131,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (p?.kind === 'targets' && p.player === viewer) {
       const reqs = p.requests.map((r, index) => ({ count: r.count, min: r.min ?? r.count, options: r.options, index })).filter((r) => r.count > 0);
       const name = catalog.get(state.instances[p.source]?.cardId ?? '')?.name ?? '';
-      setMode({ k: 'targets', total: p.requests.length, reqs, picked: [], label: `${triggerPhrase(p.trigger, name)} : « ${p.label} »` });
+      setMode({ k: 'targets', total: p.requests.length, reqs, picked: reqs.map(() => []), label: `${triggerPhrase(p.trigger, name)} : « ${p.label} »` });
     } else setMode({ k: 'idle' });
   }, [snap.seq, viewer]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,32 +157,29 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     send({ type: 'useAbility', player: me, iid, ability, ...(option !== undefined ? { option } : {}) });
   };
 
-  /** Splits the picks, in order, into one list per engine request. */
-  const groupsOf = (m: Extract<Mode, { k: 'targets' }>, picked: string[]): string[][] => {
+  // ----- target prompt: 0..N per request (story 11.5) -----
+  /** One list per engine request (requests without options stay empty). */
+  const groupsOf = (m: Extract<Mode, { k: 'targets' }>): string[][] => {
     const groups: string[][] = Array.from({ length: m.total }, () => []);
-    let n = 0;
-    for (const r of m.reqs) {
-      groups[r.index] = picked.slice(n, n + r.count);
-      n += r.count;
-    }
+    m.reqs.forEach((r, k) => (groups[r.index] = m.picked[k]!));
     return groups;
   };
+  const pickedAll = (m: Extract<Mode, { k: 'targets' }>) => m.picked.flat();
+  const canConfirm = (m: Extract<Mode, { k: 'targets' }>) => m.reqs.every((r, k) => m.picked[k]!.length >= r.min);
+  const canSkip = (m: Extract<Mode, { k: 'targets' }>) => m.reqs.every((r) => r.min === 0);
+  /** The request a tap on `iid` would fill: the first one offering it that still has room. */
+  const reqFor = (m: Extract<Mode, { k: 'targets' }>, iid: string) => m.reqs.findIndex((r, k) => r.options.includes(iid) && m.picked[k]!.length < r.count);
 
   const pickTarget = (iid: string) => {
     if (mode.k !== 'targets') return;
-    const picked = mode.picked.includes(iid) ? mode.picked.filter((x) => x !== iid) : [...mode.picked, iid];
-    const total = mode.reqs.reduce((s, r) => s + r.count, 0);
-    if (picked.length >= total) send({ type: 'chooseTargets', player: me, targets: groupsOf(mode, picked) });
-    else setMode({ ...mode, picked });
+    const at = mode.picked.findIndex((g) => g.includes(iid));
+    if (at >= 0) return setMode({ ...mode, picked: mode.picked.map((g, k) => (k === at ? g.filter((x) => x !== iid) : g)) });
+    const k = reqFor(mode, iid);
+    if (k >= 0) setMode({ ...mode, picked: mode.picked.map((g, j) => (j === k ? [...g, iid] : g)) });
   };
-
-  const currentReq = (m: Extract<Mode, { k: 'targets' }>) => {
-    let n = m.picked.length;
-    for (const r of m.reqs) {
-      if (n < r.count) return r;
-      n -= r.count;
-    }
-    return m.reqs[m.reqs.length - 1]!;
+  const confirmTargets = (none = false) => {
+    if (mode.k !== 'targets') return;
+    send({ type: 'chooseTargets', player: me, targets: none ? Array.from({ length: mode.total }, () => []) : groupsOf(mode) });
   };
 
   // ----- taps -----
@@ -190,7 +187,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     const inst = state.instances[iid];
     if (!inst) return;
     if (mode.k === 'targets') {
-      if (currentReq(mode).options.includes(iid) || mode.picked.includes(iid)) pickTarget(iid);
+      pickTarget(iid);
       return;
     }
     if (mode.k === 'attack' && mode.targets.some((t) => t.kind === 'card' && t.iid === iid)) {
@@ -240,12 +237,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
 
   const targetable = (iid: string): boolean => {
     if (mode.k === 'attack') return mode.targets.some((t) => t.kind === 'card' && t.iid === iid);
-    if (mode.k === 'targets') return currentReq(mode).options.includes(iid) && !mode.picked.includes(iid);
+    if (mode.k === 'targets') return !pickedAll(mode).includes(iid) && reqFor(mode, iid) >= 0;
     return false;
   };
 
   const cardState = (iid: string, owner: PlayerId): 'selected' | 'target' | 'ready' | 'attacker' | null => {
-    if (mode.k === 'targets' && mode.picked.includes(iid)) return 'selected';
+    if (mode.k === 'targets' && pickedAll(mode).includes(iid)) return 'selected';
     if (targetable(iid)) return 'target';
     if ((mode.k === 'attack' && mode.iid === iid) || (mode.k === 'hand' && mode.iid === iid)) return 'attacker';
     if (owner === me && myTurn && state.players[me].characters.includes(iid) && !canAttack(catalog, state, iid)) return 'ready';
@@ -383,7 +380,11 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (state.phase === 'finished') return { title: 'Fin de la partie', sub: '' };
     if (mode.k === 'targets') {
       const total = mode.reqs.reduce((s, r) => s + r.count, 0);
-      return { title: mode.label, sub: `${mode.picked.length}/${total} — touche une carte qui brille` };
+      const min = mode.reqs.reduce((s, r) => s + r.min, 0);
+      return {
+        title: mode.label,
+        sub: `${pickedAll(mode).length} / ${total} ${min === total ? '' : min ? `(au moins ${min}) ` : '(jusqu’à) '}— touche une carte qui brille, puis « Valider »`,
+      };
     }
     if (mode.k === 'attack') return { title: `${nameOf(mode.iid)} attaque`, sub: mode.targets.length ? 'Touche une cible' : 'Aucune cible' };
     if (mode.k === 'hand') return { title: nameOf(mode.iid), sub: 'Touche un socle libre ou « Jouer »' };
@@ -498,7 +499,18 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
               {secondsLeft}s
             </span>
           ) : null}
-          {mode.k === 'targets' ? null : mode.k !== 'idle' ? (
+          {mode.k === 'targets' ? (
+            <span className="target-actions">
+              {canSkip(mode) ? (
+                <button type="button" className="btn small ghost" onClick={() => confirmTargets(true)}>
+                  Aucune cible
+                </button>
+              ) : null}
+              <button type="button" className="btn small primary" disabled={!canConfirm(mode)} onClick={() => confirmTargets()}>
+                Valider
+              </button>
+            </span>
+          ) : mode.k !== 'idle' ? (
             <button type="button" className="btn small ghost" onClick={() => setMode({ k: 'idle' })}>
               Annuler
             </button>
@@ -541,6 +553,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           key={snap.seq}
           options={pending.options}
           count={pending.count}
+          min={pending.min ?? pending.count}
           label={pending.label}
           render={(iid) => catalog.get(state.instances[iid]?.cardId ?? '')}
           onDone={(picks) => send({ type: 'choose', player: me, picks })}
@@ -683,15 +696,30 @@ function JournalList({ snapLog, describe }: { snapLog: { seq: number; event: imp
   );
 }
 
-function PickModal({ options, count, label, render, onDone }: { options: string[]; count: number; label: string; render: (iid: string) => Card | undefined; onDone: (picks: string[]) => void }) {
+function PickModal({
+  options,
+  count,
+  min,
+  label,
+  render,
+  onDone,
+}: {
+  options: string[];
+  count: number;
+  min: number;
+  label: string;
+  render: (iid: string) => Card | undefined;
+  onDone: (picks: string[]) => void;
+}) {
   const [picked, setPicked] = useState<string[]>([]);
   const need = Math.min(count, options.length);
+  const floor = Math.min(min, need);
   return (
     <div className="overlay">
       <div className="parchment card-panel wide">
         <h2>{label}</h2>
         <p>
-          Garde {need} carte{need > 1 ? 's' : ''} ({picked.length}/{need}).
+          {floor === need ? `Garde ${need}` : `Garde jusqu’à ${need}`} carte{need > 1 ? 's' : ''} ({picked.length} / {need}).
         </p>
         <div className="pick-grid">
           {options.map((iid) => {
@@ -707,9 +735,16 @@ function PickModal({ options, count, label, render, onDone }: { options: string[
             ) : null;
           })}
         </div>
-        <button type="button" className="btn primary" disabled={picked.length !== need} onClick={() => onDone(picked)}>
-          Garder
-        </button>
+        <div className="row">
+          {floor === 0 ? (
+            <button type="button" className="btn ghost" onClick={() => onDone([])}>
+              Aucune
+            </button>
+          ) : null}
+          <button type="button" className="btn primary" disabled={picked.length < floor} onClick={() => onDone(picked)}>
+            Valider
+          </button>
+        </div>
       </div>
     </div>
   );

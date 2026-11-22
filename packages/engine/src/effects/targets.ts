@@ -71,15 +71,11 @@ function resolveFresh(g: G, e: Eff, ctx: EffectCtx, key: Eff): string[] {
   // chosen at trigger time: one list per request, kept if still legal
   const group = ctx.picks?.get(key)?.shift();
   if (group) return [...new Set(group)].filter((iid) => legal.has(iid)).slice(0, count);
-  // chosen*: take the declared targets that are legal; fill missing ones randomly (bots, tests)
+  // targets declared with the action (older clients, tests): the legal ones, in order. Never filled at random (story 11.5).
   const picked: string[] = [];
   while (picked.length < count && ctx.targets.length > 0) {
     const t = ctx.targets.shift()!;
     if (t.kind === 'card' && legal.has(t.iid) && !picked.includes(t.iid)) picked.push(t.iid);
-  }
-  if (picked.length === 0 && e.optional !== true) {
-    const rest = pool.filter((b) => !picked.includes(b.iid));
-    while (picked.length < count && rest.length > 0) picked.push(rest.splice(randomInt(g.s, rest.length), 1)[0]!.iid);
   }
   return picked;
 }
@@ -101,6 +97,9 @@ export function findSummon(g: G, e: Eff, me: PlayerId) {
   });
 }
 
+/** "Choose N" means up to N (story 11.5); `exactly: true` or an explicit `min` raises the floor. */
+export const minOf = (e: Eff, count: number): number => Math.min(count, typeof e.min === 'number' ? e.min : e.exactly === true ? count : 0);
+
 export interface ChosenRequest {
   spec: string;
   count: number;
@@ -119,7 +118,7 @@ export interface ChosenRequest {
 export function targetRequests(g: G, effects: Eff[], ctx: Pick<EffectCtx, 'player' | 'source' | 'fromSpell' | 'option'>): ChosenRequest[] {
   const out: ChosenRequest[] = [];
   const req = (spec: string, e: Eff, count: number) =>
-    out.push({ spec, count, min: count, options: candidates(g, spec, ctx, e.filter).map((b) => b.iid), eff: e });
+    out.push({ spec, count, min: minOf(e, count), options: candidates(g, spec, ctx, e.filter).map((b) => b.iid), eff: e });
   const walk = (list: Eff[]) => {
     for (const e of list) {
       if (e.op === 'duel') {

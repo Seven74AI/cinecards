@@ -1645,3 +1645,11 @@ h3 {
 .table-root.wide .hand {
   min-height: 160px;
 }
+
+/* target prompt actions (story 11.5) */
+.target-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

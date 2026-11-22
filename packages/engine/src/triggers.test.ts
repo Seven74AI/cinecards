@@ -172,3 +172,60 @@ describe('11.4 support and bots', () => {
     expect(step?.state.pending).toBeNull();
   });
 });
+
+describe('11.5 choose from 0 to N targets', () => {
+  const tank = char('tank', 1, 100, 10, { abilities: [ab('onPlay', [{ op: 'returnToHand', target: 'chosenCard', count: 3 }])] });
+  const sniper = char('sniper', 1, 100, 10, { abilities: [ab('onPlay', [{ op: 'damage', target: 'chosenEnemy', count: 2, exactly: true, amount: 10 }])] });
+  const keeper = char('keeper', 1, 100, 10, { abilities: [ab('onPlay', [{ op: 'lookAndPick', look: 4, pick: 2 }])] });
+  const cards = [tank, sniper, keeper, char('a', 1, 100, 10), char('b', 1, 100, 10), char('c', 1, 100, 10), char('d', 1, 100, 10), char('e', 1, 100, 10)];
+
+  function table() {
+    const { catalog, state } = setup(cards);
+    const foes = ['a', 'b', 'c'].map((c, i) => put(state, c, 1, 'characters', i, 1));
+    state.players[0].coins = 10;
+    return { catalog, state, foes };
+  }
+
+  it('"choose 3" accepts 0 to 3 picks, and refuses more', () => {
+    const { catalog, state, foes } = table();
+    const t = put(state, 'tank', 0, 'hand');
+    const r = ok(catalog, state, { type: 'playCard', player: 0, iid: t });
+    expect(r.state.pending).toMatchObject({ kind: 'targets', requests: [{ count: 3, min: 0 }] });
+    expect(refused(catalog, r.state, { type: 'chooseTargets', player: 0, targets: [[...foes, t]] })).toBe('INVALID_CHOICE');
+    const none = ok(catalog, r.state, { type: 'chooseTargets', player: 0, targets: [[]] });
+    expect(none.state.players[1].characters.filter(Boolean)).toHaveLength(3);
+    const one = ok(catalog, r.state, { type: 'chooseTargets', player: 0, targets: [[foes[1]!]] });
+    expect(one.state.players[1].hand).toEqual([foes[1]]);
+  });
+
+  it('"exactly N" requires N picks', () => {
+    const { catalog, state, foes } = table();
+    const r = ok(catalog, state, { type: 'playCard', player: 0, iid: put(state, 'sniper', 0, 'hand') });
+    expect(r.state.pending).toMatchObject({ requests: [{ count: 2, min: 2 }] });
+    expect(refused(catalog, r.state, { type: 'chooseTargets', player: 0, targets: [[foes[0]!]] })).toBe('INVALID_CHOICE');
+    expect(ok(catalog, r.state, { type: 'chooseTargets', player: 0, targets: [[foes[0]!, foes[2]!]] }).state.instances[foes[2]!]!.damage).toBe(10);
+  });
+
+  it('declared targets are never completed at random', () => {
+    const { catalog, state, foes } = table();
+    const r = ok(catalog, state, { type: 'playCard', player: 0, iid: put(state, 'tank', 0, 'hand'), targets: [{ kind: 'card', iid: foes[0]! }] });
+    expect(r.state.players[1].hand).toEqual([foes[0]]);
+  });
+
+  it('the timer default for "up to N" is no target', () => {
+    const { catalog, state } = table();
+    const r = ok(catalog, state, { type: 'playCard', player: 0, iid: put(state, 'tank', 0, 'hand') });
+    expect(timeoutAction(r.state)).toEqual({ type: 'chooseTargets', player: 0, targets: [[]] });
+    expect(ok(catalog, r.state, timeoutAction(r.state)!).state.players[1].characters.filter(Boolean)).toHaveLength(3);
+  });
+
+  it('deck picks accept 0 to N cards too', () => {
+    const { catalog, state } = table();
+    let r = ok(catalog, state, { type: 'playCard', player: 0, iid: put(state, 'keeper', 0, 'hand') });
+    expect(r.state.pending).toMatchObject({ kind: 'pick', count: 2, min: 0 });
+    const opts = r.state.pending!.kind === 'pick' ? r.state.pending.options : [];
+    expect(refused(catalog, r.state, { type: 'choose', player: 0, picks: opts.slice(0, 3) })).toBe('INVALID_CHOICE');
+    r = ok(catalog, r.state, { type: 'choose', player: 0, picks: [opts[1]!] });
+    expect(r.state.players[0].hand).toEqual([opts[1]]);
+  });
+});

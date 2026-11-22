@@ -335,7 +335,8 @@ describe('4.3 Hot Shots!', () => {
     let r = act(state, { type: 'playCard', player: 0, iid: id('hs-wingman'), targets: [card(id('hs-kent'))] });
     r = act(r.state, { type: 'attack', player: 0, attacker: id('hs-kent'), target: card(id('hg-patsy')) });
     r = act(r.state, { type: 'attack', player: 0, attacker: id('hs-kent'), target: card(id('hs-topper')) });
-    r = act(r.state, { type: 'playCard', player: 0, iid: id('hs-belly'), targets: [card(id('hs-kent'))] });
+    const ally = r.state.players[0].characters.find((x): x is string => !!x)!; // Kent may have fallen to the riposte
+    r = act(r.state, { type: 'playCard', player: 0, iid: id('hs-belly'), targets: [card(ally)] });
     expect(r.events.some((e) => e.type === 'healed')).toBe(true);
     r.state.players[0].coins = 10;
     r = act(r.state, { type: 'playCard', player: 0, iid: id('hs-missile') });

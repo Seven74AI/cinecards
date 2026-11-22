@@ -20,6 +20,8 @@ _(aucune pour l'instant)_
 - [ ] **11.4** — « Quand il attaque » / « Quand il est attaqué » se résolvent pendant l'attaque (ils peuvent l'annuler) et ne demandent pas de cible.
 - [ ] **11.4** — Un effet « à l'arrivée » ou « à la mort » se résout même si la carte a quitté la table entre-temps ; les autres déclencheurs exigent que la carte soit encore en jeu et sans silence.
 - [ ] **11.4** — Les effets de fin de tour se résolvent avant le passage du tour ; ceux de début de tour après la pioche.
+- [ ] **11.5** — À la fin du chrono, « jusqu'à N » prend aucune cible ; un choix dans le deck (ex. Le maître des clés) garde quand même les premières cartes proposées (prendre des cartes n'est jamais pénalisant).
+- [ ] **11.5** — Le Grimoire (solo) choisit un nombre de cibles au hasard entre le minimum et N, mais garde toujours le maximum de cartes dans un choix du deck.
 - [ ] **11.3** — En solo, le chrono tourne aussi pendant le tour du Grimoire (il joue bien plus vite que 75 s).
 
 ## Textes de cartes modifiés (story 11.6)

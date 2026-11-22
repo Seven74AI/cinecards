@@ -5,7 +5,7 @@ import type { PlayerId, Status } from '../types.ts';
 import { board, cardOf, characters, coinCap, immuneTo, inst, onBoard, stats, type Eff, type G } from '../ctx.ts';
 import { drawCard, pileOf } from '../turn/turn.ts';
 import { damage, destroy, heal, processDeaths, removeFromBoard, toHand } from './core.ts';
-import { findSummon, resolveTargets, type EffectCtx } from './targets.ts';
+import { findSummon, minOf, resolveTargets, type EffectCtx } from './targets.ts';
 
 const NEGATIVE: Status['kind'][] = ['silence', 'poison', 'stunned'];
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
@@ -133,7 +133,8 @@ function runOne(g: G, e: Eff, ctx: EffectCtx): void {
       const pile = pileOf(g.s, ctx.player);
       const options = pile.slice(0, e.look ?? 3);
       if (options.length === 0) return;
-      g.s.pending = { kind: 'pick', player: ctx.player, options, count: Math.min(e.pick ?? 1, options.length), source: ctx.source, label };
+      const count = Math.min(e.pick ?? 1, options.length);
+      g.s.pending = { kind: 'pick', player: ctx.player, options, count, min: minOf(e, count), source: ctx.source, label };
       g.ev.push({ type: 'pickOffered', player: ctx.player, count: Math.min(e.pick ?? 1, options.length) });
       return;
     }

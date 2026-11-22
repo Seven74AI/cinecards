@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Card } from '@cinecards/cards';
 import type { ComputedStats, Status } from '@cinecards/engine';
 import { cardArt } from '../game/catalog.ts';
@@ -108,13 +109,14 @@ export interface CardViewProps {
   dying?: boolean;
   /** Sent back to hand, still shown while it flies off (story 12.4). */
   leaving?: boolean;
+  style?: CSSProperties;
 }
 
 function statClass(cur: number, base: number) {
   return cur > base ? ' up' : cur < base ? ' down' : '';
 }
 
-export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving }: CardViewProps) {
+export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving, style }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
@@ -122,7 +124,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
   const srcN = size === 'board' ? sourceCounts(stats?.sources) : { atk: 0, hp: 0 };
   const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
-    <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
+    <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name} style={style}>
       <span className="card-frame">
         <span className="card-name">{card.name}</span>
         <span className="card-art">{art ? <img src={art} alt="" draggable={false} /> : null}</span>

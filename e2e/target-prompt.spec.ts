@@ -37,7 +37,7 @@ test('hot seat: an arrival effect asks for up to N targets, and "Aucune cible" s
       if (await banner.getByRole('button', { name: 'Valider' }).isVisible()) break;
       const card = page.locator('.hand .card.is-ready').first();
       if (!(await card.isVisible())) break;
-      await card.click();
+      await card.press('Enter'); // fanned hand cards overlap (story 13.2): their centre is covered
       const play = page.getByRole('button', { name: /^Jouer/ }).first();
       if (!(await play.isVisible()) || (await play.isDisabled())) break;
       await play.click();

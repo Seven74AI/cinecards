@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Card } from '@cinecards/cards';
 import {
   attackTargets,
@@ -13,7 +13,7 @@ import {
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
-import { direct } from './director.ts';
+import { captureLayout, direct, flipLayout, type Layout } from './director.ts';
 import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
@@ -47,6 +47,20 @@ function useNow(active: boolean) {
   return now;
 }
 
+function useMedia(q: string) {
+  const [on, setOn] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(q).matches);
+  useEffect(() => {
+    const m = matchMedia(q);
+    const up = () => setOn(m.matches);
+    m.addEventListener('change', up);
+    return () => m.removeEventListener('change', up);
+  }, [q]);
+  return on;
+}
+
+/** Story 13.2: portrait phones get the compact table (overview + zoom); landscape, tablets and desktop keep theirs. */
+const COMPACT_QUERY = '(orientation: portrait) and (max-width: 699px)';
+
 function useWide() {
   const q = '(min-width: 1100px)';
   const [wide, setWide] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(q).matches);
@@ -66,6 +80,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const { state, viewer, names } = snap;
   const catalog = session.catalog;
   const wide = useWide();
+  const compact = useMedia(COMPACT_QUERY) && !wide;
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   const [inspect, setInspect] = useState<string | null>(null);
   const { openRules, previewId } = useRefs();
@@ -150,10 +165,70 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const me = viewer;
   const foe = other(me);
   const myTurn = state.active === me && !state.pending && state.phase === 'main';
+
+  // ----- story 13.2: compact table, overview + zoom -----
+  /** The side a choice is about: the foe's when an attacker is picked, the side holding most targets of a prompt. */
+  const autoSide: PlayerId | null = (() => {
+    // while the sheet is open (its lines, its "Choisir une cible"), the overview stays
+    if (mode.k === 'attack') return mode.targets.some((t) => t.kind === 'card') && !inspect ? foe : null;
+    if (mode.k === 'targets') {
+      const n = [0, 0];
+      for (const iid of new Set(mode.reqs.flatMap((r) => r.options))) {
+        const owner = state.instances[iid]?.owner;
+        const P = owner !== undefined ? state.players[owner] : null;
+        if (P && (P.characters.includes(iid) || P.terrains.includes(iid) || P.spells.includes(iid))) n[owner!]!++;
+      }
+      return n[foe]! + n[me]! === 0 ? null : n[me]! > n[foe]! ? me : foe;
+    }
+    return null;
+  })();
+  const autoKey = mode.k === 'attack' ? `a:${mode.iid}` : mode.k === 'targets' ? `t:${snap.seq}` : '';
+  /** A zoom chosen by touching a side; "Vue d'ensemble" or touching the other side also sets aside the automatic one. */
+  const [manualZoom, setManualZoom] = useState<PlayerId | null>(null);
+  const [dismissed, setDismissed] = useState('');
+  /** After an action, the automatic zoom stays until its beats have played (the director reads positions then). */
+  const [heldZoom, setHeldZoom] = useState<{ side: PlayerId; seq: number } | null>(null);
+  const auto = autoSide !== null && dismissed !== autoKey ? autoSide : null;
+  const zoom: PlayerId | null = compact ? (auto ?? heldZoom?.side ?? manualZoom) : null;
+  const zoomTo = (side: PlayerId | null) => {
+    setManualZoom(side);
+    setHeldZoom(null);
+    if (autoSide !== null) setDismissed(autoKey);
+  };
+  useEffect(() => {
+    if (heldZoom && snap.seq > heldZoom.seq && !pb.playing) setHeldZoom(null);
+  }, [heldZoom, snap.seq, view, pb]);
+  useEffect(() => {
+    if (!heldZoom) return;
+    const t = setTimeout(() => setHeldZoom(null), 6000);
+    return () => clearTimeout(t);
+  }, [heldZoom]);
+  useEffect(() => setHeldZoom(null), [snap.error]);
+  // the switch between views is animated (FLIP): positions are read before the new layout is committed
+  const zoomKey = compact ? String(zoom) : 'x';
+  const lastZoomKey = useRef(zoomKey);
+  const flipFrom = useRef<Layout | null>(null);
+  if (zoomKey !== lastZoomKey.current && !flipFrom.current && zoomKey !== 'x' && lastZoomKey.current !== 'x') flipFrom.current = captureLayout();
+  useLayoutEffect(() => {
+    if (lastZoomKey.current === zoomKey) return;
+    lastZoomKey.current = zoomKey;
+    if (flipFrom.current) flipLayout(flipFrom.current);
+    flipFrom.current = null;
+  }, [zoomKey]);
+  // story 13.3, revisited: on the compact table the lowered sheet covers exactly what lies under my side (hero, hand)
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const side = compact ? document.querySelector('.table .side.mine') : null;
+    if (!side) return void root.style.removeProperty('--peek-h');
+    root.style.setProperty('--peek-h', `${Math.max(120, Math.round(innerHeight - side.getBoundingClientRect().bottom - 2))}px`);
+  });
+
   const send = (a: Action) => {
     sfx('click');
     pb.hurry();
     session.send(a);
+    if (auto !== null) setHeldZoom({ side: auto, seq: snap.seq });
+    setManualZoom(null);
     setMode({ k: 'idle' });
     setInspect(null);
   };
@@ -305,7 +380,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             <div
               key={slot}
               className={'slot' + (iid ? ' filled' : '') + (placing && !iid ? ' placeable' : '') + cited(iid)}
-              onClick={() => (!iid ? tapSlot(player, 'characters', slot) : undefined)}
+              onClick={(e) => {
+                if (!iid) return placing ? tapSlot(player, 'characters', slot) : undefined;
+                // story 13.2: the whole slot is the touch target of its (small) card
+                e.stopPropagation();
+                if (!(e.target as Element).closest('.card')) tapCard(iid);
+              }}
               role={!iid && placing ? 'button' : undefined}
               aria-label={!iid ? `Socle ${ROMAN[slot]}` : undefined}
             >
@@ -365,7 +445,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           <div className="hero-line">
             <span className="hero-name">{names[player]}</span>
             <span className="hero-hp">
-              <Icon name="heart" size={12} color="#FF8A8A" /> <Counter value={P.hp} ms={countMs} /> / {RULES.PLAYER_HP}
+              <Icon name="heart" size={12} color="#FF8A8A" /> <Counter value={P.hp} ms={countMs} />
+              <small className="hp-max"> / {RULES.PLAYER_HP}</small>
             </span>
           </div>
           <div className="hpbar">
@@ -388,6 +469,49 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             <Icon name="grave" size={12} /> {P.graveyard.length}
           </span>
         </span>
+      </div>
+    );
+  };
+
+  /** Story 13.2: one side of the compact table, shown in overview, zoomed, or folded into a strip of mini cards. */
+  const Side = ({ player }: { player: PlayerId }) => {
+    const view = zoom === null ? 'overview' : zoom === player ? 'zoomed' : 'folded';
+    const mine = player === me;
+    const free = shown.players[player].characters.filter((x) => !x).length;
+    const head = (
+      <div className="side-head">
+        {Zones({ player })}
+        {view === 'zoomed' ? (
+          <button type="button" className="side-btn back-overview" onClick={() => zoomTo(null)}>
+            <Icon name="back" size={14} /> Vue d’ensemble
+          </button>
+        ) : (
+          <button type="button" className="side-btn zoom-btn" onClick={() => zoomTo(player)} aria-label={mine ? 'Agrandir ton camp' : 'Agrandir le camp adverse'}>
+            <Icon name="zoom" size={12} /> agrandir
+          </button>
+        )}
+      </div>
+    );
+    return (
+      <div
+        className={`side ${mine ? 'mine' : 'theirs'} is-${view}`}
+        data-side={player}
+        onClick={(e) => {
+          if (view === 'zoomed' || (e.target as Element).closest('.card, button, .placeable')) return;
+          zoomTo(player);
+        }}
+      >
+        {(!mine && view === 'overview') || view === 'zoomed' ? head : null}
+        {Board({ player })}
+        {view === 'folded' ? (
+          <>
+            {free ? <span className="free-n">+ {free} socle{free > 1 ? 's' : ''} libre{free > 1 ? 's' : ''}</span> : null}
+            <button type="button" className="side-btn zoom-btn" onClick={() => zoomTo(player)} aria-label={mine ? 'Agrandir ton camp' : 'Agrandir le camp adverse'}>
+              <Icon name="zoom" size={14} />
+            </button>
+          </>
+        ) : null}
+        {mine && view === 'overview' ? head : null}
       </div>
     );
   };
@@ -487,7 +611,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     <div className={'table-root' + (wide ? ' wide' : '')}>
       <Ambient />
       {wide ? <div className="col-left">{journal}</div> : null}
-      <main className="table">
+      <main className={'table' + (compact ? ` compact zoom-${zoom === null ? 'none' : zoom === me ? 'mine' : 'theirs'}` : '')}>
         <div className="topbar">
           <button type="button" className="icon-btn" onClick={() => setConfirmQuit('quit')} aria-label="Quitter">
             <Icon name="flag" size={16} />
@@ -520,15 +644,23 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         </div>
 
         {Hero({ player: foe })}
-        <div className="foe-hand" aria-label={`${foeHand} cartes en main`}>
-          {Array.from({ length: Math.min(foeHand, 10) }, (_, i) => (
-            <CardBack key={i} small />
-          ))}
-        </div>
-        {Zones({ player: foe })}
-        {Board({ player: foe })}
+        {!compact ? (
+          <div className="foe-hand" aria-label={`${foeHand} cartes en main`}>
+            {Array.from({ length: Math.min(foeHand, 10) }, (_, i) => (
+              <CardBack key={i} small />
+            ))}
+          </div>
+        ) : null}
+        {compact ? (
+          Side({ player: foe })
+        ) : (
+          <>
+            {Zones({ player: foe })}
+            {Board({ player: foe })}
+          </>
+        )}
 
-        <div className="banner parchment">
+        <div className={'banner parchment' + (compact && (mode.k === 'attack' || mode.k === 'targets') ? ' consigne' : '')}>
           <span className="orn" />
           <div className="banner-text">
             <strong>{banner.title}</strong>
@@ -562,11 +694,18 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           )}
         </div>
 
-        {Board({ player: me })}
-        {Zones({ player: me })}
+        {compact ? (
+          Side({ player: me })
+        ) : (
+          <>
+            {Board({ player: me })}
+            {Zones({ player: me })}
+          </>
+        )}
         {Hero({ player: me })}
         <div className="hand" aria-label="Ta main">
-          {hand.map((iid) => {
+          <div className="hand-fan" style={{ '--n': hand.length } as CSSProperties}>
+          {hand.map((iid, i) => {
             const inst = state.instances[iid];
             if (!inst) return null;
             const card = catalog.get(inst.cardId)!;
@@ -580,10 +719,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
                 cost={state.players[me].freePlay ? 0 : undefined}
                 state={mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null}
                 onClick={() => tapCard(iid)}
+                style={{ '--k': i - (hand.length - 1) / 2 } as CSSProperties}
               />
             );
           })}
           {hand.length === 0 ? <span className="muted">Main vide</span> : null}
+          </div>
         </div>
       </main>
       {wide ? <div className="col-right">{sheet ?? <div className="inspector-empty parchment-dark">Touche une carte pour voir ses détails.</div>}</div> : sheet}

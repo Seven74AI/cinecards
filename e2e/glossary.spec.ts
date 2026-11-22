@@ -59,7 +59,8 @@ test('in a game, the ability label explains its trigger', async ({ page }) => {
   const ready = page.getByRole('button', { name: 'Je suis prêt·e' });
   if (await ready.isVisible()) await ready.click();
   await expect(page.getByRole('button', { name: 'Règles et mots-clés' })).toBeVisible();
-  await page.locator('.hand .card').first().click();
+  // hand cards overlap in a fan on the phone table (story 13.2): the covered centre can't take a click
+  await page.locator('.hand .card').first().press('Enter');
   const tag = page.locator('.sheet .kw-tag').first();
   if (await tag.isVisible()) {
     await tag.click();

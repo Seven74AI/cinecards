@@ -31,7 +31,9 @@ test('two friends play an online duel from an invitation link', async ({ browser
   await expect(first.locator('.banner')).toContainText('Tour de');
 
   // the opponent's hand is hidden: only card backs
-  await expect(first.locator('.foe-hand .card-back').first()).toBeVisible();
+  // (on the phone table, story 13.2, the foe's hand is a counter on their hero)
+  await expect(first.locator('.table .hero').first().locator('[title="Main"]')).toBeVisible();
+  await expect(first.locator('.hand')).toHaveCount(1);
 
   // conceding (after confirmation) makes the other player win
   await first.getByRole('button', { name: 'Quitter' }).click();

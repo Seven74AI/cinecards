@@ -391,7 +391,8 @@ function saved(iid: string, ms: number, r: number) {
 function backToHand(iid: string, owner: PlayerId, ms: number) {
   const card = cardEl(iid);
   const mine = !!card?.closest('.board.mine');
-  const hand = document.querySelector<HTMLElement>(mine ? '.table .hand' : '.table .foe-hand');
+  // the compact table (story 13.2) has no row of card backs: the foe's cards fly to the hand counter of their hero
+  const hand = document.querySelector<HTMLElement>(mine ? '.table .hand' : '.table .foe-hand') ?? heroEl(owner)?.querySelector<HTMLElement>('[title="Main"]') ?? null;
   if (!card || !hand) return;
   const a = center(card);
   const b = center(hand);
@@ -409,6 +410,39 @@ function backToHand(iid: string, owner: PlayerId, ms: number) {
     ms,
     { fill: 'forwards', easing: 'ease-in-out' },
   );
+}
+
+/** Positions of the cards on the table, read before a change of layout (story 13.2). */
+export type Layout = Map<HTMLElement, DOMRect>;
+export function captureLayout(): Layout {
+  const m: Layout = new Map();
+  document.querySelectorAll<HTMLElement>('.table .board .card, .table .zones [data-iid]').forEach((el) => m.set(el, el.getBoundingClientRect()));
+  return m;
+}
+
+/**
+ * Story 13.2, overview ⇄ zoom: each card glides and scales from where it was to its new place (FLIP), the sides
+ * fade in. Under 300 ms; with "reduce motion" only the fade is left (see `animate`).
+ */
+export function flipLayout(before: Layout, ms = 260) {
+  for (const [el, a] of before) {
+    if (!el.isConnected) continue;
+    const b = el.getBoundingClientRect();
+    if (!a.width || !b.width) continue;
+    const dx = a.left - b.left;
+    const dy = a.top - b.top;
+    const s = a.width / b.width;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(s - 1) < 0.01) continue;
+    void animate(
+      el,
+      [
+        { transform: `translate(${dx}px, ${dy}px) scale(${s})`, transformOrigin: '0 0', opacity: 0.6 },
+        { transform: 'translate(0, 0) scale(1)', transformOrigin: '0 0', opacity: 1 },
+      ],
+      ms,
+    );
+  }
+  document.querySelectorAll('.table .side').forEach((el) => void animate(el, [{ opacity: 0.55 }, { opacity: 1 }], ms));
 }
 
 export function direct(cue: Cue) {

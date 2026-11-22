@@ -42,14 +42,14 @@ test('host and guest leave and come back by code, link and new tab', async ({ br
   await (hostStarts ? host : guest).getByRole('button', { name: 'Fin du tour' }).click();
   await expect((hostStarts ? guest : host).locator('.banner')).toContainText('Ton tour');
   const hostBanner = (await host.locator('.banner-text strong').textContent())!;
-  const hostHand = await host.locator('.hand > *').count();
+  const hostHand = await host.locator('.hand .card').count();
 
   // host quits (no forfeit) and comes back by typing the code
   await quit(host);
   await expect(guest.locator('.toast.info')).toContainText('Alice');
   await joinByCode(host, code, 'Alice');
   await expect(host.locator('.banner-text strong')).toHaveText(hostBanner);
-  await expect(host.locator('.hand > *')).toHaveCount(hostHand);
+  await expect(host.locator('.hand .card')).toHaveCount(hostHand);
   await expect(guest.locator('.toast.info')).toHaveCount(0);
 
   // guest quits and comes back through the invitation link

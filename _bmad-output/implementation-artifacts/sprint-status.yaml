@@ -113,6 +113,6 @@ development_status:
   # epic-13 (retours du playtest 2) : après les stories 12.1 à 12.4, avant 12.5
   epic-13: in-progress
   13-1-apercu-des-cartes-citees: done
-  13-2-table-sans-defilement-vertical-sur-mobile: backlog
+  13-2-table-sans-defilement-vertical-sur-mobile: done
   13-3-origine-des-bonus-et-malus-sur-la-carte: done
   epic-13-retrospective: optional

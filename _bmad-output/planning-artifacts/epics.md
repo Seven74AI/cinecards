@@ -1028,6 +1028,20 @@ As a joueur, I want des animations qui accélèrent et ralentissent naturellemen
 - **And** la démo est mise à jour avec la même palette pour rester la référence
 - **And** « réduire les animations » donne toujours des fondus ; le réglage de vitesse s'applique ; les e2e d'ordre des temps restent verts
 
+### Story 13.12: Fluidité des animations sur téléphone
+As a joueur sur iPhone, I want des animations fluides, So that la mise en scène garde son effet.
+**Constat (test de Root) :** les animations sont saccadées sur iPhone. Plusieurs effets permanents sont coûteux pour un téléphone :
+- `targetPulse` et `laurelGlow` animent `filter`, et `refGlow` anime `box-shadow`, tous en boucle ;
+- les 20 cercles de runes tournent en continu, avec les braises et la flamme qui vacille ;
+- les particules et les chiffres des actions s'ajoutent par-dessus.
+Le mode Économie d'énergie d'iOS plafonne en plus Safari à 30 images/s.
+**Acceptance Criteria:**
+- **Given** l'URL avec `?fps` **Then** un petit compteur d'images/s s'affiche (moyenne et minimum sur 1 s), pour que Root mesure sur son iPhone
+- **And** plus aucune animation en boucle n'anime `filter`, `box-shadow` ou `clip-path` : les lueurs deviennent des calques pré-dessinés dont seule l'opacité ou la transformation varie
+- **And** les animations d'ambiance (runes, braises, flamme) sont mises en pause pendant la lecture des actions et ralenties ou réduites sur téléphone ; les particules simultanées sont plafonnées sur téléphone
+- **And** une mesure enregistrée (script du dépôt, Playwright en émulation iPhone, processeur ralenti ×4 via CDP sur Chromium et un passage WebKit) montre au moins 55 images/s de moyenne pendant une attaque mortelle et une pose, sans image de plus de 50 ms ; le rapport avant/après est joint
+- **And** rien ne change visuellement sur ordinateur (comparaison de captures) ; « réduire les animations » reste respecté
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 ### Story 8.1: Connexion

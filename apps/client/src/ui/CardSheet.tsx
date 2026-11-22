@@ -1,15 +1,8 @@
 import type { Card } from '@cinecards/cards';
-import { canUseAbility, computeStats, cycleCountdown, TRIGGERS, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
+import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { SET_TITLES } from '../game/catalog.ts';
-import { CardView, RARITY_FR } from './CardView.tsx';
+import { abilityBody, abilityTag, CardView, CATEGORY_FR, RARITY_FR } from './CardView.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
-
-const KIND_FR: Record<string, string> = {
-  ...Object.fromEntries(Object.entries(TRIGGERS).map(([k, v]) => [k, v.label])),
-  passive: 'Passive',
-  flavor: 'Ambiance',
-  spell: 'Sort',
-};
 
 export interface SheetAction {
   label: string;
@@ -69,7 +62,7 @@ export function CardSheet({
           <div className="sheet-meta">
             <h2>{card.name}</h2>
             <p className="muted">
-              {RARITY_FR[card.rarity]} · {card.role} · {SET_TITLES[card.set] ?? card.set}
+              {CATEGORY_FR[card.category] ?? card.category} · {RARITY_FR[card.rarity] ?? card.rarity} · {card.role} · {SET_TITLES[card.set] ?? card.set}
             </p>
             {stats ? (
               <p className="sheet-stats">
@@ -110,6 +103,7 @@ export function CardSheet({
             const why = usable ? canUseAbility(catalog, state, viewer, iid, index) : null;
             const choose = hasChooseOne(card, index);
             const labels = choose ? choiceLabels(ab.text) : null;
+            const tag = abilityTag(card, ab);
             return (
               <li key={index} className={'ability k-' + ab.kind}>
                 <div className="ability-head">
@@ -120,9 +114,11 @@ export function CardSheet({
                     </span>
                   ) : null}
                   <strong>{ab.name}</strong>
-                  <span className="kind">{KIND_FR[ab.kind] ?? ab.kind}</span>
                 </div>
-                <p>{ab.text}</p>
+                <p>
+                  <span className={'tg t-' + tag.tone}>{tag.label}</span>
+                  {abilityBody(card, ab)}
+                </p>
                 {usable ? (
                   <div className="ability-actions">
                     {labels ? (

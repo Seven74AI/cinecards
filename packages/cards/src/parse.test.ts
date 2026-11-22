@@ -17,6 +17,18 @@ describe('card data', () => {
     expect(catalog.get('mx-sentinels')?.hp).toEqual([100, 100, 100]);
   });
 
+  it('gives every card, of every category, a rarity from common to legendary (story 11.7)', () => {
+    const { catalog } = loadSetsFromDir(CONTENT);
+    const rarities = new Set([...catalog.values()].map((c) => c.rarity));
+    expect([...rarities].sort()).toEqual(['common', 'epic', 'legendary', 'rare']);
+    for (const cat of ['spell', 'equipment', 'terrain'] as const) expect([...catalog.values()].some((c) => c.category === cat)).toBe(true);
+  });
+
+  it('refuses the old "spell" / "terrain" rarity values', () => {
+    const old = { id: 'x', title: 'X', year: 2000, family: 'X', cards: [{ id: 'xx-old', set: 'x', name: 'Old', rarity: 'spell', category: 'spell', role: 'sort', cost: 1, hp: null, atk: null, abilities: [], image: null }] };
+    expect(() => parseSet(old, 'old.json')).toThrow(CardDataError);
+  });
+
   it('names the file, card and field of an invalid card', () => {
     const bad = { id: 'x', title: 'X', year: 2000, family: 'X', cards: [{ id: 'xx-bad', set: 'x', name: 'Bad', rarity: 'mythic', category: 'character', role: 'guerrier', cost: 1, hp: 10, atk: 10, abilities: [], image: null }] };
     try {

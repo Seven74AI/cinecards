@@ -13,7 +13,7 @@ import { offerReaction } from '../play/reactions.ts';
  * `label` is the player-facing name (journal, glossary); `fires` says who can trigger it.
  */
 export const TRIGGERS: Record<TriggerKind, { label: string; fires: 'player' | 'event' }> = {
-  attack: { label: 'Attaque', fires: 'player' },
+  attack: { label: 'Attaque spéciale', fires: 'player' },
   active: { label: 'Active', fires: 'player' },
   choice: { label: 'Au choix', fires: 'player' },
   onPlay: { label: 'À l’arrivée', fires: 'event' },

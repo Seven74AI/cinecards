@@ -264,7 +264,7 @@
     {
       "id": "hs-belly",
       "name": "Le dîner sur le ventre",
-      "rarity": "spell",
+      "rarity": "common",
       "category": "spell",
       "role": "sort",
       "cost": 3,
@@ -295,7 +295,7 @@
     {
       "id": "hs-missile",
       "name": "Missile à tête chercheuse",
-      "rarity": "spell",
+      "rarity": "epic",
       "category": "spell",
       "role": "sort",
       "cost": 7,
@@ -326,7 +326,7 @@
     {
       "id": "hs-carrier",
       "name": "Le porte-avions",
-      "rarity": "terrain",
+      "rarity": "common",
       "category": "terrain",
       "role": "terrain",
       "cost": 3,

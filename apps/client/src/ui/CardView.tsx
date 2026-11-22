@@ -3,8 +3,91 @@ import type { ComputedStats, Status } from '@cinecards/engine';
 import { cardArt } from '../game/catalog.ts';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
-export const RARITY_CLASS: Record<string, string> = { common: 'r-common', rare: 'r-rare', epic: 'r-epic', legendary: 'r-legend', spell: 'r-spell', terrain: 'r-terrain' };
-export const RARITY_FR: Record<string, string> = { common: 'Commune', rare: 'Rare', epic: 'Épique', legendary: 'Légendaire', spell: 'Sort', terrain: 'Terrain' };
+export { abilityBody, abilityTag } from '../game/labels.ts';
+
+/** Rarity → frame class (story 11.7: every category has a rarity). */
+export const RARITY_CLASS: Record<string, string> = { common: 'r-common', rare: 'r-rare', epic: 'r-epic', legendary: 'r-legend' };
+export const RARITY_FR: Record<string, string> = { common: 'Commune', rare: 'Rare', epic: 'Épique', legendary: 'Légendaire' };
+const RARITY_LEVEL: Record<string, number> = { common: 0, rare: 1, epic: 2, legendary: 3 };
+export const CATEGORY_FR: Record<string, string> = { character: 'Personnage', spell: 'Sort', equipment: 'Équipement', terrain: 'Terrain' };
+
+/** Category → cost token shape and icon (mockup D): shield + sword, wax seal + bolt, steel hex nut + gear, green diamond + mountain. */
+const CATEGORY_TOKEN: Record<string, { cls: string; shape: string; icon: string }> = {
+  character: { cls: 'cat-char', shape: 'tok-shield', icon: '<path d="M5 19L17 7"/><path d="M14 5l5 5"/>' },
+  spell: { cls: 'cat-spell', shape: 'tok-seal', icon: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>' },
+  equipment: { cls: 'cat-equip', shape: 'tok-hex', icon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>' },
+  terrain: { cls: 'cat-terr', shape: 'tok-dia', icon: '<path d="M2 20l7-11 4 6 3-4 6 9z"/>' },
+};
+
+/** Rarity ornaments drawn in SVG (mockup F): corner brackets (rare), fleurons (epic+), filigree and sheen (legendary). */
+function Ornaments({ level }: { level: number }) {
+  if (level === 0) return null;
+  const corners = ['tr', 'bl', 'br'] as const;
+  return (
+    <span className="orns" aria-hidden="true">
+      {level === 1
+        ? corners.map((c) => (
+            <svg key={c} className={`orn-corner c-${c}`} viewBox="0 0 16 16">
+              <path d="M2 2h12v12" fill="none" stroke="#8a6416" strokeWidth="1.8" />
+            </svg>
+          ))
+        : corners.map((c) => (
+            <svg key={c} className={`orn-fleur c-${c}`} viewBox="0 0 20 20">
+              <path d="M19 1H8c2 1 3 3 3 5M19 1v11c-1-2-3-3-5-3" fill="none" stroke="#8a6416" strokeWidth="1.6" />
+              <circle cx="15" cy="5" r="2" fill={level === 3 ? '#ff9500' : '#b020c0'} />
+            </svg>
+          ))}
+      {level === 3 ? (
+        <>
+          <span className="orn-fil" />
+          <span className="orn-fil2" />
+          <span className="orn-sheen" />
+        </>
+      ) : null}
+    </span>
+  );
+}
+
+const LAUREL = [
+  [12, 44, -35],
+  [8, 33, -10],
+  [10, 22, 20],
+  [18, 13, 50],
+  [56, 44, 35],
+  [60, 33, 10],
+  [58, 22, -20],
+  [50, 13, -50],
+] as const;
+
+/** Cost token: its shape and icon give the category; ring, set gem and laurel grow with the rarity. */
+export function CostToken({ card, cost }: { card: Pick<Card, 'category' | 'rarity'>; cost: number }) {
+  const tok = CATEGORY_TOKEN[card.category] ?? CATEGORY_TOKEN.character!;
+  const lv = RARITY_LEVEL[card.rarity] ?? 0;
+  return (
+    <span className={`card-token ${tok.shape}`} title={CATEGORY_FR[card.category]}>
+      {lv === 3 ? (
+        <svg className="tok-laurel" viewBox="0 0 68 68" aria-hidden="true">
+          <g fill="#f2d27a" stroke="#8a6416" strokeWidth=".6">
+            {LAUREL.map(([x, y, r], i) => (
+              <ellipse key={i} cx={x} cy={y} rx="3" ry="6.5" transform={`rotate(${r} ${x} ${y})`} />
+            ))}
+          </g>
+        </svg>
+      ) : null}
+      {lv >= 1 ? (
+        <span className="tok-ring">
+          <span className="tok-ri" />
+        </span>
+      ) : null}
+      <span className="tok-o" />
+      <span className="tok-i">
+        <b>{cost}</b>
+        <svg className="tok-ico" viewBox="0 0 24 24" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: tok.icon }} />
+      </span>
+      {lv >= 2 ? <span className={'tok-set' + (lv === 3 ? ' leg' : '')} /> : null}
+    </span>
+  );
+}
 
 export interface CardViewProps {
   card: Card;
@@ -28,7 +111,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
-  const cls = ['card', `card-${size}`, RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', card.rarity === 'legendary' ? 'shine' : ''].join(' ');
+  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : ''].join(' ');
   return (
     <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
       <span className="card-frame">
@@ -37,8 +120,9 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
         <span className="card-foot">
           <span className="gem" />
         </span>
+        <Ornaments level={RARITY_LEVEL[card.rarity] ?? 0} />
       </span>
-      <span className="coin card-cost">{cost ?? card.cost ?? 0}</span>
+      <CostToken card={card} cost={cost ?? card.cost ?? 0} />
       {isChar && stats ? (
         <span className="card-stats">
           <span className={'badge atk' + statClass(stats.atk, stats.baseAtk)}>

@@ -80,7 +80,7 @@ development_status:
   11-4-modele-de-capacites-declencheurs-et-capacites-d-attaque: done
   11-5-choisir-de-0-a-n-cibles: done
   11-6-reencoder-les-capacites-des-51-cartes: done
-  11-7-distinguer-les-categories-de-cartes: backlog
+  11-7-distinguer-les-categories-de-cartes: done
   11-8-glossaire-et-renvois: backlog
   epic-11-retrospective: optional
   # epic-11 (corrections du playtest 1) passe avant les epics 8, 9 et 10 — voir sprint-change-proposal-2026-11-22.md

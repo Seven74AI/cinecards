@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const RaritySchema = z.enum(['common', 'rare', 'epic', 'legendary', 'spell', 'terrain']);
+/** Every category has a rarity (story 11.7): the category is shown by the cost token, the rarity by the gem and ornaments. */
+export const RaritySchema = z.enum(['common', 'rare', 'epic', 'legendary']);
 export const CategorySchema = z.enum(['character', 'spell', 'equipment', 'terrain']);
 export const PowerIconSchema = z.enum(['bolt', 'star', 'fist', 'eye']);
 /**

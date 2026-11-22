@@ -16,8 +16,6 @@
   --r-rare: #2f7bf6;
   --r-epic: #b020c0;
   --r-legend: #ff9500;
-  --r-spell: #f0302e;
-  --r-terrain: #3e9b1e;
   --display: 'Cinzel', 'Times New Roman', serif;
   --text: 'Alegreya', Georgia, serif;
   --parch-bg: repeating-linear-gradient(8deg, rgba(120, 80, 30, 0.05) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 40%, #f3e6c4, var(--parch) 60%, #cdb07a);
@@ -166,6 +164,7 @@ h3 {
   flex: none;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   font-family: var(--display);
+  container-type: inline-size;
 }
 .card-frame {
   width: 100%;
@@ -176,7 +175,8 @@ h3 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--rc, var(--r-common));
+  border: 1px solid rgba(90, 61, 12, 0.5);
+  position: relative;
 }
 .card-name {
   flex: 0 0 auto;
@@ -189,8 +189,10 @@ h3 {
   font-size: clamp(6px, 1.9vw, 10px);
   line-height: 1;
   color: var(--ink);
-  padding: 1px 2px 1px 10px;
+  padding: 1px 2px 1px max(15px, 25cqw);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 .card-art {
   flex: 1 1 auto;
@@ -221,31 +223,273 @@ h3 {
   background: linear-gradient(135deg, #fff 0%, var(--rc) 35%, var(--rc) 70%, #000 140%);
   box-shadow: 0 0 0 1px var(--gold), 0 0 6px var(--rc);
 }
+/* ---------- category: parchment tint (story 11.7, mockup D) ---------- */
+.cat-char .card-frame {
+  background: repeating-linear-gradient(8deg, rgba(120, 80, 30, 0.05) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 40%, #f3e6c4, #ead9b0 60%, #cdb07a);
+}
+.cat-spell .card-frame {
+  background: repeating-linear-gradient(8deg, rgba(120, 60, 30, 0.05) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 35%, #f6dcc8, #e8c0a6 60%, #c08e72);
+}
+.cat-equip .card-frame {
+  background: repeating-linear-gradient(8deg, rgba(60, 70, 70, 0.06) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 35%, #eef1ef, #d6dbd6 60%, #a9b0ab);
+}
+.cat-terr .card-frame {
+  background: repeating-linear-gradient(8deg, rgba(70, 90, 30, 0.06) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 35%, #eef0cf, #d8ddb0 60%, #a9b37a);
+}
+
+/* ---------- rarity: gem, edge and ornaments (mockups E, F) ---------- */
 .r-common {
   --rc: var(--r-common);
+}
+.r-common .gem {
+  background: linear-gradient(135deg, #fff, #b8bcc4 40%, #555);
+  box-shadow: 0 0 0 1px var(--gold);
 }
 .r-rare {
   --rc: var(--r-rare);
 }
+.r-rare .card-frame {
+  border: 1.5px solid var(--r-rare);
+}
 .r-epic {
   --rc: var(--r-epic);
+}
+.r-epic .card-frame {
+  border: 2px solid var(--r-epic);
+  box-shadow: inset 0 0 12px rgba(176, 32, 192, 0.5);
 }
 .r-legend {
   --rc: var(--r-legend);
 }
-.r-spell {
-  --rc: var(--r-spell);
+.card.r-legend {
+  background: linear-gradient(145deg, #fff2c0, #ffb54a 30%, #d4a74a 55%, #8a6416 80%, #fff2c0);
+  box-shadow: 0 0 0 1px #3a2608, 0 0 14px rgba(255, 149, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.6);
 }
-.r-terrain {
-  --rc: var(--r-terrain);
+.r-legend .card-frame {
+  border: 2px solid var(--r-legend);
+  box-shadow: inset 0 0 14px rgba(255, 149, 0, 0.45);
 }
-.card-cost {
+.r-legend .gem {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 1.5px var(--gold2), 0 0 10px var(--r-legend);
+}
+.orns {
   position: absolute;
-  top: -5px;
-  left: -5px;
-  width: clamp(14px, 4.4vw, 22px);
-  height: clamp(14px, 4.4vw, 22px);
-  font-size: clamp(8px, 2.3vw, 11px);
+  inset: 0;
+  pointer-events: none;
+}
+.orn-corner,
+.orn-fleur {
+  position: absolute;
+  width: max(8px, 11cqw);
+  height: max(8px, 11cqw);
+}
+.orn-fleur {
+  width: max(10px, 15cqw);
+  height: max(10px, 15cqw);
+}
+.c-tr {
+  right: 2px;
+  top: 2px;
+}
+.orn-corner.c-bl {
+  left: 2px;
+  bottom: 2px;
+  transform: rotate(180deg);
+}
+.orn-corner.c-br {
+  right: 2px;
+  bottom: 2px;
+  transform: rotate(90deg);
+}
+.orn-fleur.c-bl {
+  left: 2px;
+  bottom: 2px;
+  transform: rotate(180deg);
+}
+.orn-fleur.c-br {
+  right: 2px;
+  bottom: 2px;
+  transform: rotate(90deg);
+}
+.orn-fil {
+  position: absolute;
+  inset: 2px;
+  border: 1px dashed rgba(138, 100, 22, 0.75);
+  border-radius: 2px;
+}
+.orn-fil2 {
+  position: absolute;
+  inset: max(4px, 4cqw);
+  border: 1px solid rgba(212, 167, 74, 0.6);
+  border-radius: 2px;
+}
+.orn-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 240, 200, 0.55) 45%, transparent 60%);
+  animation: sheen 4s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes sheen {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* ---------- cost token: the shape gives the category (mockup D) ---------- */
+.card-token {
+  --tk: clamp(20px, 30cqw, 40px);
+  position: absolute;
+  top: calc(var(--tk) * -0.26);
+  left: calc(var(--tk) * -0.26);
+  width: var(--tk);
+  height: calc(var(--tk) * 1.12);
+  z-index: 2;
+  pointer-events: none;
+}
+.tok-o,
+.tok-i,
+.tok-ring,
+.tok-ri {
+  position: absolute;
+}
+.tok-o {
+  inset: 0;
+  background: linear-gradient(145deg, #fff4c4, #d4a74a 45%, #7a5410);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+.tok-i {
+  inset: calc(var(--tk) * 0.065);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: calc(var(--tk) * 0.44);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+.tok-i b {
+  font-weight: 900;
+}
+.tok-ico {
+  display: none;
+  width: calc(var(--tk) * 0.24);
+  height: calc(var(--tk) * 0.24);
+  stroke: #fff;
+  flex: none;
+}
+/* the icon shows once the card is large enough to read it; the shape alone tells the category in miniature */
+@container (min-width: 88px) {
+  .tok-ico {
+    display: block;
+  }
+  .tok-i {
+    font-size: calc(var(--tk) * 0.4);
+  }
+}
+.tok-ring {
+  inset: calc(var(--tk) * -0.13);
+  background: linear-gradient(145deg, #f2d27a, #8a6416);
+}
+.tok-ri {
+  inset: max(1.5px, calc(var(--tk) * 0.06));
+  background: #3a2608;
+}
+.tok-shield .tok-o,
+.tok-shield .tok-i,
+.tok-shield .tok-ring,
+.tok-shield .tok-ri {
+  clip-path: polygon(0 0, 100% 0, 100% 58%, 50% 100%, 0 58%);
+}
+.tok-shield .tok-i {
+  background: linear-gradient(#e9c25d, #9a6a14);
+  color: #3a2608;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.6);
+  padding-bottom: calc(var(--tk) * 0.22);
+}
+.tok-shield .tok-ico {
+  stroke: #3a2608;
+}
+.tok-seal .tok-o {
+  inset: 2%;
+  border-radius: 47% 53% 50% 50% / 53% 47% 53% 47%;
+  background: #5a0f0d;
+}
+.tok-seal .tok-i {
+  inset: calc(var(--tk) * 0.11);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #e0574a, #a3271f 55%, #5a0f0d);
+  box-shadow: inset 0 0 0 2px rgba(255, 180, 160, 0.35);
+}
+.tok-seal .tok-ring,
+.tok-seal .tok-ri {
+  border-radius: 50%;
+}
+.tok-hex .tok-o,
+.tok-hex .tok-i,
+.tok-hex .tok-ring,
+.tok-hex .tok-ri {
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%);
+}
+.tok-hex .tok-i {
+  background: linear-gradient(145deg, #9aa8b4, #4a5662 60%, #2f3943);
+}
+.tok-dia .tok-o,
+.tok-dia .tok-i,
+.tok-dia .tok-ring,
+.tok-dia .tok-ri {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.tok-dia .tok-i {
+  inset: calc(var(--tk) * 0.09);
+  background: linear-gradient(160deg, #7fb84a, #3e7a1c 55%, #1d3a0c);
+}
+.tok-dia .tok-ring {
+  inset: calc(var(--tk) * -0.17);
+}
+/* epic+: a gem set in the token */
+.tok-set {
+  position: absolute;
+  right: -1px;
+  bottom: calc(var(--tk) * 0.08);
+  width: calc(var(--tk) * 0.24);
+  height: calc(var(--tk) * 0.24);
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #fff, #b020c0 45%, #4a0852);
+  box-shadow: 0 0 0 1.2px #f2d27a, 0 0 6px #b020c0;
+  z-index: 3;
+}
+.tok-set.leg {
+  background: linear-gradient(135deg, #fff, #ff9500 45%, #7a3a00);
+  box-shadow: 0 0 0 1.2px #fff2c0, 0 0 8px #ff9500;
+}
+/* legendary: a glowing laurel around the token */
+.tok-laurel {
+  position: absolute;
+  left: calc(var(--tk) * -0.4);
+  top: calc(var(--tk) * -0.32);
+  width: calc(var(--tk) * 1.8);
+  height: calc(var(--tk) * 1.8);
+  animation: laurelGlow 3s ease-in-out infinite;
+}
+@keyframes laurelGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(255, 149, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(255, 170, 40, 0.95));
+  }
 }
 .card-stats {
   position: absolute;
@@ -333,17 +577,6 @@ h3 {
 }
 .card.is-disabled {
   filter: saturate(0.5) brightness(0.75);
-}
-.card.shine::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 3px;
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 240, 190, 0.45) 45%, transparent 60%);
-  background-size: 250% 100%;
-  animation: shine 4.5s infinite;
-  pointer-events: none;
-  mix-blend-mode: screen;
 }
 .card-hand {
   width: clamp(58px, 17vw, 92px);
@@ -690,9 +923,11 @@ h3 {
   padding: 0;
 }
 .seal.filled .card .card-name,
-.seal.filled .card .card-cost,
+.seal.filled .card .card-token,
+.seal.filled .card .orns,
 .rune.filled .card .card-name,
-.rune.filled .card .card-cost {
+.rune.filled .card .card-token,
+.rune.filled .card .orns {
   display: none;
 }
 .placeable {
@@ -765,7 +1000,7 @@ h3 {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 10px 6px 6px;
+  padding: 22px 8px 6px 16px;
   scroll-snap-type: x proximity;
   min-height: 100px;
   align-items: flex-end;
@@ -907,6 +1142,46 @@ h3 {
   margin: 2px 0;
   font-size: 14px;
   line-height: 1.3;
+}
+/* trigger label before each ability text (story 11.7) */
+.tg {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  padding: 0 5px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: 1px;
+  color: #fff;
+  background: #6b5330;
+  white-space: nowrap;
+}
+.t-arr {
+  background: #2f6d4a;
+}
+.t-atk {
+  background: #8e1f1f;
+}
+.t-eff {
+  background: #a0621a;
+}
+.t-pas {
+  background: #5a3d8a;
+}
+.t-act {
+  background: #1f6b66;
+}
+.t-rea {
+  background: #b0521a;
+}
+.t-trg {
+  background: #3d5a2a;
+}
+.t-fla {
+  background: #6b5330;
 }
 .ability-actions {
   display: flex;
@@ -1374,6 +1649,7 @@ h3 {
   margin-bottom: 8px;
 }
 .collection-grid {
+  padding: 10px 0 0 10px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: 12px 8px;
@@ -1472,15 +1748,6 @@ h3 {
   }
   to {
     filter: brightness(1.18);
-  }
-}
-@keyframes shine {
-  0% {
-    background-position: 150% 0;
-  }
-  40%,
-  100% {
-    background-position: -100% 0;
   }
 }
 @keyframes floatUp {
@@ -1627,6 +1894,10 @@ h3 {
   .ambient::before {
     display: none;
   }
+  .tok-laurel,
+  .orn-sheen {
+    animation: none !important;
+  }
   .fx {
     animation: none;
     opacity: 1;
@@ -1652,4 +1923,9 @@ h3 {
   gap: 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+/* room for the cost token and its rarity laurel (story 11.7) */
+.sheet-head .card-big {
+  margin: 10px 0 0 10px;
 }

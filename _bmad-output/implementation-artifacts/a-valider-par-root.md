@@ -28,6 +28,29 @@ _(aucune pour l'instant)_
 - [ ] **11.6** — Smith (« Je n'peux plus la supporter… ») : vous choisissez les cartes dans tout votre cimetière, jusqu'à 15 et dans la limite de 10 cartes en main.
 - [ ] **11.6** — « Ville des machines » (Sentinelles), Topper « Compteur de victimes », le Gardien du pont et Sire Robin prennent un déclencheur explicite (début de tour, quand il détruit une carte, quand il est attaqué) sans changer de texte (sauf « Début de votre tour » pour les Sentinelles).
 - [ ] **11.3** — En solo, le chrono tourne aussi pendant le tour du Grimoire (il joue bien plus vite que 75 s).
+- [ ] **11.7** — Étiquettes de capacité : « Effet » pour les sorts (y compris les pilules de Morpheus, au choix) ; « Activée » pour la seule capacité activée de personnage restante (Topper, « Pilote d'élite ») ; les autres reprennent le nom du déclencheur (« À l'arrivée », « Attaque spéciale », « Passif », « Début de votre tour »…). Sur la fiche, l'étiquette remplace les mots de tête du texte (« À l'arrivée : » n'est pas répété).
+- [ ] **11.7** — En miniature (carte de moins de ~88 px de large : main et socles sur téléphone), le jeton montre sa forme et le coût, sans l'icône ; l'icône apparaît en fiche et sur les cartes plus grandes (ordinateur).
+- [ ] **11.7** — Une carte légendaire, quelle que soit sa catégorie, déclenche maintenant la mise en avant « Légendaire » quand elle est posée (avant : personnages seulement, faute de rareté).
+
+## Raretés proposées pour les sorts, équipements et terrains (story 11.7)
+
+Courbe du GDD : commune 1-3, rare 4-5, épique 6-8, légendaire 9+ ; terrains selon leur impact.
+
+| Carte | Catégorie | Coût | Rareté proposée | OK ? |
+|---|---|---|---|---|
+| Fuyez ! Fuyez ! | Sort | 2 | Commune | |
+| Le dîner sur le ventre | Sort | 3 | Commune | |
+| Battle de danse | Sort | 5 | Rare | |
+| La Sainte Grenade d'Antioche | Sort | 6 | Épique | |
+| Missile à tête chercheuse | Sort | 7 | Épique | |
+| Les pilules de Morpheus | Sort | 7 | Épique | |
+| E.M.P | Sort | 8 | Épique | |
+| Ça pisse tu m'étonnes | Sort | 12 | Légendaire | |
+| Unité A.P.U | Équipement | 6 | Épique | |
+| Le porte-avions | Terrain | 3 | Commune (+20 ATQ seulement) | |
+| Camelot | Terrain | 3 | Rare (+30 PV et bloque un terrain adverse) | |
+| Les Hamptons | Terrain | 3 | Rare (+30 ATQ et plafond +3) | |
+| La Matrice | Terrain | 0 | Légendaire (−50 % de dégâts pour tout Matrix) | |
 
 ## Textes de cartes modifiés (story 11.6)
 

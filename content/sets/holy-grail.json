@@ -398,7 +398,7 @@
     {
       "id": "hg-grenade",
       "name": "La Sainte Grenade d'Antioche",
-      "rarity": "spell",
+      "rarity": "epic",
       "category": "spell",
       "role": "sort",
       "cost": 6,
@@ -430,7 +430,7 @@
     {
       "id": "hg-run-away",
       "name": "Fuyez ! Fuyez !",
-      "rarity": "spell",
+      "rarity": "common",
       "category": "spell",
       "role": "sort",
       "cost": 2,
@@ -461,7 +461,7 @@
     {
       "id": "hg-camelot",
       "name": "Camelot",
-      "rarity": "terrain",
+      "rarity": "rare",
       "category": "terrain",
       "role": "terrain",
       "cost": 3,

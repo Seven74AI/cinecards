@@ -6,7 +6,7 @@ export function char(id: string, cost: number, hp: number | number[], atk: numbe
   return { id, set: 'test', name: id, rarity: 'common', category: 'character', role: 'guerrier', cost, hp, atk, abilities: [], image: null, ...extra } as Card;
 }
 export function spell(id: string, cost: number, category: Card['category'] = 'spell'): Card {
-  return { id, set: 'test', name: id, rarity: category === 'terrain' ? 'terrain' : 'spell', category, role: category, cost, hp: null, atk: null, abilities: [], image: null } as Card;
+  return { id, set: 'test', name: id, rarity: 'common', category, role: category, cost, hp: null, atk: null, abilities: [], image: null } as Card;
 }
 export function catalogOf(cards: Card[]): Catalog {
   return new Map(cards.map((c) => [c.id, c]));

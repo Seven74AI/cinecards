@@ -306,7 +306,7 @@
     {
       "id": "wc-dance",
       "name": "Battle de danse",
-      "rarity": "spell",
+      "rarity": "rare",
       "category": "spell",
       "role": "sort",
       "cost": 5,
@@ -335,7 +335,7 @@
     {
       "id": "wc-hamptons",
       "name": "Les Hamptons",
-      "rarity": "terrain",
+      "rarity": "rare",
       "category": "terrain",
       "role": "terrain",
       "cost": 3,

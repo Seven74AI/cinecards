@@ -140,3 +140,11 @@ Courbe du GDD : commune 1-3, rare 4-5, épique 6-8, légendaire 9+ ; terrains se
 | Brittany et Tiffany Wilson — « Héritières » | À leur arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | À l'arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | ✅ |
 | Heather et Megan Vandergeld — « Langue de vipère » | Un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | Attaque : un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | ✅ |
 | Le Chef Elliott Gordon — « Vous êtes virés ! » | À son arrivée : l'adversaire défausse une carte au hasard. | À l'arrivée : l'adversaire défausse une carte au hasard. | ✅ |
+
+## Epics 8 et 10 (proposition approuvée le 2026-11-22)
+
+Hypothèses de la proposition `sprint-change-proposal-2026-11-22-epics-8-10.md`, approuvée par Root avec la proposition ; les stories ajouteront ici leurs propres choix.
+
+- [x] Comptes : pseudo de 3 à 16 caractères, unique sans tenir compte des majuscules ; mot de passe de 8 caractères au moins ; 10 essais ratés par quart d'heure au plus ; session de 90 jours sans activité ; un code de secours montré une fois, remplacé à chaque usage. `[ASSUMPTION]` — ✅ Validé par Root (2026-11-22, proposition).
+- [x] Historique des 20 dernières parties en ligne seulement ; 8 émotes écrites. `[ASSUMPTION]` — ✅ Validé par Root (2026-11-22, proposition).
+- [x] Decks construits : compte requis ; en ligne et contre le Grimoire (50 cartes au hasard), pas en hot seat. `[ASSUMPTION]` — ✅ Validé par Root (2026-11-22, proposition).

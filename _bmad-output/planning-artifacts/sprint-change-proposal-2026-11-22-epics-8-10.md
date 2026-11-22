@@ -4,7 +4,7 @@ project: cinecards
 date: 2026-11-22
 workflow: gds-correct-course
 mode: batch
-status: en attente d'approbation (Root)
+status: approuvé (Root, 2026-11-22)
 scope: modéré
 ---
 

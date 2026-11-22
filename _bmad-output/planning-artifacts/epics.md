@@ -123,9 +123,9 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | 11 | Corrections du playtest 1 | Oui | Solo, chrono et reconnexion fiables ; capacités déclenchées ; lisibilité des cartes (à faire avant 8, 9, 10) |
 | 12 | Retours visuels de chaque action | Oui | Chaque action se voit : attaques, morts, poses, déclencheurs (après 11, avant 8, 9, 10) |
 | 13 | Retours du playtest 2 | Oui | Aperçu des cartes citées, table sans défilement, origine des bonus et malus (après 12.4) |
-| 8 | Comptes et amis | Non | Connexion, amis, historique, émotes |
+| 8 | Comptes et amis | Non | Clé d'accès ou pseudo + mot de passe, code de secours, amis, historique, émotes (à faire maintenant, avant 10 puis 9) |
 | 9 | Pipeline de contenu | Non | Import des ~500 cartes |
-| 10 | Decks construits | Non | Mode deck personnel construit |
+| 10 | Decks construits | Non | Decks de 50 cartes uniques, écran de construction, deck choisi en salle (après 8, avant 9) |
 
 > Écart assumé avec les 8 epics du GDD : le moteur (E1 du GDD) est scindé en « cœur » (epic 2) et « effets » (epic 3), et une epic 1 de fondations précède tout, comme l'exige l'architecture. Correspondance : GDD E1 → 2+3, E2 → 1.2+4, E3 → 5, E4 → 6, E5 → 7, E6 → 8, E7 → 9, E8 → 10.
 
@@ -1050,21 +1050,46 @@ Le mode Économie d'énergie d'iOS plafonne en plus Safari à 30 images/s.
 
 ## Epic 8: Comptes et amis (post-MVP)
 
-### Story 8.1: Connexion
-As a joueur, I want me connecter par e-mail ou Google, So that je retrouve mon profil.
-**Acceptance Criteria:** **Given** l'accueil **When** je me connecte **Then** mon pseudo est conservé et une session reste ouverte.
+Révisé le 2026-11-22 (`sprint-change-proposal-2026-11-22-epics-8-10.md`, approuvé) : clé d'accès avec code de secours, et pseudo + mot de passe ; pas d'e-mail ni de Google pour l'instant. À faire avant les epics 10 puis 9.
 
-### Story 8.2: Liste d'amis et invitation directe
+### Story 8.1: Compte avec pseudo et mot de passe
+As a joueur, I want créer un compte avec un pseudo et un mot de passe, So that je retrouve mon profil sur n'importe
+quel appareil.
+**Acceptance Criteria :**
+- **Given** l'accueil **When** je crée un compte (pseudo unique, mot de passe) **Then** je suis connecté, mon pseudo
+  remplit les salles et un **code de secours** s'affiche une fois (à imprimer ou copier).
+- **Given** un compte **When** je me connecte sur un autre appareil **Then** la session reste ouverte (90 jours sans
+  activité au plus) jusqu'à « Se déconnecter ».
+- **Given** un code de secours **When** je l'utilise **Then** je choisis un nouveau mot de passe et un nouveau code
+  remplace l'ancien.
+- **Given** pas de compte **When** je joue **Then** tout marche comme avant (invité).
+- Socle technique : base SQLite sur le serveur, volume Docker, sauvegarde quotidienne, routes `/api/*`.
+
+### Story 8.2: Clé d'accès et code de secours
+As a joueur, I want me connecter avec Face ID ou mon empreinte, So that je n'aie pas de mot de passe à retenir.
+**Acceptance Criteria :**
+- **Given** l'accueil **When** je crée un compte avec une clé d'accès **Then** mon appareil enregistre la clé et un
+  code de secours s'affiche une fois.
+- **Given** un compte (mot de passe ou clé) **When** j'ajoute une clé d'accès depuis « Mon compte » **Then** je peux
+  me connecter avec elle ; je peux en avoir plusieurs (téléphone, ordinateur) et en retirer.
+- **Given** une clé perdue **When** j'utilise mon code de secours **Then** je peux ajouter une nouvelle clé ou choisir
+  un mot de passe, et un nouveau code remplace l'ancien.
+
+### Story 8.3: Liste d'amis et invitation directe
 As a joueur, I want inviter un ami de ma liste, So that je n'aie pas à partager de code.
-**Acceptance Criteria:** **Given** un ami en ligne **When** je l'invite **Then** il reçoit l'invitation et rejoint la salle.
+**Acceptance Criteria :**
+- **Given** le pseudo d'un joueur **When** je lui envoie une demande et qu'il l'accepte **Then** nous sommes amis
+  (je peux refuser ou retirer un ami).
+- **Given** un ami en ligne (point vert) **When** je l'invite **Then** il reçoit l'invitation en direct et rejoint ma
+  salle d'un appui.
 
-### Story 8.3: Historique
-As a joueur, I want voir mes dernières parties, So that je suive mes résultats.
-**Acceptance Criteria:** **Given** des parties terminées **When** j'ouvre l'historique **Then** adversaire, résultat et date s'affichent.
+### Story 8.4: Historique
+**Acceptance Criteria :** **Given** des parties en ligne terminées **When** j'ouvre l'historique **Then** adversaire,
+résultat (victoire, défaite, nulle, abandon), mode et date des 20 dernières s'affichent, avec mon bilan.
 
-### Story 8.4: Émotes
-As a joueur, I want envoyer des répliques prédéfinies, So that on se chambre sans chat libre.
-**Acceptance Criteria:** **Given** une partie **When** je choisis une réplique **Then** l'adversaire la voit 3 s.
+### Story 8.5: Émotes
+**Acceptance Criteria :** **Given** une partie en ligne **When** je choisis une réplique prédéfinie **Then**
+l'adversaire la voit 3 s ; une réplique toutes les 3 s au plus ; je peux couper les répliques adverses.
 
 ## Epic 9: Pipeline de contenu (post-MVP)
 
@@ -1082,14 +1107,21 @@ As a joueur, I want choisir les films inclus dans le deck, So that on fasse des 
 
 ## Epic 10: Decks construits (post-MVP)
 
+Règles de Root (2026-11-22) : exactement 50 cartes, un seul exemplaire de chaque. Après l'epic 8 (decks enregistrés sur le compte), avant l'epic 9.
+
 ### Story 10.1: Règles de construction
-As a Root, I want définir taille et exemplaires autorisés, So that le mode soit équilibré.
-**Acceptance Criteria:** **Given** les règles décidées avec Root **When** un deck est validé **Then** les règles sont appliquées.
+As a Root, I want que chaque deck compte exactement 50 cartes uniques, So that le mode soit équilibré.
+**Acceptance Criteria :** **Given** un deck **When** il est validé (client et serveur) **Then** il est refusé s'il
+n'a pas exactement 50 cartes, s'il contient deux fois la même carte, ou une carte inconnue ou non jouable ; chaque
+erreur est dite en français. Le moteur sait jouer une partie où chaque joueur pioche dans son propre deck.
 
 ### Story 10.2: Écran de construction
-As a joueur, I want composer mon deck avec des filtres, So that je joue mes cartes préférées.
-**Acceptance Criteria:** **Given** toutes les cartes **When** je filtre par film, rareté, coût **Then** j'ajoute/retire des cartes et vois les erreurs de règles.
+**Acceptance Criteria :** **Given** toutes les cartes **When** je filtre par film, catégorie, rareté, coût **Then**
+j'ajoute ou retire des cartes, je vois le compteur « N / 50 » et les erreurs ; je nomme, enregistre, copie et
+supprime mes decks (enregistrés sur mon compte). Maquette d'abord.
 
 ### Story 10.3: Choisir son deck en salle
-As a joueur, I want sélectionner un deck sauvegardé, So that la partie l'utilise.
-**Acceptance Criteria:** **Given** un deck sauvegardé **When** je rejoins une salle en mode construit **Then** ma pioche est ce deck.
+**Acceptance Criteria :** **Given** un deck valide enregistré **When** je crée ou rejoins une salle en mode « Decks
+construits » **Then** je choisis mon deck et ma pioche est ce deck ; contre le Grimoire, il joue un deck de 50
+cartes tirées au hasard.
+

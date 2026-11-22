@@ -84,17 +84,20 @@ development_status:
   11-8-glossaire-et-renvois: done
   epic-11-retrospective: optional
   # epic-11 (corrections du playtest 1) passe avant les epics 8, 9 et 10 — voir sprint-change-proposal-2026-11-22.md
-  epic-8: backlog
-  8-1-connexion: backlog
-  8-2-liste-d-amis-et-invitation-directe: backlog
-  8-3-historique: backlog
-  8-4-emotes: backlog
+  # epic-8 révisé le 2026-11-22 (sprint-change-proposal-2026-11-22-epics-8-10.md) : à faire maintenant, puis 10, puis 9
+  epic-8: in-progress
+  8-1-compte-avec-pseudo-et-mot-de-passe: backlog
+  8-2-cle-d-acces-et-code-de-secours: backlog
+  8-3-liste-d-amis-et-invitation-directe: backlog
+  8-4-historique: backlog
+  8-5-emotes: backlog
   epic-8-retrospective: optional
   epic-9: backlog
   9-1-import-des-cartes-de-root: backlog
   9-2-illustrations: backlog
   9-3-options-de-familles: backlog
   epic-9-retrospective: optional
+  # epic-10 : 50 cartes exactement, un exemplaire de chaque (Root, 2026-11-22) ; après 8, avant 9
   epic-10: backlog
   10-1-regles-de-construction: backlog
   10-2-ecran-de-construction: backlog

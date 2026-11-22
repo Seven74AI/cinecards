@@ -144,7 +144,10 @@ Covered in the Decision Summary below: state ownership, view redaction, effect D
 | Animation | Sequential event queue in client | — | E3, E5 | Events from engine play one after another |
 | Audio | Web Audio API micro-service, ~10 sound files | — | E5 | No dependency needed |
 | Persistence (MVP) | None — rooms in memory | — | E4 | No accounts in MVP |
-| Persistence (post-MVP) | `@colyseus/database` on SQLite | 0.18 | E6, E8 | Accounts, friends, history, decks |
+| Persistence (post-MVP) | `node:sqlite` (built into Node 24), one file `DATA_DIR/cinecards.db` on a Docker volume, repository module `apps/server/src/db`, numbered migrations, daily copy on the VPS | Node 24 | E6, E8 | Accounts, friends, history, decks; no extra service (ADR-008, amended 2026-11-22) |
+| Authentication (post-MVP) | Passwords: `node:crypto` scrypt with random salt. Passkeys: WebAuthn via `@simplewebauthn/server` + `@simplewebauthn/browser`, relying party = client host (`seven74ai.github.io`, `localhost` in dev). Opaque random session token stored hashed, sent as `Authorization: Bearer` to `/api/*` and in room join options; no cookies (cross-site, Safari) | — | E6 | Root's choice: passkey + recovery code, and nickname + password |
+| HTTP API (post-MVP) | `/api/*` on the game server's port, JSON, CORS limited to the client origin | — | E6, E8 | Accounts, friends, history, decks |
+| Presence (post-MVP) | Colyseus room `hub` joined by logged-in players: friends online, live invitations | 0.18 | E6 | Invitation without sharing a code |
 | Client hosting | GitHub Pages via GitHub Actions | — | All | Free, Root's preference |
 | Server hosting | Root's VPS, Docker + Caddy (auto TLS) | Node 24 | E4 | Always-on process needed |
 | Monorepo | pnpm workspaces | 12 | All | Shared packages, one install |
@@ -319,9 +322,9 @@ cinecards/
 | E3 Mobile-first table | `apps/client/src/{table,card,store,i18n,theme}` |
 | E4 Online duel | `apps/server`, `packages/protocol`, `apps/client/src/net` |
 | E5 Animations and sound | `apps/client/src/fx` |
-| E6 Accounts and friends (post-MVP) | `apps/server` + `@colyseus/database`, `apps/client/src/app` |
+| E6 Accounts and friends (post-MVP) | `apps/server/src/{db,auth,api}`, room `hub`, `apps/client/src/account` |
 | E7 Content pipeline (post-MVP) | `content/`, `packages/cards`, CI report |
-| E8 Constructed decks (post-MVP) | `packages/cards`, `apps/client`, database |
+| E8 Constructed decks (post-MVP) | `packages/cards` (deck rules), `packages/engine` (deck mode `constructed`), server database, client deck builder |
 
 ## Data Architecture
 
@@ -409,6 +412,7 @@ pnpm dev                  # client on :5173, server on :2567
 - **ADR-005 Data-driven effect DSL.** Root's ~500 cards become data; unsupported texts are surfaced explicitly instead of silently mis-played.
 - **ADR-006 Derived stats with provenance.** No stat drift; delivers the GDD's "arbitre invisible" pillar (show where every bonus comes from).
 - **ADR-007 GitHub Pages + VPS.** Free static hosting per Root's preference; the always-on game server lives on the VPS behind Caddy for TLS.
+- **ADR-008 `node:sqlite` for post-MVP persistence** (2026-11-22). `@colyseus/database` 0.18 targets Postgres/PGlite and relies on `@colyseus/auth` (e-mail, OAuth), which Root ruled out. Node's built-in SQLite needs no extra service and fits a group of friends; the file lives on a Docker volume with a daily copy. *Rejected:* `@colyseus/database`, a hosted database, JSON files (no transactions).
 
 ## Architecture Validation
 

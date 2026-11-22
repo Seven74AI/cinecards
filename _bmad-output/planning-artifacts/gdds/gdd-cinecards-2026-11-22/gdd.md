@@ -253,9 +253,9 @@ Le détail carte par carte vit dans les fichiers de données ; ce GDD n'en dupli
 |---|---|---|
 | Pioche partagée | Un deck commun pour les deux joueurs (mode principal) | MVP |
 | Decks personnels aléatoires | Le deck commun est mélangé puis coupé en deux moitiés égales, une par joueur | MVP |
-| Decks personnels construits | Chaque joueur compose son deck à partir de toutes les cartes | Post-MVP (après comptes et import des ~500 cartes) |
+| Decks personnels construits | Chaque joueur compose son deck à partir de toutes les cartes jouables : **exactement 50 cartes, un seul exemplaire de chaque** (règle de Root du 2026-11-22) | Post-MVP (epic 10, après les comptes) |
 
-Le mode est choisi par le créateur de la salle. En mode decks personnels, une pioche vide se reforme à partir du cimetière de son propriétaire. `[ASSUMPTION]` Règles de construction (taille, exemplaires) à définir avec Root pour le mode construit.
+Le mode est choisi par le créateur de la salle. En mode decks personnels, une pioche vide se reforme à partir du cimetière de son propriétaire. `[ASSUMPTION]` En mode construit : il faut un compte pour enregistrer un deck `[ASSUMPTION]` ; le mode se joue en ligne et contre le Grimoire, qui reçoit 50 cartes jouables au hasard, pas en hot seat `[ASSUMPTION]` ; sa pioche vide se reforme aussi à partir du cimetière de son propriétaire.
 
 - **Pas de construction de deck au MVP.** Un seul deck commun contient **un exemplaire de chaque carte** du jeu (51 au MVP, ~500 à terme).
 - Option de partie `[ASSUMPTION, post-MVP]` : choisir les familles incluses dans le deck commun (ex. « seulement Matrix et Sacré Graal »), pour des parties thématiques.
@@ -287,7 +287,7 @@ Sans objet : pas de collection, pas de déblocage, pas de monnaie, pas de méta-
 ### Game Modes
 
 - **MVP** : duel privé 1 contre 1 par lien ou code ; **hot seat** (deux joueurs sur un même appareil) ; **solo contre le Grimoire** (adversaire automatique qui joue des coups légaux, pour s'entraîner).
-- **Post-MVP** : comptes (e-mail ou Google), liste d'amis, invitation directe, historique des parties.
+- **Post-MVP** : comptes (clé d'accès avec code de secours, ou pseudo et mot de passe ; pas d'e-mail ni de Google pour l'instant — décision de Root du 2026-11-22), liste d'amis, invitation directe, historique des parties en ligne, émotes. Jouer sans compte (invité) reste possible. `[ASSUMPTION]` Pseudo de 3 à 16 caractères, unique sans tenir compte des majuscules ; mot de passe de 8 caractères au moins, 10 essais ratés par quart d'heure au plus ; session de 90 jours sans activité au plus ; un code de secours par compte, montré une fois, remplacé à chaque usage ; historique des 20 dernières parties en ligne ; 8 émotes écrites (pas d'extraits de films).
 - Hors périmètre : classé, draft, campagne, IA stratégique, spectateurs, tournois, plus de 2 joueurs.
 
 ---
@@ -396,11 +396,11 @@ Détail dans `epics.md`.
 | E3 | Table de jeu mobile-first | Oui | Interface Grimoire : table, main, fiche carte, journal, refus d'actions |
 | E4 | Duel en ligne | Oui | Salle privée par lien/code, synchronisation, chrono, fenêtre de réaction, reconnexion |
 | E5 | Animations et son | Partiel | Animations clés et effets sonores |
-| E6 | Comptes et amis | Non | Connexion, liste d'amis, historique, émotes |
+| E6 | Comptes et amis | Non | Clé d'accès ou pseudo + mot de passe, code de secours, liste d'amis, historique, émotes |
 | E7 | Pipeline de contenu | Non | Import des ~500 cartes de Root, illustrations, options de familles |
 | E8 | Decks personnels construits | Non | Règles de construction, écran de construction, sauvegarde des decks |
 
-Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
+Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E8 et E7 (décision de Root du 2026-11-22).
 
 ---
 
@@ -443,4 +443,4 @@ Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
 5. Capacités (révisé au playtest 1, 2026-11-22) : effets déclenchés par défaut, capacités d'attaque à la place de l'attaque, choix de 0 à N cibles par défaut. Solo contre le Grimoire et chrono dans tous les modes au MVP.
 
 **Index des `[ASSUMPTION]`**
-Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · choix des cibles avant le dé d'une même capacité · « quand il attaque / est attaqué » sans cible · déclencheurs de début de tour après la pioche, de fin de tour avant le passage · Néo double son ATQ actuelle (bonus compris) au début de son tour, avant les autres passifs (hypothèses validées par Root le 2026-11-22, lot 1) · touche Entrée pour finir le tour · options de familles post-MVP · appareil de référence 2022 · musique coupée par défaut.
+Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · choix des cibles avant le dé d'une même capacité · « quand il attaque / est attaqué » sans cible · déclencheurs de début de tour après la pioche, de fin de tour avant le passage · Néo double son ATQ actuelle (bonus compris) au début de son tour, avant les autres passifs (hypothèses validées par Root le 2026-11-22, lot 1) · touche Entrée pour finir le tour · options de familles post-MVP · appareil de référence 2022 · musique coupée par défaut · decks construits : compte requis, en ligne et contre le Grimoire (50 cartes au hasard), pas en hot seat · comptes : pseudo 3-16 caractères unique, mot de passe ≥ 8, 10 essais / 15 min, session 90 jours, un code de secours, historique des 20 dernières parties en ligne, 8 émotes écrites.

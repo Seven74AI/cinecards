@@ -73,6 +73,17 @@ development_status:
   7-4-effets-sonores: done
   7-5-lancer-de-de-anime: done
   epic-7-retrospective: optional
+  epic-11: backlog
+  11-1-debloquer-le-solo-quand-le-grimoire-commence: backlog
+  11-2-revenir-dans-une-partie-en-ligne: backlog
+  11-3-chrono-dans-tous-les-modes: backlog
+  11-4-modele-de-capacites-declencheurs-et-capacites-d-attaque: backlog
+  11-5-choisir-de-0-a-n-cibles: backlog
+  11-6-reencoder-les-capacites-des-51-cartes: backlog
+  11-7-distinguer-les-categories-de-cartes: backlog
+  11-8-glossaire-et-renvois: backlog
+  epic-11-retrospective: optional
+  # epic-11 (corrections du playtest 1) passe avant les epics 8, 9 et 10 — voir sprint-change-proposal-2026-11-22.md
   epic-8: backlog
   8-1-connexion: backlog
   8-2-liste-d-amis-et-invitation-directe: backlog

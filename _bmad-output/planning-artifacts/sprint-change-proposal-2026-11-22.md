@@ -4,7 +4,7 @@ project: cinecards
 date: 2026-11-22
 workflow: gds-correct-course
 mode: batch
-status: en attente d'approbation
+status: approuvé (Root, 2026-11-22)
 scope: modéré
 ---
 
@@ -174,7 +174,7 @@ NOUVEAU : « Tant que Patsy est sur votre table, **Arthur** a la hâte. » Le no
 
 ### 4.5 Epics : nouvel epic 11 « Corrections du playtest 1 »
 
-Dans `epics.md`, FR10 et FR17 sont réécrits selon 4.1. FR ajoutés : **FR24** (solo contre le Grimoire), **FR25** (glossaire et renvois), **FR26** (choix de 0 à N).
+Dans `epics.md`, FR10 et FR17 sont réécrits selon 4.1. FR ajoutés : **FR27** (solo contre le Grimoire), **FR28** (glossaire et renvois), **FR29** (choix de 0 à N).
 
 **Story 11.1 : Débloquer le solo quand le Grimoire commence**
 - **Given** une partie solo dont le premier joueur tiré au sort est le Grimoire, **When** la partie démarre, **Then** le Grimoire joue son tour et passe la main.

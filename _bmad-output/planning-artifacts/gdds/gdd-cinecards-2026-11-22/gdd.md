@@ -4,7 +4,7 @@ game_type: card-game
 platforms: [web-mobile, web-desktop]
 status: final
 created: 2026-11-22
-updated: 2026-11-22
+updated: 2026-11-22 (playtest 1 — voir sprint-change-proposal-2026-11-22.md)
 inputs:
   - _bmad-output/planning-artifacts/briefs/brief-cinecards-2026-11-21/brief.md
   - _bmad-output/planning-artifacts/briefs/brief-cinecards-2026-11-21/addendum.md
@@ -77,8 +77,8 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 2. **Déclencheurs de début de tour** : passifs « au début de votre tour », soins périodiques, poison, compteurs de cycle.
 3. **Phase principale** (dans n'importe quel ordre, autant de fois que les pièces le permettent) :
    - poser des cartes (personnage dans un socle personnage, sort persistant ou équipement dans un socle sort, terrain dans un socle terrain ; sort instantané résolu puis envoyé au cimetière) ;
-   - utiliser les capacités actives des cartes en jeu ;
-   - attaquer avec les personnages éligibles.
+   - attaquer avec les personnages éligibles, ou utiliser leur capacité d'attaque à la place ;
+   - les effets déclenchés (à l'arrivée, quand une carte est posée…) s'exécutent automatiquement.
 4. **Fin du tour** : bouton « Clore le tour » ou chrono écoulé ; déclencheurs de fin de tour ; le tour passe.
 
 **Boucle d'envie de rejouer** : poser une carte → voir sa réplique s'afficher → enchaîner un combo de famille (terrain + duo) → retourner la situation par une réaction pendant le tour adverse.
@@ -130,9 +130,15 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 **Capacités**
 - Chaque capacité a un **type de déclenchement** (voir Mots-clés) et un indicateur de **puissance** : 1 à 4 icônes d'un élément (éclair jaune, étoile noire, poing rouge, œil violet).
 - La puissance est **purement indicative** (lisibilité, équilibrage) ; elle ne coûte rien.
-- **Une capacité active s'utilise une seule fois par carte posée**, au moment choisi par son propriétaire pendant son tour (y compris le tour où la carte est posée). Si la carte quitte la table puis est rejouée, ses capacités redeviennent disponibles. Une mention explicite (« à chaque tour », « tous les 2 tours ») prime sur cette règle.
-- L'attaque normale d'un personnage reste disponible à chaque tour.
-- Raison : les effets de pioche (Epok, Le maître des clés), de récupération (Smith) et de bonus de masse (Le Mulo, Epok) deviendraient sinon des moteurs incontrôlables.
+- Une capacité appartient à l'une de trois familles :
+  1. **Effet déclenché** (la majorité) : s'exécute automatiquement quand un événement se produit — à l'arrivée de la carte, quand vous posez une autre carte, quand l'adversaire pose une carte, à la mort, au début ou à la fin de votre tour, quand il attaque ou est attaqué, quand il détruit une carte. Le joueur fait ses choix (cibles, options) au moment du déclenchement. Un effet à l'arrivée se déclenche à chaque pose de la carte (s'il revient en main puis est reposé, il se déclenche de nouveau).
+  2. **Capacité d'attaque** (active) : le personnage l'utilise **à la place de son attaque normale**, une fois par tour, aux mêmes conditions que l'attaque (pas le tour de sa pose, sauf hâte). Réservée aux effets modestes et répétables.
+  3. **Passif** : toujours actif tant que la carte est en jeu et non réduite au silence.
+- Une mention explicite prime : « tous les N tours », « usage unique ».
+- **Règle d'équilibrage** : un effet utilisable à chaque tour ne pioche pas plus d'une carte, ne donne pas de bonus permanent cumulable à plusieurs cartes et ne contrôle pas plusieurs cartes adverses.
+- **Choix de cibles** : « choisissez N » se lit « jusqu'à N » — le joueur choisit de 0 à N cibles. Seul « exactement N » impose le nombre. Le jeu ne complète jamais un choix au hasard.
+- Le vocabulaire des déclencheurs est extensible : un nouvel événement s'ajoute au moteur sans toucher aux cartes existantes.
+- Raison : la pioche (Epok, Le maître des clés), la récupération (Smith) et les bonus de masse (Le Mulo, Epok) deviennent sinon des moteurs incontrôlables (constaté au playtest 1).
 
 **Familles et terrains**
 - Chaque carte appartient à la **famille** de son film (ex. « monde de Matrix »).
@@ -189,15 +195,21 @@ Toutes les cibles tactiles mesurent au moins 44 × 44 px. Une action illégale e
 
 | Mot-clé | Définition |
 |---|---|
-| Active | Utilisable une fois par carte posée, pendant votre tour |
+| Capacité d'attaque (active) | Remplace l'attaque normale du personnage, une fois par tour |
 | Passif | Toujours actif tant que la carte est en jeu et non réduite au silence |
-| À l'arrivée | Se déclenche une fois quand la carte est posée |
+| À l'arrivée | Se déclenche quand la carte est posée ; déclencheur par défaut des effets puissants |
+| Quand vous posez une carte | Se déclenche quand son propriétaire pose une autre carte (filtre possible : famille, catégorie) |
+| Quand l'adversaire pose une carte | Se déclenche quand l'adversaire pose une carte (filtre possible) |
+| Début / fin de votre tour | Se déclenche au début ou à la fin de chaque tour de son propriétaire |
+| Quand il attaque / est attaqué / détruit une carte | Se déclenche lors de l'événement de combat correspondant |
+| Hâte | Peut attaquer le tour où il est posé |
+| Jusqu'à N | Choisir de 0 à N cibles (lecture par défaut de « choisissez N ») ; « exactement N » impose le nombre |
 | À la mort | Se déclenche quand la carte est détruite |
 | Réaction | Utilisable pendant le tour adverse, dans une fenêtre de réaction |
 | Choix exclusif | Le joueur choisit une option parmi deux |
 | Tous les N tours | Actif un tour sur N, compté à partir du tour où la carte est posée (tours de son propriétaire) |
 | Usage unique | Une fois par partie |
-| Silence | La carte perd l'usage de ses capacités (actives et passives) pendant la durée indiquée ; 1 tour par défaut `[ASSUMPTION]` |
+| Silence | La carte perd l'usage de ses capacités (d'attaque, déclenchées et passives) pendant la durée indiquée ; 1 tour par défaut `[ASSUMPTION]` |
 | Poison (n) | Perd 20 PV au début de chacun de ses tours pendant n tours `[ASSUMPTION : valeur]` |
 | Bouclier (x) | Absorbe les x prochains dégâts |
 | Bonus de pièces (+n) | +n pièces pour ce tour seulement, au-delà du plafond si besoin |
@@ -262,7 +274,7 @@ Le mode est choisi par le créateur de la salle. En mode decks personnels, une p
 | Principale | Poser, capacités, attaques | Oui, après chaque sort ou attaque adverse, si l'adversaire a une réaction possible |
 | Fin | Déclencheurs de fin, passage du tour | Non |
 
-- **Chrono** : 75 secondes par tour `[ASSUMPTION : dans la fourchette 60-90 s du brief]`. À 0, le tour se termine automatiquement. Le chrono est suspendu pendant une fenêtre de réaction.
+- **Chrono** : 75 secondes par tour `[ASSUMPTION : dans la fourchette 60-90 s du brief]`, **dans tous les modes (en ligne, solo, hot seat)**, toujours visible (sablier et secondes, alerte à 10 s). À 0, les choix en attente sont résolus par défaut (aucune cible pour « jusqu'à N »), puis le tour se termine. Le chrono est suspendu pendant une fenêtre de réaction. En hot seat, il démarre quand le joueur lève l'écran de passage ; en solo, le Grimoire joue en quelques secondes.
 - **Fenêtre de réaction** : 5 secondes `[ASSUMPTION]`. Elle ne s'ouvre que si le joueur non actif possède une réaction utilisable ; sinon le jeu ne marque aucune pause. Choix assumé : la rapidité prime sur le bluff entre amis (la pause peut révéler qu'une réaction existe).
 - Durée de partie visée : 15 à 30 minutes, soit environ 10 à 16 tours par joueur.
 
@@ -272,9 +284,9 @@ Sans objet : pas de collection, pas de déblocage, pas de monnaie, pas de méta-
 
 ### Game Modes
 
-- **MVP** : duel privé 1 contre 1 par lien ou code.
+- **MVP** : duel privé 1 contre 1 par lien ou code ; **hot seat** (deux joueurs sur un même appareil) ; **solo contre le Grimoire** (adversaire automatique qui joue des coups légaux, pour s'entraîner).
 - **Post-MVP** : comptes (e-mail ou Google), liste d'amis, invitation directe, historique des parties.
-- Hors périmètre : classé, draft, campagne, IA, spectateurs, tournois, plus de 2 joueurs.
+- Hors périmètre : classé, draft, campagne, IA stratégique, spectateurs, tournois, plus de 2 joueurs.
 
 ---
 
@@ -290,7 +302,8 @@ Prise en main assurée par l'interface plutôt que par un tutoriel :
 - actions possibles mises en évidence (cartes jouables lumineuses, socles libres qui s'éveillent) ;
 - refus explicites des actions illégales ;
 - détail de chaque modificateur au survol ou à l'appui long ;
-- `[ASSUMPTION, post-MVP]` partie d'entraînement en solo contre soi-même (hot seat) pour découvrir les règles.
+- partie d'entraînement en solo contre le Grimoire et hot seat (MVP) ;
+- glossaire : appui sur un mot-clé → définition ; appui sur un nom de carte ou de capacité cité → ouverture de la carte ; écran « Règles et mots-clés ».
 
 ### Economy and Resources
 
@@ -403,8 +416,8 @@ Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
 
 ## Out of Scope
 
-**Version 1.0 (MVP)** : comptes, amis, historique, émotes, musique, options de familles, partie d'entraînement.
-**Jamais (décision du brief)** : méta-jeu, collection, boutique, monétisation, IA, recherche d'adversaire publique, spectateurs, replays, tournois, parties à plus de 2 joueurs, diffusion publique.
+**Version 1.0 (MVP)** : comptes, amis, historique, émotes, musique, options de familles.
+**Jamais (décision du brief)** : méta-jeu, collection, boutique, monétisation, IA stratégique, recherche d'adversaire publique, spectateurs, replays, tournois, parties à plus de 2 joueurs, diffusion publique.
 
 ---
 
@@ -418,8 +431,9 @@ Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
 **Points tranchés par Root** (anciens `[NOTE FOR DESIGNER]`)
 1. ~~Coûts supérieurs au stock maximum~~ — résolu : cartes de bonus de pièces et de plafond de stock.
 2. ~~« VOTRE deck » / « deck ADVERSE »~~ — résolu : une pioche par joueur ; modes pioche partagée et decks personnels aléatoires au MVP.
-3. ~~Actives répétables chaque tour~~ — résolu : une fois par carte posée.
+3. ~~Actives répétables chaque tour~~ — résolu : une fois par carte posée. *Remplacé par le point 5.*
 4. ~~Fenêtre de réaction et bluff~~ — résolu : fenêtre ouverte seulement si une réaction est possible.
+5. Capacités (révisé au playtest 1, 2026-11-22) : effets déclenchés par défaut, capacités d'attaque à la place de l'attaque, choix de 0 à N cibles par défaut. Solo contre le Grimoire et chrono dans tous les modes au MVP.
 
 **Index des `[ASSUMPTION]`**
-Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · touche Entrée pour finir le tour · options de familles et entraînement post-MVP · appareil de référence 2022 · musique coupée par défaut.
+Premier joueur tiré au sort sans compensation · 90 s de reconnexion · partie nulle si double K.O. · terrain sans coût = 0 · main max 10 · deck vide → cimetières remélangés · terrains cumulables · cartes neutres = non-sorts · réductions cumulées multiplicativement, arrondi à la dizaine inférieure · corps multiples indépendants · silence 1 tour par défaut · poison 20 PV/tour · chaîne d'effets limitée à 50 · chrono 75 s · fenêtre de réaction 5 s (hypothèses acceptées par Root le 2026-11-22) · touche Entrée pour finir le tour · options de familles post-MVP · appareil de référence 2022 · musique coupée par défaut.

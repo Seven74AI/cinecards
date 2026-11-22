@@ -139,7 +139,7 @@ Covered in the Decision Summary below: state ownership, view redaction, effect D
 | Multiplayer | Colyseus authoritative room `duel` | 0.18 | E4 | Rooms, reconnection, clock built in |
 | Sync | Messages carrying redacted `PlayerView` + events; Colyseus Schema only for room metadata | Schema 5 | E4 | Hidden info is simple to guarantee |
 | Room codes | 6-char code (unambiguous alphabet) mapped to room ID | — | E4 | Shareable link `…/#/join/NEO4K7` |
-| Timers | Server clock: 75 s turn, 5 s reaction, 90 s reconnection | — | E4 | Authoritative, paused during reactions |
+| Timers | Server clock online (75 s turn, 5 s reaction, 90 s reconnection); local session runs the same 75 s clock in solo and hot seat; views carry remaining ms, not an absolute time | — | E4, E11 | Authoritative online, immune to client clock skew, paused during reactions |
 | Client state | Zustand store fed by server messages | 5.x | E3 | Small, React-friendly |
 | Animation | Sequential event queue in client | — | E3, E5 | Events from engine play one after another |
 | Audio | Web Audio API micro-service, ~10 sound files | — | E5 | No dependency needed |
@@ -171,9 +171,13 @@ Covered in the Decision Summary below: state ownership, view redaction, effect D
 }
 ```
 
-- **Triggers:** `active`, `passive` (aura), `onPlay`, `onDeath`, `startOfTurn`, `endOfTurn`, `reaction`, `choice`, `cycle(n)`.
+- **Triggers (revised after playtest 1, see `planning-artifacts/sprint-change-proposal-2026-11-22.md`):** three families.
+  - *Triggered effects* (default for strong effects): `onPlay`, `onAllyPlayed(filter)`, `onEnemyPlayed(filter)`, `onDeath`, `startOfTurn`, `endOfTurn`, `onAttack`, `onAttacked`, `onKill`, `reaction`, `cycle(n)`. An **event registry** maps each engine event to subscribed abilities; adding an event never touches existing cards. Choices (targets, options) are asked when the trigger fires.
+  - *Attack abilities* (`attackAbility`): used **instead of** the character's normal attack, once per turn, sharing the `usedAttack` flag and attack eligibility (haste included). Reserved for modest repeatable effects.
+  - *Passives* (auras).
+  - Modifiers `oncePerGame` and `cooldown {every:N}` still apply. `choice` is an option shape usable by any trigger. A repeatable ability never draws more than 1 card, grants stacking permanent buffs to several cards, or controls several enemy cards.
 - **Ops (initial set):** `damage`, `heal`, `modify`, `setStats`, `copyStats`, `absorb`, `shield`, `status` (silence, poison, immune, insensible), `cleanse`, `draw`, `lookAndPick`, `returnToHand`, `summonFrom`, `destroyWhere`, `extraAttacks`, `ranged`, `lethal`, `noRetaliation`, `coinBonus`, `coinCapBonus`, `revive`, `cancelDeath`, `dice` (branches by roll range), `chooseOne`, `playFree`.
-- **Targets:** `self`, `chosen` (player picks, with filter), `all`, `adjacent`, `random`, filters by `side`, `family`, `role`, `category`, `name`.
+- **Targets:** `self`, `chosen` (player picks, with filter; `count` and `min`, `min = 0` by default — "choose N" means up to N, `min = count` only for "exactly N"; the engine never fills an incomplete pick at random), `all`, `adjacent`, `random`, filters by `side`, `family`, `role`, `category`, `name`.
 - **Resolution chain:** effects push onto a queue; triggered effects append; a guard prevents the same ability from firing twice in one chain; hard cap of 50 effects (GDD). The chain emits one event per resolved effect.
 - **Unsupported text:** an ability may carry `"effects": [{ "op": "unsupported", "note": "…" }]`; such cards are excluded from decks and listed by a CI report.
 
@@ -228,6 +232,7 @@ Feature folders inside each package (`engine/src/combat`, `engine/src/effects`, 
 - Rule violations: typed results, never exceptions (see above).
 - Programming errors in the engine: throw; the server catches, logs, ends the room with a "partie interrompue" message and keeps the state dump for debugging.
 - Network errors: Colyseus auto-reconnect on the client; UI shows a "reconnexion…" banner; after 90 s the server ends the game.
+- Rejoining (revised after playtest 1): the seat reconnection token is kept in `localStorage` keyed by room code, so a new tab or a reload can resume. Joining by code with a valid token reclaims the reserved seat instead of failing on the locked room. "Quitter" is a voluntary disconnect with the same 90 s window; only "Abandonner" concedes. A lobby room is not disposed when its host leaves; it expires after 10 minutes. Join errors are distinct: not found, full, game in progress (resume?).
 
 ### Logging Strategy
 

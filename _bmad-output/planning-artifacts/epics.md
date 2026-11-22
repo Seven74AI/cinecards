@@ -27,15 +27,15 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 - FR7 — Attaque avec riposte simultanée ; attaque directe des PV joueur seulement sans personnage adverse ; pas de riposte sur PV joueur.
 - FR8 — 700 PV par joueur ; défaite à 0 ; nul si double K.O. ; abandon.
 - FR9 — Calcul des dégâts : base → multiplicateurs attaquant → réductions cible (multiplicatives) → bouclier → PV ; arrondi à la dizaine inférieure.
-- FR10 — Capacités : active (1×/carte posée), passive, à l'arrivée, à la mort, réaction, choix exclusif, tous les N tours, usage unique ; puissance indicative.
+- FR10 — Capacités (révisé au playtest 1) : effets déclenchés (à l'arrivée, quand vous posez une carte, quand l'adversaire pose une carte, à la mort, début/fin de tour, attaque/attaqué/destruction), capacité d'attaque (remplace l'attaque, 1×/tour), passif, réaction, choix exclusif, tous les N tours, usage unique ; un effet répétable reste modeste ; puissance indicative.
 - FR11 — 22+ mots-clés d'effet (silence, poison, bouclier, immunité, insensible, guérir, soin, absorber, copier, multi-attaque, à distance, mortel, renvoyer, invoquer depuis, adjacent, bonus de pièces, plafond de stock…).
 - FR12 — Familles et terrains : bonus par famille, cumulables.
 - FR13 — Dés d6 arbitrés par le serveur, visibles.
 - FR14 — Anti-boucle : 1 déclenchement par capacité et par chaîne ; chaîne ≤ 50 effets.
 - FR15 — 51 cartes jouables au MVP (Matrix 18, Sacré Graal 13, Hot Shots! 10, White Chicks 10).
 - FR16 — Salle privée : création, code à 6 caractères et lien ; rejoindre par code ou lien.
-- FR17 — Chrono 75 s/tour, fin automatique ; fenêtre de réaction 5 s (seulement si réaction possible), chrono suspendu.
-- FR18 — Déconnexion : 90 s pour revenir, sinon défaite.
+- FR17 — Chrono 75 s/tour visible dans tous les modes (en ligne, solo, hot seat), fin automatique ; fenêtre de réaction 5 s (seulement si réaction possible), chrono suspendu.
+- FR18 — Déconnexion ou sortie : 90 s pour revenir (par code, lien ou nouvel onglet), sinon défaite ; seul « Abandonner » met fin à la partie.
 - FR19 — Journal de partie lisible.
 - FR20 — Refus expliqué des actions illégales.
 - FR21 — Détail de l'origine de chaque modificateur (fiche carte / inspecteur).
@@ -44,6 +44,9 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 - FR24 (post-MVP) — Comptes e-mail/Google, amis, historique, émotes.
 - FR25 (post-MVP) — Import des ~500 cartes, illustrations, options de familles.
 - FR26 (post-MVP) — Decks personnels construits.
+- FR27 — Solo contre le Grimoire (adversaire automatique, coups légaux) et hot seat.
+- FR28 — Glossaire : définition des mots-clés et ouverture des cartes ou capacités citées ; catégories de cartes visuellement distinctes.
+- FR29 — Choix de cibles « jusqu'à N » (0 à N) par défaut ; « exactement N » seulement si la carte le dit.
 
 ### NonFunctional Requirements
 
@@ -101,6 +104,10 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | FR24 | 8.1 – 8.4 |
 | FR25 | 9.1 – 9.3 |
 | FR26 | 10.1 – 10.3 |
+| FR10, FR17, FR18 (révisés) | 11.2 – 11.4, 11.6 |
+| FR27 | 5.9, 11.1, 11.3 |
+| FR28 | 11.7, 11.8 |
+| FR29 | 11.5 |
 
 ## Epic List
 
@@ -113,6 +120,7 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | 5 | Table de jeu mobile-first | Oui | Jouer une partie à deux sur un même écran (hot seat) dans le style Grimoire |
 | 6 | Duel en ligne | Oui | Deux amis jouent à distance |
 | 7 | Animations et son | Oui (partiel) | Ambiance Grimoire et retours sonores |
+| 11 | Corrections du playtest 1 | Oui | Solo, chrono et reconnexion fiables ; capacités déclenchées ; lisibilité des cartes (à faire avant 8, 9, 10) |
 | 8 | Comptes et amis | Non | Connexion, amis, historique, émotes |
 | 9 | Pipeline de contenu | Non | Import des ~500 cartes |
 | 10 | Decks construits | Non | Mode deck personnel construit |
@@ -753,6 +761,121 @@ So that le hasard soit transparent.
 **Given** un événement `diceRolled`
 **When** il est joué
 **Then** un dé animé affiche le résultat reçu du serveur
+
+## Epic 11: Corrections du playtest 1
+
+Retours du premier playtest de Root (2026-11-22). Source : `sprint-change-proposal-2026-11-22.md`. À faire avant les epics 8, 9 et 10 (l'import des cartes de l'epic 9 dépend de la story 11.4).
+
+### Story 11.1: Débloquer le solo quand le Grimoire commence
+
+As a joueur solo,
+I want que le Grimoire joue son tour même quand il commence la partie,
+So that le mode solo ne se bloque jamais.
+
+**Acceptance Criteria:**
+
+**Given** une partie solo dont le premier joueur tiré au sort est le Grimoire
+**When** la partie démarre
+**Then** le Grimoire joue son tour et me passe la main
+**And** un test sur 300 graines ne laisse aucune partie bloquée
+
+### Story 11.2: Revenir dans une partie en ligne
+
+As a joueur en ligne (hôte ou invité),
+I want revenir dans ma partie après l'avoir quittée ou perdu la connexion,
+So that une coupure ou une erreur de bouton ne termine pas le duel.
+
+**Acceptance Criteria:**
+
+**Given** un joueur parti depuis moins de 90 s
+**When** il saisit le code ou rouvre le lien, même dans un nouvel onglet
+**Then** il retrouve son siège et la partie à l'identique
+**And** « Quitter » n'abandonne plus (message « vous pourrez revenir pendant 90 s ») ; « Abandonner » demande confirmation
+**And** une salle d'attente survit au départ de l'hôte pendant 10 min
+**And** les erreurs distinguent salle introuvable, salle complète et partie en cours à reprendre
+**And** le test e2e couvre hôte qui part et revient, invité qui part et revient, nouvel onglet
+
+### Story 11.3: Chrono dans tous les modes
+
+As a joueur,
+I want voir et subir le chrono de 75 s en ligne, en solo et en hot seat,
+So that le rythme reste tenu quel que soit le mode.
+
+**Acceptance Criteria:**
+
+**Given** une partie en ligne, solo ou hot seat
+**When** un tour commence
+**Then** le sablier et les secondes restantes sont visibles, avec une alerte à 10 s
+**And** à 0, les choix en attente sont résolus par défaut puis le tour se termine
+**And** en hot seat, le chrono démarre à la levée de l'écran de passage
+**And** en ligne, l'affichage reste juste malgré un décalage d'horloge de ±2 min (le serveur envoie le temps restant)
+
+### Story 11.4: Modèle de capacités : déclencheurs et capacités d'attaque
+
+As a moteur de règles,
+I want des capacités déclenchées par des événements et des capacités d'attaque qui remplacent l'attaque,
+So that aucune carte ne devienne un moteur répétable incontrôlable.
+
+**Acceptance Criteria:**
+
+**Given** le schéma de cartes et le registre d'événements
+**When** un événement se produit (arrivée, pose d'une carte alliée ou adverse, mort, début/fin de tour, attaque, attaqué, destruction)
+**Then** les capacités abonnées se déclenchent, avec choix du joueur au moment du déclenchement
+**And** une capacité d'attaque consomme l'attaque du tour et suit son éligibilité (hâte comprise)
+**And** `support.ts` refuse un déclencheur inconnu ; le journal nomme le déclencheur (« À l'arrivée d'Epok : … »)
+
+### Story 11.5: Choisir de 0 à N cibles
+
+As a joueur,
+I want choisir entre 0 et N cibles quand une carte dit « choisissez N »,
+So that je garde le contrôle de mes effets.
+
+**Acceptance Criteria:**
+
+**Given** un effet `targets { count: N, min }` (`min = 0` par défaut, `min = N` si la carte dit « exactement »)
+**When** je choisis mes cibles
+**Then** un compteur « k / N », un bouton « Valider » (actif dès `min`) et « Aucune cible » sont proposés
+**And** le moteur ne complète jamais un choix au hasard ; les choix dans le deck acceptent aussi `min..N`
+
+### Story 11.6: Réencoder les capacités des 51 cartes
+
+As a Root,
+I want que les cartes suivent le nouveau modèle de capacités,
+So that les parties restent équilibrées.
+
+**Acceptance Criteria:**
+
+**Given** le tableau 4.3 de la proposition de changement
+**When** les sets sont réencodés
+**Then** chaque capacité utilise le bon déclencheur, et les textes adoptent « À l'arrivée : … » / « Attaque : … »
+**And** Patsy dit « Tant que Patsy est sur votre table, Arthur a la hâte » ; le bonus de Benson dure jusqu'à la fin du tour ; les Sentinelles sont en usage unique
+**And** `cards.test.ts` est à jour et la simulation de 200 parties passe, avec comparaison des durées avant/après
+
+### Story 11.7: Distinguer les catégories de cartes
+
+As a joueur,
+I want reconnaître d'un coup d'œil un personnage, un sort, un équipement ou un terrain,
+So that je ne confonde pas les cartes en main ou en jeu.
+
+**Acceptance Criteria:**
+
+**Given** une carte de chaque catégorie
+**When** elle est affichée en main, en socle ou en fiche
+**Then** son cadre et son ruban de type sont propres à sa catégorie, et chaque capacité porte une icône de déclencheur
+**And** la différence reste lisible en miniature, en mobile portrait comme sur ordinateur
+
+### Story 11.8: Glossaire et renvois
+
+As a joueur,
+I want comprendre un mot-clé ou un renvoi (« voir Au galop ! ») sans quitter la partie,
+So that je n'aie rien à retenir de tête.
+
+**Acceptance Criteria:**
+
+**Given** un texte de carte
+**When** j'appuie sur un mot-clé, un nom de capacité ou un nom de carte cité
+**Then** sa définition s'affiche, ou la carte citée s'ouvre
+**And** un écran « Règles et mots-clés » est accessible depuis le menu, généré depuis une seule source dans le code
 
 ## Epic 8: Comptes et amis (post-MVP)
 

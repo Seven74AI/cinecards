@@ -86,7 +86,7 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 ### Win/Loss Conditions
 
 - Chaque joueur a **700 PV personnels** (maximum 700).
-- Tant qu'un joueur a **au moins un personnage** sur sa table, ses PV personnels ne peuvent pas être attaqués : les personnages font barrage.
+- Tant qu'un joueur a **au moins un personnage** sur sa table, ses PV personnels ne peuvent pas être attaqués : les personnages font **barrage** (mot-clé « Barrage »).
 - Quand un joueur n'a **plus aucun personnage**, toute attaque adverse touche directement ses PV personnels.
 - Un joueur dont les PV personnels atteignent **0** perd immédiatement.
 - **Abandon** : bouton « Abandonner » → défaite.
@@ -132,7 +132,7 @@ Le jeu existe sur papier (set Matrix de référence, 18 cartes). Le frein princi
 - La puissance est **purement indicative** (lisibilité, équilibrage) ; elle ne coûte rien.
 - Une capacité appartient à l'une de trois familles :
   1. **Effet déclenché** (la majorité) : s'exécute automatiquement quand un événement se produit — à l'arrivée de la carte, quand vous posez une autre carte, quand l'adversaire pose une carte, à la mort, au début ou à la fin de votre tour, quand il attaque ou est attaqué, quand il détruit une carte. Le joueur fait ses choix (cibles, options) au moment du déclenchement, avant un éventuel lancer de dé de la même capacité `[ASSUMPTION]` ; les effets « quand il attaque / est attaqué » se résolvent pendant l'attaque, sans cible à choisir `[ASSUMPTION]`. Les effets de fin de tour se résolvent avant le passage du tour, ceux de début de tour après la pioche `[ASSUMPTION]`. Un effet à l'arrivée se déclenche à chaque pose de la carte (s'il revient en main puis est reposé, il se déclenche de nouveau).
-  2. **Capacité d'attaque** (active) : le personnage l'utilise **à la place de son attaque normale**, une fois par tour, aux mêmes conditions que l'attaque (pas le tour de sa pose, sauf hâte). Réservée aux effets modestes et répétables.
+  2. **Attaque spéciale** (capacité d'attaque, active) : le personnage l'utilise **à la place de son attaque normale**, une fois par tour, aux mêmes conditions que l'attaque (pas le tour de sa pose, sauf hâte). Réservée aux effets modestes et répétables.
   3. **Passif** : toujours actif tant que la carte est en jeu et non réduite au silence.
 - Une mention explicite prime : « tous les N tours », « usage unique ».
 - **Règle d'équilibrage** : un effet utilisable à chaque tour ne pioche pas plus d'une carte, ne donne pas de bonus permanent cumulable à plusieurs cartes et ne contrôle pas plusieurs cartes adverses.
@@ -185,7 +185,7 @@ Toutes les cibles tactiles mesurent au moins 44 × 44 px. Une action illégale e
 | Équipement | Socle sort (5) | Reste en jeu ; lié à un personnage ou une famille |
 | Terrain | Socle terrain (5) | Bonus permanent à une famille |
 
-**Raretés** (couleur de la gemme et de la bordure) : commune (gris), rare (bleu), épique (violet), légendaire (orange). Sorts (rouge) et terrains (vert) n'ont pas de rareté.
+**Raretés** : commune (gris), rare (bleu), épique (violet), légendaire (orange). **Toutes les catégories ont une rareté** (personnages, sorts, équipements, terrains ; décision de Root du 2026-11-22). La rareté se lit à la gemme et aux ornements de la carte ; la catégorie se lit au jeton de coût (voir Art Style).
 
 **Rôles de personnage** : héros, guerrier, soutien, traqueur, boss, snitch (traître). Le rôle sert aux synergies (« vos cartes traqueur gagnent… ») et à l'illustration par défaut.
 
@@ -195,7 +195,9 @@ Toutes les cibles tactiles mesurent au moins 44 × 44 px. Une action illégale e
 
 | Mot-clé | Définition |
 |---|---|
-| Capacité d'attaque (active) | Remplace l'attaque normale du personnage, une fois par tour |
+| Attaque spéciale | Remplace l'attaque normale du personnage, une fois par tour (mêmes conditions que l'attaque) |
+| Effet | Ce que fait un sort quand il est posé |
+| Barrage | Tant que vous avez un personnage en jeu, vos PV ne peuvent pas être attaqués |
 | Passif | Toujours actif tant que la carte est en jeu et non réduite au silence |
 | À l'arrivée | Se déclenche quand la carte est posée ; déclencheur par défaut des effets puissants |
 | Quand vous posez une carte | Se déclenche quand son propriétaire pose une autre carte (filtre possible : famille, catégorie) |
@@ -264,7 +266,7 @@ Le mode est choisi par le créateur de la salle. En mode decks personnels, une p
 - Ressource unique : les **pièces** (voir Primary Mechanics).
 - Courbe : revenu 1, 2, 3… jusqu'à 10 au tour 10 ; stock maximum 10.
 - Pas de rampe ni de destruction de ressource dans le set actuel ; l'effet « jouez 1 carte gratuitement ce tour-ci » (L'ange sans ailes) contourne le coût d'une carte.
-- Courbe de coût cible par rareté (pour les cartes futures) : commune 1-3, rare 4-5, épique 6-8, légendaire 9-10, sorts 2-8.
+- Courbe de coût cible par rareté (pour les cartes futures) : commune 1-3, rare 4-5, épique 6-8, légendaire 9-10, pour toutes les catégories (les sorts actuels vont de 2 à 12).
 
 ### Turn Structure
 
@@ -338,7 +340,11 @@ Sans objet. La variété vient du tirage du deck commun et de l'ajout progressif
 
 **« Grimoire fantastique »** (validé). Maquettes de référence : canevas « CineCards — Pistes de design », page « Direction Grimoire ».
 - Table de bois sombre éclairée à la bougie, vignettage, braises qui montent.
-- Cartes en parchemin serties d'or : pièce d'or = coût, gemme = rareté, écusson rouge = ATQ, écusson pourpre = PV (vert si boosté, rouge si blessé), ornements aux coins, reflet doré sur les légendaires.
+- Cartes en parchemin serties d'or, même cadre pour toutes les catégories (maquettes D, E, F du canevas « Cadres de cartes CineCards », copiées dans `docs/design/card-frames/`) :
+  - **jeton de coût = catégorie** : blason doré avec épée (personnage), sceau de cire rouge avec éclair (sort), écrou d'acier hexagonal avec engrenage (équipement), pierre verte en losange avec montagne (terrain) ; parchemin teinté selon la catégorie (clair, rosé, gris, vert pâle) ;
+  - **gemme et ornements = rareté** : commune (jeton nu, cadre simple), rare (anneau gravé autour du jeton, équerres aux coins, liseré bleu), épique (pierre sertie dans le jeton, fleurons, halo violet), légendaire (couronne de laurier qui luit autour du jeton, filigrane, cadre ardent et reflet) ;
+  - écusson rouge = ATQ, écusson pourpre = PV (vert si boosté, rouge si blessé), personnages seulement ;
+  - ornements dessinés en SVG (net à toute taille, léger) ; pas de modèles 3D.
 - Socles : cercles de runes dorés numérotés I-X (personnages), sceaux (terrains), pierres runiques (sorts). Un socle occupé pulse en turquoise.
 - Boutons d'action : sceaux de cire rouge. Tour affiché sur un bandeau de parchemin avec sablier.
 - Polices : Cinzel Decorative (titres), Cinzel (noms, chiffres, boutons), Alegreya (textes de capacités).
@@ -433,6 +439,7 @@ Ordre : E1 → E2 → E3 → E4 → E5, puis E6, E7 et E8.
 2. ~~« VOTRE deck » / « deck ADVERSE »~~ — résolu : une pioche par joueur ; modes pioche partagée et decks personnels aléatoires au MVP.
 3. ~~Actives répétables chaque tour~~ — résolu : une fois par carte posée. *Remplacé par le point 5.*
 4. ~~Fenêtre de réaction et bluff~~ — résolu : fenêtre ouverte seulement si une réaction est possible.
+6. Cartes (2026-11-22) : catégorie lue au jeton de coût, rareté à la gemme et aux ornements ; toutes les catégories ont une rareté ; étiquettes « Effet » (sort) et « Attaque spéciale » ; la protection des PV par les personnages s'appelle « Barrage ».
 5. Capacités (révisé au playtest 1, 2026-11-22) : effets déclenchés par défaut, capacités d'attaque à la place de l'attaque, choix de 0 à N cibles par défaut. Solo contre le Grimoire et chrono dans tous les modes au MVP.
 
 **Index des `[ASSUMPTION]`**

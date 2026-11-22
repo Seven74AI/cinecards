@@ -859,10 +859,15 @@ So that je ne confonde pas les cartes en main ou en jeu.
 
 **Acceptance Criteria:**
 
-**Given** une carte de chaque catégorie
+**Given** une carte de chaque catégorie et de chaque rareté
 **When** elle est affichée en main, en socle ou en fiche
-**Then** son cadre et son ruban de type sont propres à sa catégorie, et chaque capacité porte une icône de déclencheur
-**And** la différence reste lisible en miniature, en mobile portrait comme sur ordinateur
+**Then** la catégorie se lit au jeton de coût (blason, sceau de cire, écrou d'acier, losange vert, chacun avec son icône) et à la teinte du parchemin, comme sur la maquette D
+**And** la rareté se lit à la gemme et aux ornements, comme sur les maquettes E et F : commune nue ; rare avec anneau gravé, équerres et liseré bleu ; épique avec pierre sertie, fleurons et halo violet ; légendaire avec laurier lumineux, filigrane, cadre ardent et reflet
+**And** chaque capacité porte son étiquette de déclencheur (« À l'arrivée », « Attaque spéciale », « Passif », « Effet »…)
+**And** toutes les catégories ont une rareté : le schéma sépare `rarity` (commune → légendaire) de `category`, les valeurs `spell`/`terrain` de rareté disparaissent, et les 13 sorts, équipements et terrains reçoivent une rareté proposée selon la courbe de coût, listée dans `a-valider-par-root.md`
+**And** les ornements sont en SVG/CSS (pas d'images lourdes) ; les animations (laurier, reflet) s'arrêtent avec « réduire les animations »
+**And** la différence reste lisible en miniature, en mobile portrait comme sur ordinateur, et la forme du jeton suffit sans les couleurs
+**Reference:** `docs/design/card-frames/` (Jetons, Raretes, Ornements)
 
 ### Story 11.8: Glossaire et renvois
 
@@ -875,6 +880,7 @@ So that je n'aie rien à retenir de tête.
 **Given** un texte de carte
 **When** j'appuie sur un mot-clé, un nom de capacité ou un nom de carte cité
 **Then** sa définition s'affiche, ou la carte citée s'ouvre
+**And** les textes viennent de `_bmad-output/planning-artifacts/glossaire-mots-cles.md` (validé par Root) ; « Attaque : … » devient « Attaque spéciale : … » dans les cartes, et « Barrage » est un mot-clé
 **And** un écran « Règles et mots-clés » est accessible depuis le menu, généré depuis une seule source dans le code
 
 ## Epic 8: Comptes et amis (post-MVP)

@@ -3,7 +3,7 @@ title: "Glossaire des mots-clés — textes en jeu"
 project: cinecards
 date: 2026-11-22
 story: 11.8
-status: brouillon à relire par Root
+status: validé par Root (2026-11-22) ; textes modifiables
 source: gdd.md (Mots-clés et déclenchements, révisé au playtest 1)
 ---
 
@@ -28,7 +28,7 @@ La story 11.8 génère le glossaire du jeu à partir de ce fichier, qui sert de 
 | Mot-clé | Texte en jeu |
 |---|---|
 | À l'arrivée | Agit une fois, au moment où la carte est posée. Si elle revient en main puis est reposée, elle agit de nouveau. |
-| Attaque | Remplace l'attaque normale du personnage ce tour-ci. Mêmes conditions qu'une attaque : pas le tour où il est posé, sauf hâte. |
+| Attaque spéciale | Remplace l'attaque normale du personnage ce tour-ci. Mêmes conditions qu'une attaque : pas le tour où il est posé, sauf hâte. |
 | Passif | Agit en permanence tant que la carte est en jeu et n'est pas réduite au silence. |
 | Effet | Ce que fait un sort quand il est posé. |
 | À la mort | Agit quand la carte est détruite. |
@@ -97,8 +97,8 @@ Ce ne sont pas des mots-clés : le jeu détecte deux sortes de renvois dans le t
 - **Nom de carte entre guillemets** (« Trinity », « Capitaine Iffune ») : ouvre la fiche de cette carte.
 - **Nom de capacité entre guillemets** (« Au galop ! ») : ouvre la carte qui porte cette capacité, la capacité mise en évidence.
 
-## Points à trancher par Root
+## Décisions de Root (2026-11-22)
 
-1. **« Effet » pour les sorts** : ce mot convient-il, ou préfères-tu « Sortilège » ou rien du tout, puisqu'un sort agit forcément à la pose ?
-2. **« Attaque » comme nom de déclencheur** : peut-on le confondre avec l'attaque normale ? Une autre option : « Action ».
-3. **Barrage** : le GDD décrit la règle sans lui donner de nom. Faut-il un mot-clé ?
+1. **« Effet »** reste l'étiquette des sorts : un sort fait une action ponctuelle.
+2. **« Attaque spéciale »** remplace « Attaque » pour les capacités d'attaque, pour ne pas les confondre avec l'attaque normale. Les textes de cartes « Attaque : … » deviennent « Attaque spéciale : … » (story 11.8).
+3. **« Barrage »** est le nom de la règle qui protège vos PV tant que vous avez un personnage.

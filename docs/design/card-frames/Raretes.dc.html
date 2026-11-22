@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Piste E · Catégorie × rareté</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&amp;family=Cinzel+Decorative:wght@700&amp;family=Alegreya:ital,wght@0,400;0,500;1,400&amp;display=swap">
+<style>
+body{margin:0}
+.c{position:relative;width:110px;height:154px;padding:3px;border-radius:7px;box-sizing:border-box;background:linear-gradient(145deg,#f2d27a,#d4a74a 40%,#8a6416 75%,#f2d27a);box-shadow:0 0 0 1px #3a2608,0 6px 12px rgba(0,0,0,.6)}
+.c .in{position:relative;height:100%;border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;border:1px solid rgba(90,61,12,.5)}
+.c .nm{font-family:Cinzel,serif;font-weight:900;font-size:8px;line-height:1.05;text-align:center;color:#2a1a0e;padding:6px 4px 4px 18px;min-height:14px}
+.c .art{height:62px}
+.c .ft{flex:1;display:flex;justify-content:center;align-items:center}
+.c .gem{width:9px;height:9px;transform:rotate(45deg);box-shadow:0 0 0 1.2px #d4a74a}
+.tok{position:absolute;top:-8px;left:-8px;width:30px;height:34px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));z-index:2}
+.tok .o{position:absolute;inset:0;background:linear-gradient(145deg,#fff4c4,#d4a74a 45%,#7a5410)}
+.tok .i{position:absolute;inset:2px;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:12px;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.shield .o,.shield .i{clip-path:polygon(0 0,100% 0,100% 58%,50% 100%,0 58%)}
+.shield .i{background:linear-gradient(#e9c25d,#9a6a14);color:#3a2608;text-shadow:none;padding-bottom:7px}
+.seal .o{border-radius:47% 53% 50% 50% / 53% 47% 53% 47%;inset:1px;background:#5a0f0d}
+.seal .i{border-radius:50%;inset:4px;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 55%,#5a0f0d)}
+.hex .o,.hex .i{clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)}
+.hex .i{background:linear-gradient(145deg,#9aa8b4,#4a5662 60%,#2f3943)}
+.dia .o,.dia .i{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.dia .i{inset:3px;background:linear-gradient(160deg,#7fb84a,#3e7a1c 55%,#1d3a0c)}
+.p-char{background:radial-gradient(ellipse at 50% 40%,#f3e6c4,#ead9b0 60%,#cdb07a)}
+.p-spell{background:radial-gradient(ellipse at 50% 35%,#f6dcc8,#e8c0a6 60%,#c08e72)}
+.p-equip{background:radial-gradient(ellipse at 50% 35%,#eef1ef,#d6dbd6 60%,#a9b0ab)}
+.p-terr{background:radial-gradient(ellipse at 50% 35%,#eef0cf,#d8ddb0 60%,#a9b37a)}
+.a-char{background:linear-gradient(160deg,#173a2a,#0b1f14)}
+.a-spell{background:radial-gradient(circle,#ff8a3d,#8e1f1f 55%,#2a0606)}
+.a-equip{background:linear-gradient(160deg,#2b3946,#11181f)}
+.a-terr{background:linear-gradient(180deg,#0c2a10,#1d5a1d 60%,#3e9b1e)}
+.r-common .gem{background:linear-gradient(135deg,#fff,#b8bcc4 40%,#555)}
+.r-rare .in{border:1.5px solid #2f7bf6}
+.r-rare .gem{background:linear-gradient(135deg,#fff,#2f7bf6 40%,#0b2a66);box-shadow:0 0 0 1.2px #d4a74a,0 0 7px #2f7bf6}
+.r-epic .in{border:2px solid #b020c0;box-shadow:inset 0 0 12px rgba(176,32,192,.45)}
+.r-epic .gem{background:linear-gradient(135deg,#fff,#b020c0 40%,#4a0852);box-shadow:0 0 0 1.2px #d4a74a,0 0 9px #b020c0}
+.r-legend{background:linear-gradient(145deg,#fff2c0,#ffb54a 30%,#d4a74a 55%,#8a6416 80%,#fff2c0);box-shadow:0 0 0 1px #3a2608,0 0 14px rgba(255,149,0,.55),0 6px 12px rgba(0,0,0,.6)}
+.r-legend .in{border:2px solid #ff9500;box-shadow:inset 0 0 14px rgba(255,149,0,.4)}
+.r-legend .gem{background:linear-gradient(135deg,#fff,#ff9500 40%,#7a3a00);box-shadow:0 0 0 1.2px #d4a74a,0 0 11px #ff9500}
+.r-legend .in::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,240,200,.55) 45%,transparent 60%);pointer-events:none}
+.corner{position:absolute;width:10px;height:10px;border-color:currentColor;border-style:solid}
+.lbl{font-family:Cinzel,serif;font-size:12px;letter-spacing:.14em;color:#d4a74a;text-transform:uppercase}
+.rowlbl{font-family:Cinzel,serif;font-weight:700;font-size:14px;letter-spacing:.08em;color:#ead9b0}
+.sub{font-family:Alegreya,serif;font-size:13px;color:#b9a27a;line-height:1.3}
+</style>
+</helmet>
+<div style="width:1240px;height:960px;box-sizing:border-box;padding:44px 56px;background:radial-gradient(ellipse at 50% 30%,#3a2414 0%,#2b1b10 45%,#120a05 100%);display:flex;flex-direction:column;gap:22px;color:#ead9b0">
+<div style="display:flex;flex-direction:column;gap:8px">
+<h1 style="margin:0;font-family:'Cinzel Decorative',serif;font-size:30px;color:#f2d27a">E · Catégorie × rareté</h1>
+<p style="margin:0;font-family:Alegreya,serif;font-size:16px;color:#b9a27a;max-width:1080px">Deux signaux qui ne se mélangent pas. La <b style="color:#ead9b0">catégorie</b> se lit en haut à gauche, au jeton (forme et icône) et à la teinte du parchemin. La <b style="color:#ead9b0">rareté</b> se lit en bas, à la gemme, puis s'intensifie : liseré pour la rare, halo intérieur pour l'épique, cadre ardent et reflet pour la légendaire.</p>
+</div>
+<div style="display:grid;grid-template-columns:200px repeat(4,minmax(0,1fr));row-gap:22px;align-items:center">
+<span></span>
+<sc-for list="{{ rarities }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="lbl">{{ r.label }}</span><span class="sub">{{ r.hint }}</span></div>
+</sc-for>
+<sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:4px"><span class="rowlbl">{{ row.label }}</span><span class="sub">{{ row.hint }}</span></div>
+<sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="4">
+<div style="display:flex;justify-content:center">
+<div class="c {{ cell.rcls }}">
+<div class="in {{ cell.pcls }}">
+<div class="nm">{{ cell.name }}</div>
+<div class="art {{ cell.acls }}"></div>
+<div class="ft"><span class="gem"></span></div>
+</div>
+<div class="tok {{ cell.tcls }}"><span class="o"></span><span class="i">{{ cell.cost }}</span></div>
+</div>
+</div>
+</sc-for>
+</sc-for>
+</div>
+<p style="margin:0;font-family:Alegreya,serif;font-size:14px;color:#b9a27a;max-width:1080px;border-top:1px solid rgba(212,167,74,.25);padding-top:14px">Dans le GDD actuel, les sorts et les terrains n'ont pas de rareté. Les lignes Sort, Équipement et Terrain montrent ce que donnerait une rareté par catégorie, comme tu le suggères. Elles marchent aussi avec une seule colonne si on garde la règle actuelle.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const rarities = [
+{ key: 'r-common', label: 'Commune', hint: 'gemme grise' },
+{ key: 'r-rare', label: 'Rare', hint: 'gemme bleue + liseré' },
+{ key: 'r-epic', label: 'Épique', hint: 'gemme violette + halo' },
+{ key: 'r-legend', label: 'Légendaire', hint: 'cadre ardent + reflet' },
+];
+const types = [
+{ label: 'Personnage', hint: 'blason doré', t: 'shield', p: 'p-char', a: 'a-char', names: ['Patsy', 'Ni !', 'Trinity', 'Smith'], costs: [1, 5, 7, 13] },
+{ label: 'Sort', hint: 'sceau de cire', t: 'seal', p: 'p-spell', a: 'a-spell', names: ['Cuisson à point', 'Repli stratégique', 'Missile', 'Ça pisse'], costs: [3, 2, 7, 12] },
+{ label: 'Équipement', hint: 'écrou d’acier', t: 'hex', p: 'p-equip', a: 'a-equip', names: ['(exemple)', '(exemple)', 'Unité A.P.U', '(exemple)'], costs: ['?', '?', 6, '?'] },
+{ label: 'Terrain', hint: 'pierre verte', t: 'dia', p: 'p-terr', a: 'a-terr', names: ['Les Hamptons', 'Camelot', 'Porte-avions', 'La Matrice'], costs: [3, 3, 3, 0] },
+];
+const rows = types.map((ty) => ({
+label: ty.label,
+hint: ty.hint,
+cells: rarities.map((r, i) => ({ name: ty.names[i], cost: ty.costs[i], rcls: r.key, pcls: ty.p, acls: ty.a, tcls: ty.t })),
+}));
+return { rarities, rows };
+}
+}
+</script>
+</body>
+</html>

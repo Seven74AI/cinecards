@@ -38,9 +38,9 @@ export function App() {
     }
     let how: OnlineStart;
     if (s.kind === 'reconnect') how = { reconnect: s.token };
-    else if (s.kind === 'create') how = { create: true, mode: s.mode, nickname: s.nickname };
+    else if (s.kind === 'create') how = { create: true, mode: s.mode, nickname: s.nickname, session: s.session };
     else if (s.kind === 'join') {
-      how = { create: false, code: s.code, nickname: s.nickname };
+      how = { create: false, code: s.code, nickname: s.nickname, session: s.session };
       setLastCode(s.code);
     }
     else return;

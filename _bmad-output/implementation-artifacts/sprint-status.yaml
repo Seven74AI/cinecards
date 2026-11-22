@@ -86,7 +86,7 @@ development_status:
   # epic-11 (corrections du playtest 1) passe avant les epics 8, 9 et 10 — voir sprint-change-proposal-2026-11-22.md
   # epic-8 révisé le 2026-11-22 (sprint-change-proposal-2026-11-22-epics-8-10.md) : à faire maintenant, puis 10, puis 9
   epic-8: in-progress
-  8-1-compte-avec-pseudo-et-mot-de-passe: ready-for-dev
+  8-1-compte-avec-pseudo-et-mot-de-passe: review
   8-2-cle-d-acces-et-code-de-secours: backlog
   8-3-liste-d-amis-et-invitation-directe: backlog
   8-4-historique: backlog

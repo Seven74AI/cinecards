@@ -3168,3 +3168,116 @@ span.mod-src {
 .fps-meter.low {
   color: #ff8a3d;
 }
+
+/* ---------- accounts (story 8.1) ---------- */
+.account-line {
+  margin: 0;
+  font-family: var(--display);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.account-links {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+}
+.account-line .link,
+.account-links .link {
+  color: var(--crimson);
+  min-height: 44px;
+  padding: 0 4px;
+  font-weight: 700;
+}
+.account-panel {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.account-form,
+.recovery {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.account-panel .btn,
+.account-panel .field input {
+  min-height: 44px;
+}
+.field input.mono {
+  font-family: ui-monospace, Menlo, monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.pw-row {
+  display: flex;
+  gap: 6px;
+}
+.pw-row input {
+  flex: 1;
+  min-width: 0;
+}
+.field-error {
+  color: var(--crimson);
+  font-family: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+}
+.recovery p {
+  margin: 0;
+}
+.recovery-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--gold-dark);
+  border-radius: 6px;
+  background: #fff8e4;
+}
+.recovery-for {
+  font-family: var(--display);
+  font-weight: 700;
+}
+.recovery-code {
+  font: 700 clamp(18px, 6vw, 26px) / 1.2 ui-monospace, Menlo, monospace;
+  letter-spacing: 1px;
+  word-break: break-all;
+  text-align: center;
+  user-select: all;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.check input {
+  width: 22px;
+  height: 22px;
+}
+@media print {
+  body.print-code * {
+    visibility: hidden;
+  }
+  body.print-code .recovery-sheet,
+  body.print-code .recovery-sheet * {
+    visibility: visible;
+  }
+  body.print-code .recovery-sheet {
+    position: fixed;
+    left: 0;
+    top: 0;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+  }
+}

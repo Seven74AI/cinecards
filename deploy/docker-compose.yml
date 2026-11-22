@@ -8,3 +8,9 @@ services:
     restart: unless-stopped
     ports:
       - '127.0.0.1:2567:2567'
+    # accounts database (DATA_DIR=/app/data, story 8.1): survives rebuilds; never `docker compose down -v`
+    volumes:
+      - cinecards-data:/app/data
+
+volumes:
+  cinecards-data:

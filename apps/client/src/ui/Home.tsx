@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import type { DeckMode } from '@cinecards/engine';
 import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
+import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
+import { signOut, useAccount } from '../account/session.ts';
 import { CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
 
 export type Start =
   | { kind: 'hotseat' | 'bot'; mode: DeckMode }
-  | { kind: 'create'; mode: DeckMode; nickname: string }
-  | { kind: 'join'; code: string; nickname: string }
+  | { kind: 'create'; mode: DeckMode; nickname: string; session?: string }
+  | { kind: 'join'; code: string; nickname: string; session?: string }
   | { kind: 'reconnect'; token: string };
 
 const savedNick = () => {
@@ -24,8 +26,12 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [code, setCode] = useState(initialCode ?? '');
   const [tab, setTab] = useState<'local' | 'online'>(initialCode ? 'online' : 'local');
   const [showCards, setShowCards] = useState(false);
+  const [dialog, setDialog] = useState<AccountMode | null>(null);
   const { openCard, openRules } = useRefs();
-  const nick = nickname.trim() || 'Invité';
+  // signed in (story 8.1): the server takes the nickname from the session token
+  const { available: accountsOn, signedIn } = useAccount();
+  const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
+  const session = signedIn ? { session: signedIn.token } : {};
   const remember = () => {
     try {
       localStorage.setItem('cinecards.nick', nickname.trim());
@@ -86,10 +92,31 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
           </div>
         ) : (
           <div className="home-actions">
-            <label className="field">
-              Ton pseudo
-              <input value={nickname} maxLength={16} onChange={(e) => setNickname(e.target.value)} placeholder="Invité" />
-            </label>
+            {signedIn ? (
+              <p className="account-line">
+                Connecté : <strong>{signedIn.nickname}</strong> ·{' '}
+                <button type="button" className="link" onClick={signOut}>
+                  Se déconnecter
+                </button>
+              </p>
+            ) : (
+              <>
+                <label className="field">
+                  Ton pseudo
+                  <input value={nickname} maxLength={16} onChange={(e) => setNickname(e.target.value)} placeholder="Invité" />
+                </label>
+                {accountsOn ? (
+                  <p className="account-links">
+                    <button type="button" className="link" onClick={() => setDialog('login')}>
+                      Se connecter
+                    </button>
+                    <button type="button" className="link" onClick={() => setDialog('create')}>
+                      Créer un compte
+                    </button>
+                  </p>
+                ) : null}
+              </>
+            )}
             {!onlineAvailable ? <p className="muted">Le serveur en ligne n’est pas configuré pour cette version.</p> : null}
             <button
               type="button"
@@ -97,7 +124,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
               disabled={!onlineAvailable}
               onClick={() => {
                 remember();
-                onStart({ kind: 'create', mode, nickname: nick });
+                onStart({ kind: 'create', mode, nickname: nick, ...session });
               }}
             >
               Créer un duel et inviter
@@ -110,7 +137,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                 disabled={!onlineAvailable || code.length < 4}
                 onClick={() => {
                   remember();
-                  onStart({ kind: 'join', code, nickname: nick });
+                  onStart({ kind: 'join', code, nickname: nick, ...session });
                 }}
               >
                 Rejoindre
@@ -119,6 +146,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
           </div>
         )}
       </section>
+      {dialog ? <AccountDialog initial={dialog} onClose={() => setDialog(null)} /> : null}
       <button type="button" className="link" onClick={() => setShowCards((v) => !v)}>
         {showCards ? 'Masquer les cartes' : `Voir les ${PLAYABLE.length} cartes`}
       </button>

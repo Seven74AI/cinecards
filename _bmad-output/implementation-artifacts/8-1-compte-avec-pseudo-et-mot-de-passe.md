@@ -1,6 +1,10 @@
+---
+baseline_commit: 78525c023a64a64bc33e0940b1e63fdf7a749931
+---
+
 # Story 8.1: Compte avec pseudo et mot de passe
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -45,103 +49,103 @@ so that je retrouve mon profil sur n'importe quel appareil.
 
 ## Tasks / Subtasks
 
-- [ ] **Base de données** — `apps/server/src/db/` (AC 8)
-  - [ ] `db.ts` : `openDb(path)` avec `DatabaseSync` de `node:sqlite` ; `path = ':memory:'` pour les tests ;
+- [x] **Base de données** — `apps/server/src/db/` (AC 8)
+  - [x] `db.ts` : `openDb(path)` avec `DatabaseSync` de `node:sqlite` ; `path = ':memory:'` pour les tests ;
         `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON` ; migrations numérotées appliquées au démarrage
         selon `PRAGMA user_version` (migration 1 = tables ci-dessous). Création du dossier `DATA_DIR` si absent.
-  - [ ] Tables (migration 1) :
+  - [x] Tables (migration 1) :
         `accounts(id INTEGER PRIMARY KEY, nickname TEXT NOT NULL, nickname_key TEXT NOT NULL UNIQUE,
         password_hash TEXT, recovery_hash TEXT NOT NULL, created_at INTEGER NOT NULL)` — `password_hash` peut être
         NULL (compte à clé d'accès seule, story 8.2) ;
         `sessions(token_hash TEXT PRIMARY KEY, account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
         created_at INTEGER NOT NULL, last_seen_at INTEGER NOT NULL)`.
-  - [ ] `accounts.ts` : fonctions pures autour de la base (créer, trouver par pseudo, vérifier, changer le mot de
+  - [x] `accounts.ts` : fonctions pures autour de la base (créer, trouver par pseudo, vérifier, changer le mot de
         passe, remplacer le code de secours) ; `sessions.ts` : créer, lire (et repousser `last_seen_at`, au plus une
         écriture par heure), supprimer une, supprimer toutes celles d'un compte, purger les sessions de plus de 90 j.
-  - [ ] `backup.ts` : `VACUUM INTO 'DATA_DIR/backups/cinecards-AAAA-MM-JJ.db'` au démarrage si la copie du jour
+  - [x] `backup.ts` : `VACUUM INTO 'DATA_DIR/backups/cinecards-AAAA-MM-JJ.db'` au démarrage si la copie du jour
         manque, puis toutes les 24 h ; garder les 7 plus récentes. Rien en `:memory:`.
-- [ ] **Authentification** — `apps/server/src/auth/` (AC 2, 3, 4, 6)
-  - [ ] `password.ts` : `scrypt` de `node:crypto` (sel aléatoire de 16 octets, `N=16384, r=8, p=1`, clé de 64 octets),
+- [x] **Authentification** — `apps/server/src/auth/` (AC 2, 3, 4, 6)
+  - [x] `password.ts` : `scrypt` de `node:crypto` (sel aléatoire de 16 octets, `N=16384, r=8, p=1`, clé de 64 octets),
         stocké `scrypt$N$r$p$selBase64$hashBase64` ; vérification avec `timingSafeEqual`. Version asynchrone
         (`util.promisify(scrypt)`) pour ne pas bloquer la boucle des salles.
-  - [ ] `tokens.ts` : jeton de session = 32 octets aléatoires en base64url ; stocké en **SHA-256** (jamais en clair).
+  - [x] `tokens.ts` : jeton de session = 32 octets aléatoires en base64url ; stocké en **SHA-256** (jamais en clair).
         Code de secours = 16 caractères de l'alphabet sans sosies de `codes.ts` (`ABCDEFGHJKMNPQRSTUVWXYZ23456789`),
         affiché en 4 groupes `XXXX-XXXX-XXXX-XXXX` ; comparé sans tirets ni casse ; stocké en SHA-256 (entropie
         ≈ 79 bits, pas besoin de scrypt).
-  - [ ] `nickname.ts` : `normalizeNickname` (trim, NFC, espaces multiples réduits à un) et `nicknameKey`
+  - [x] `nickname.ts` : `normalizeNickname` (trim, NFC, espaces multiples réduits à un) et `nicknameKey`
         (`toLocaleLowerCase('fr')`) ; regex `^[\p{L}\p{N} _-]{3,16}$` (flag `u`).
-  - [ ] `limiter.ts` : fenêtre glissante en mémoire, 10 échecs / 15 min par `nickname_key` (connexion et code de
+  - [x] `limiter.ts` : fenêtre glissante en mémoire, 10 échecs / 15 min par `nickname_key` (connexion et code de
         secours partagés) ; le succès ne remet pas à zéro les échecs récents. Pseudo inconnu : on calcule quand même
         un scrypt factice pour un temps de réponse comparable.
-- [ ] **API HTTP** — `apps/server/src/api/` et `main.ts` (AC 1-6, 9)
-  - [ ] Même serveur et même port, préfixe `/api/`, à brancher dans le `httpServer.emit` existant de `main.ts`
+- [x] **API HTTP** — `apps/server/src/api/` et `main.ts` (AC 1-6, 9)
+  - [x] Même serveur et même port, préfixe `/api/`, à brancher dans le `httpServer.emit` existant de `main.ts`
         (comme `/health`) **avant** les routes de Colyseus. JSON seulement, corps limité à 8 Ko, réponses
         `application/json; charset=utf-8`.
-  - [ ] CORS : `Access-Control-Allow-Origin` = l'origine de la requête **seulement** si elle est dans
+  - [x] CORS : `Access-Control-Allow-Origin` = l'origine de la requête **seulement** si elle est dans
         `CLIENT_ORIGINS` (variable d'env., liste séparée par des virgules ; défaut
         `https://seven74ai.github.io`) **ou** est `http://localhost:*` / `http://127.0.0.1:*` ; `Vary: Origin` ;
         réponse aux `OPTIONS` (méthodes `GET, POST, DELETE`, en-têtes `Authorization, Content-Type`, `Max-Age 600`).
         Pas de cookies (`credentials` non utilisés).
-  - [ ] Routes :
+  - [x] Routes :
         `GET /api/health` → `200 {"ok":true,"accounts":true}` (détection par le client) ;
         `POST /api/accounts` `{nickname,password}` → `201 {token, account:{id,nickname}, recoveryCode}` ;
         `POST /api/sessions` `{nickname,password}` → `200 {token, account}` ;
         `GET /api/me` (Bearer) → `200 {account}` ou `401` ;
         `DELETE /api/sessions/current` (Bearer) → `204` ;
         `POST /api/recover` `{nickname, recoveryCode, newPassword}` → `200 {token, account, recoveryCode}`.
-  - [ ] Erreurs : `{ "error": code, "message": texte français }` avec `400 invalid_nickname | invalid_password |
+  - [x] Erreurs : `{ "error": code, "message": texte français }` avec `400 invalid_nickname | invalid_password |
         bad_json`, `401 bad_credentials | unauthorized`, `409 nickname_taken`, `429 too_many_attempts`
         (+ `retryAfterSeconds`), `404 not_found`, `500 server_error` (journalisé, sans détail au client).
-  - [ ] `startServer(port, contentDir, opts?)` : accepte `dataDir` (défaut `process.env.DATA_DIR ?? './data'`,
+  - [x] `startServer(port, contentDir, opts?)` : accepte `dataDir` (défaut `process.env.DATA_DIR ?? './data'`,
         `':memory:'` possible) et l'expose à la salle (comme `roomConfig.catalog`).
-- [ ] **Salle** — `apps/server/src/room.ts`, `packages/protocol` (AC 5, 9)
-  - [ ] `RoomOptions` gagne `session?: string` (optionnel : rétrocompatible).
-  - [ ] `onJoin` : si `options.session` désigne une session valide, `names[seat]` = pseudo du compte et
+- [x] **Salle** — `apps/server/src/room.ts`, `packages/protocol` (AC 5, 9)
+  - [x] `RoomOptions` gagne `session?: string` (optionnel : rétrocompatible).
+  - [x] `onJoin` : si `options.session` désigne une session valide, `names[seat]` = pseudo du compte et
         `accounts[seat]` = id du compte ; sinon comportement actuel (`cleanName(options.nickname)`). Un jeton invalide
         ne refuse pas l'entrée (le joueur entre en invité).
-  - [ ] La reprise de siège (11.2, `allowReconnection`) ne change pas.
-- [ ] **Déploiement** (AC 8)
-  - [ ] `Dockerfile` : `ENV DATA_DIR=/app/data`, `RUN mkdir -p /app/data`.
-  - [ ] `deploy/docker-compose.yml` : volume nommé `cinecards-data:/app/data` (déclaré en bas du fichier) ;
+  - [x] La reprise de siège (11.2, `allowReconnection`) ne change pas.
+- [x] **Déploiement** (AC 8)
+  - [x] `Dockerfile` : `ENV DATA_DIR=/app/data`, `RUN mkdir -p /app/data`.
+  - [x] `deploy/docker-compose.yml` : volume nommé `cinecards-data:/app/data` (déclaré en bas du fichier) ;
         `CLIENT_ORIGINS` non requis (défaut correct).
-  - [ ] `docs/deploy.md` : variables `DATA_DIR` et `CLIENT_ORIGINS` dans le tableau ; où est la base, les copies
+  - [x] `docs/deploy.md` : variables `DATA_DIR` et `CLIENT_ORIGINS` dans le tableau ; où est la base, les copies
         quotidiennes, comment récupérer une copie (`docker compose cp`), et l'avertissement « ne pas faire
         `docker compose down -v` ».
-  - [ ] `.gitignore` : `data/`.
-- [ ] **Client** — `apps/client/src/account/` (AC 1-7, 9)
-  - [ ] `api.ts` : `API_URL` déduit de `SERVER_URL` (`ws://` → `http://`, `wss://` → `https://`) ; `fetch` avec
+  - [x] `.gitignore` : `data/`.
+- [x] **Client** — `apps/client/src/account/` (AC 1-7, 9)
+  - [x] `api.ts` : `API_URL` déduit de `SERVER_URL` (`ws://` → `http://`, `wss://` → `https://`) ; `fetch` avec
         `Authorization: Bearer` ; `accountsAvailable()` = `GET /api/health` (délai 4 s, résultat mis en cache pour la
         visite ; échec → `false`).
-  - [ ] `session.ts` : jeton dans `localStorage['cinecards.account']` `{token, nickname, id}` (try/catch comme
+  - [x] `session.ts` : jeton dans `localStorage['cinecards.account']` `{token, nickname, id}` (try/catch comme
         `net/config.ts`) ; hook `useAccount()` (état : `unknown | guest | {nickname,id}`) qui vérifie `/api/me` au
         démarrage (401 → oubli du jeton ; erreur réseau → garder l'état connu, ne pas déconnecter).
-  - [ ] Écrans (dans le style existant : `.home-panel.parchment`, `.field`, `.btn`, `.overlay`) : panneau
+  - [x] Écrans (dans le style existant : `.home-panel.parchment`, `.field`, `.btn`, `.overlay`) : panneau
         « Créer un compte », « Se connecter », « Mot de passe oublié ? », et l'écran du code de secours
         (code en grand, police à chasse fixe, `Copier`, `Imprimer` qui n'imprime que le code et le pseudo via une
         feuille `@media print`, case « J'ai noté mon code », bouton « Continuer » actif seulement quand elle est
         cochée). Champs avec `<label>`, `autocomplete="username"` / `"new-password"` / `"current-password"`, bouton
         « Afficher » pour le mot de passe. Cibles de 44 px. Pas de nouvelle direction visuelle : pas de maquette.
-  - [ ] Accueil (`ui/Home.tsx`) : dans l'onglet « En ligne », si les comptes sont disponibles : connecté → ligne
+  - [x] Accueil (`ui/Home.tsx`) : dans l'onglet « En ligne », si les comptes sont disponibles : connecté → ligne
         « Connecté : **Pseudo** · Se déconnecter » à la place du champ « Ton pseudo » ; invité → le champ reste,
         avec deux liens « Se connecter » / « Créer un compte ». `Start` `create`/`join` porte `session?: string`.
-  - [ ] `net/online.ts` : passer `session` dans les options de `create` et `joinById` (et rien de plus :
+  - [x] `net/online.ts` : passer `session` dans les options de `create` et `joinById` (et rien de plus :
         `reconnect` garde le siège).
-  - [ ] Textes en français, tutoiement (comme la table).
-- [ ] **Tests** (AC 1-9)
-  - [ ] `apps/server/src/accounts.test.ts` (base `:memory:`) : création, pseudo pris (casse et accents NFC),
+  - [x] Textes en français, tutoiement (comme la table).
+- [x] **Tests** (AC 1-9)
+  - [x] `apps/server/src/accounts.test.ts` (base `:memory:`) : création, pseudo pris (casse et accents NFC),
         validation des pseudos et mots de passe, connexion, mauvais mot de passe, limite de 10 essais (horloge
         injectée), session lue puis expirée à 90 j, déconnexion, code de secours (nouveau mot de passe, ancien code
         refusé, autres sessions fermées), migrations rejouées sur une base existante (idempotence), mot de passe jamais
         stocké en clair, jeton jamais stocké en clair.
-  - [ ] Même fichier, via HTTP sur `startServer` (comme `server.test.ts`) : routes et codes d'erreur, CORS
+  - [x] Même fichier, via HTTP sur `startServer` (comme `server.test.ts`) : routes et codes d'erreur, CORS
         (origine autorisée, refusée, `OPTIONS`), corps trop gros, salle : pseudo pris du compte, jeton invalide = invité.
-  - [ ] `apps/client/src/account/*.test.ts` : `API_URL`, stockage du jeton, normalisation affichée du code.
-  - [ ] e2e `e2e/accounts.spec.ts` : créer un compte (code affiché, case à cocher), se déconnecter, se reconnecter
+  - [x] `apps/client/src/account/*.test.ts` : `API_URL`, stockage du jeton, normalisation affichée du code.
+  - [x] e2e `e2e/accounts.spec.ts` : créer un compte (code affiché, case à cocher), se déconnecter, se reconnecter
         dans un **autre** contexte de navigateur (= autre appareil), créer une salle et voir le pseudo du compte chez
         l'adversaire invité, « Mot de passe oublié ? » avec le code, ancien code refusé. Pseudo unique par test
         (`Test-${Date.now() % 1e6}`). Le serveur e2e utilise une base jetable : `playwright.config.ts` passe
         `DATA_DIR` = dossier temporaire (`os.tmpdir()`).
-  - [ ] Les e2e existants restent verts sans modification (invité).
+  - [x] Les e2e existants restent verts sans modification (invité).
 
 ## Dev Notes
 
@@ -222,10 +226,83 @@ so that je retrouve mon profil sur n'importe quel appareil.
 
 ### Agent Model Used
 
+Agent dev (workflow gds-dev-story)
+
 ### Debug Log References
+
+- `pnpm typecheck` : vert. `pnpm test` : 21 fichiers, 180 tests verts.
+- `E2E_SERVER_PORT=2667 E2E_CLIENT_PORT=5274 PW_CHANNEL=chromium pnpm e2e -- --trace off` : 39 tests verts
+  (un premier passage a vu `mobile-table` 360 × 640 échouer de 0,35 px sous charge ; vert relancé seul et au passage complet suivant, sans lien avec la story).
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- Base : `apps/server/src/db` (`openDb` avec `node:sqlite`, WAL, clés étrangères, migrations par `PRAGMA user_version`,
+  tables `accounts` / `sessions` + index `sessions_account`), dépôts `accounts.ts` / `sessions.ts` (lecture de session
+  qui repousse `last_seen_at` au plus une fois par heure, expiration à 90 j), `backup.ts` (`VACUUM INTO` daté UTC,
+  7 copies gardées ; `startMaintenance` au démarrage puis toutes les heures, avec la purge des sessions).
+- Authentification : `apps/server/src/auth` — scrypt asynchrone (N=16384, r=8, p=1, sel 16 o, clé 64 o, format
+  `scrypt$N$r$p$sel$hash`, `timingSafeEqual`), scrypt factice pour un pseudo inconnu ; jetons 32 o base64url stockés en
+  SHA-256 ; code de secours 16 caractères sans sosies (`ALPHABET` exporté de `codes.ts`) en SHA-256 ; pseudo normalisé
+  (NFC, trim, espaces réduits) et clé `toLocaleLowerCase('fr')` ; limiteur 10 échecs / 15 min partagé connexion + secours.
+  `AccountService` (horloge injectée) regroupe création, connexion, `accountOf` (synchrone, pour `onJoin`), déconnexion,
+  récupération (nouveau mot de passe, toutes les sessions fermées, nouvelle session, nouveau code).
+- API : `apps/server/src/api/http.ts` branchée dans le `httpServer.emit` de `main.ts` après `/health` (toujours `ok` en
+  texte) et avant Colyseus ; JSON, corps ≤ 8 Ko (413 `too_large`), CORS `CLIENT_ORIGINS` (défaut GitHub Pages) +
+  `http://localhost:*` / `127.0.0.1:*`, `Vary: Origin`, `OPTIONS` 204. `startServer(port, contentDir, { dataDir,
+  clientOrigins, now })` ; la base se ferme dans `onShutdown`. Les tests serveur tournent avec `DATA_DIR=':memory:'`
+  (`apps/server/vitest.config.ts`).
+- Salle : `RoomOptions.session?` ; `onJoin` prend le pseudo du compte d'une session valide et retient son id
+  (`accountOf(seat)` pour 8.4) ; jeton invalide = invité. Reprise de siège inchangée.
+- Déploiement : `DATA_DIR=/app/data` dans le Dockerfile, volume nommé `cinecards-data`, `docs/deploy.md` (variables,
+  copies, `docker compose cp`, restauration, avertissement `down -v`), `.gitignore` `data/`.
+- Client : `apps/client/src/account` — `api.ts` (sans SDK Colyseus, `accountsAvailable` 4 s en cache), `session.ts`
+  (`localStorage['cinecards.account']`, magasin + `useAccount`, `/api/me` au démarrage : 401 oublie, erreur réseau garde),
+  `AccountDialog.tsx` (Se connecter / Créer un compte / Mot de passe oublié ?, erreurs sous le champ, « Afficher »,
+  écran du code avec Copier / Imprimer (`body.print-code` + `@media print`) / case « J’ai noté mon code » / Continuer).
+  Accueil : « Connecté : Pseudo · Se déconnecter » ou le champ « Ton pseudo » + liens ; tout est caché si `/api/health`
+  échoue. `session` passé à `create` / `joinById` dans `net/online.ts` (rien d'autre n'y change).
+- Tests : `apps/server/src/accounts.test.ts` (20 tests : règles, scrypt, codes, migrations rejouées, copies, service avec
+  horloge injectée, rien en clair, HTTP, CORS, corps trop gros, salle), `apps/client/src/account/account.test.ts`,
+  e2e `e2e/accounts.spec.ts` ; `playwright.config.ts` donne au serveur e2e un `DATA_DIR` jetable dans `os.tmpdir()`.
+- Choix hors story listés dans `a-valider-par-root.md` (section « Epics 8 et 10 »).
 
 ### File List
+
+- `.gitignore`
+- `Dockerfile`
+- `deploy/docker-compose.yml`
+- `docs/deploy.md`
+- `playwright.config.ts`
+- `e2e/accounts.spec.ts` (nouveau)
+- `packages/protocol/src/index.ts`
+- `apps/server/vitest.config.ts`
+- `apps/server/src/main.ts`
+- `apps/server/src/room.ts`
+- `apps/server/src/codes.ts`
+- `apps/server/src/accounts.test.ts` (nouveau)
+- `apps/server/src/api/http.ts` (nouveau)
+- `apps/server/src/auth/limiter.ts` (nouveau)
+- `apps/server/src/auth/nickname.ts` (nouveau)
+- `apps/server/src/auth/password.ts` (nouveau)
+- `apps/server/src/auth/service.ts` (nouveau)
+- `apps/server/src/auth/tokens.ts` (nouveau)
+- `apps/server/src/db/accounts.ts` (nouveau)
+- `apps/server/src/db/backup.ts` (nouveau)
+- `apps/server/src/db/db.ts` (nouveau)
+- `apps/server/src/db/sessions.ts` (nouveau)
+- `apps/client/src/App.tsx`
+- `apps/client/src/net/online.ts`
+- `apps/client/src/ui/Home.tsx`
+- `apps/client/src/styles.css`
+- `apps/client/src/account/api.ts` (nouveau)
+- `apps/client/src/account/session.ts` (nouveau)
+- `apps/client/src/account/AccountDialog.tsx` (nouveau)
+- `apps/client/src/account/account.test.ts` (nouveau)
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+## Change Log
+
+- 2026-11-22 : story 8.1 implémentée (base SQLite, comptes pseudo + mot de passe, sessions, code de secours, API `/api/*`,
+  pseudo du compte dans les salles, volume Docker et copies quotidiennes, écrans de compte) ; statut → review.

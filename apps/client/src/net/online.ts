@@ -5,7 +5,11 @@ import { appendLog, Store, type Session } from '../game/session.ts';
 
 import { forgetSeat, saveSeat, seatToken, SERVER_URL } from './config.ts';
 
-export type OnlineStart = { create: true; mode: DeckMode; nickname: string } | { create: false; code: string; nickname: string } | { reconnect: string };
+/** `session`: account session token (story 8.1); the server then names the seat after the account. */
+export type OnlineStart =
+  | { create: true; mode: DeckMode; nickname: string; session?: string }
+  | { create: false; code: string; nickname: string; session?: string }
+  | { reconnect: string };
 
 /** Player-facing join errors (story 11.2): not found, full, and a seat that can no longer be resumed are told apart. */
 export function joinErrorMessage(err: unknown, hadSeat: boolean): string {
@@ -110,7 +114,7 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
 
   // Joining by code with a saved seat token resumes that seat instead of failing on the locked room.
   let hadSeat = false;
-  const join = async (code: string, nickname: string): Promise<Room> => {
+  const join = async (code: string, nickname: string, session?: string): Promise<Room> => {
     const token = seatToken(code);
     if (token) {
       try {
@@ -120,15 +124,15 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
         forgetSeat(code);
       }
     }
-    return client.joinById(code, { nickname });
+    return client.joinById(code, session ? { nickname, session } : { nickname });
   };
 
   const p: Promise<Room> =
     'reconnect' in start
       ? ((hadSeat = true), client.reconnect(start.reconnect))
       : start.create
-        ? client.create(ROOM_NAME, { mode: start.mode, nickname: start.nickname })
-        : join(start.code.toUpperCase(), start.nickname);
+        ? client.create(ROOM_NAME, start.session ? { mode: start.mode, nickname: start.nickname, session: start.session } : { mode: start.mode, nickname: start.nickname })
+        : join(start.code.toUpperCase(), start.nickname, start.session);
   p.then((r) => {
     if (disposed) void r.leave(true);
     else wire(r);

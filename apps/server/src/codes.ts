@@ -1,5 +1,5 @@
 /** Room codes (story 6.2): 5 characters without look-alikes (no 0/O, 1/I/L). */
-const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 export function roomCode(random: () => number = Math.random, length = 5): string {
   let s = '';

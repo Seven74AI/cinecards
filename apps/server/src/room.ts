@@ -7,7 +7,15 @@ import { uniqueCode } from './codes.ts';
 const usedCodes = new Set<string>();
 
 /** Catalog injected at startup (main.ts) so the room stays free of file-system code. */
-export const roomConfig: { catalog: Catalog | null; turnMs?: number; reactionMs?: number; reconnectSeconds?: number; lobbyTtlMs?: number } = { catalog: null };
+export const roomConfig: {
+  catalog: Catalog | null;
+  /** Session lookup (story 8.1), injected at startup like the catalog; null = guests only. */
+  accounts?: { accountOf(token: unknown): { id: number; nickname: string } | null } | null;
+  turnMs?: number;
+  reactionMs?: number;
+  reconnectSeconds?: number;
+  lobbyTtlMs?: number;
+} = { catalog: null };
 
 /** An empty waiting room stays joinable this long after its last player left (story 11.2). */
 export const LOBBY_TTL_MS = 10 * 60 * 1000;
@@ -25,6 +33,8 @@ export class DuelRoom extends Room {
   private mode: DeckMode = 'shared';
   private seats: [Client | null, Client | null] = [null, null];
   private names: [string, string] = ['Joueur 1', 'Joueur 2'];
+  /** Account id of each seat, null for a guest (story 8.1; used by the history, story 8.4). */
+  private accounts: [number | null, number | null] = [null, null];
   private duel: Duel | null = null;
 
   onCreate(options: RoomOptions) {
@@ -44,7 +54,10 @@ export class DuelRoom extends Room {
     this.clearExpiry();
     const seat: PlayerId = this.seats[0] ? 1 : 0;
     this.seats[seat] = client;
-    this.names[seat] = cleanName(options?.nickname, seat === 0 ? 'Joueur 1' : 'Joueur 2');
+    // a valid session token names the seat after its account; anything else joins as a guest (story 8.1)
+    const account = options?.session ? (roomConfig.accounts?.accountOf(options.session) ?? null) : null;
+    this.names[seat] = account ? account.nickname : cleanName(options?.nickname, seat === 0 ? 'Joueur 1' : 'Joueur 2');
+    this.accounts[seat] = account ? account.id : null;
     this.sendLobby();
     if (this.seats[0] && this.seats[1] && !this.duel) this.startDuel();
   }
@@ -62,6 +75,7 @@ export class DuelRoom extends Room {
       if (this.duel && !this.duel.finished) await this.holdSeat(client, seat);
       else if (!this.duel) {
         this.seats[seat] = null;
+        this.accounts[seat] = null;
         this.sendLobby();
       }
     }
@@ -102,6 +116,11 @@ export class DuelRoom extends Room {
     this.clearExpiry();
     usedCodes.delete(this.roomId);
     this.duel?.dispose();
+  }
+
+  /** Account id of a seat, or null for a guest. */
+  accountOf(seat: PlayerId): number | null {
+    return this.accounts[seat];
   }
 
   private seatOf(client: Client): PlayerId | null {

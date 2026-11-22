@@ -54,6 +54,32 @@ pnpm e2e             # duel complet avec deux navigateurs
 |---|---|---|
 | `PORT` | 2567 | port d'écoute |
 | `CONTENT_DIR` | `content/sets` | dossier des cartes JSON |
+| `DATA_DIR` | `./data` (`/app/data` dans Docker) | dossier de la base des comptes (`cinecards.db`) et de ses copies |
+| `CLIENT_ORIGINS` | `https://seven74ai.github.io` | sites autorisés à appeler `/api/*` (liste séparée par des virgules ; `http://localhost:*` est toujours permis) |
+
+## Comptes et base de données
+
+Les comptes (pseudo, mot de passe haché, sessions) sont dans un fichier SQLite,
+`/app/data/cinecards.db`, sur le volume Docker nommé `cinecards-data` : ils survivent à un
+redémarrage et à une reconstruction (`docker compose up -d --build`).
+
+Le serveur en fait une copie par jour dans `/app/data/backups/cinecards-AAAA-MM-JJ.db` et garde
+les 7 dernières. Pour récupérer une copie sur le VPS :
+
+```bash
+cd cinecards/deploy
+docker compose exec server ls /app/data/backups
+docker compose cp server:/app/data/backups/cinecards-2026-11-22.db ./
+```
+
+Pour restaurer : arrêter le serveur (`docker compose stop server`), copier la sauvegarde à la place
+de la base (`docker compose cp ./cinecards-2026-11-22.db server:/app/data/cinecards.db`, puis supprimer
+`cinecards.db-wal` et `cinecards.db-shm` s'ils existent), relancer (`docker compose start server`).
+
+⚠️ Ne pas faire `docker compose down -v` : l'option `-v` supprime le volume, donc tous les comptes.
+`docker compose down` (sans `-v`) ne touche pas aux données.
+
+Vérification : `curl https://cinecards.sevend.io/api/health` répond `{"ok":true,"accounts":true}`.
 
 Chrono : 75 s par tour, 5 s pour une réaction, 90 s pour revenir après une déconnexion
 (sinon défaite). Ces valeurs sont dans `packages/engine/src/rules.ts`.

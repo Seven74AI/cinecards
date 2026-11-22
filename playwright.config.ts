@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { defineConfig } from '@playwright/test';
 
 /**
@@ -7,6 +9,8 @@ import { defineConfig } from '@playwright/test';
  */
 const serverPort = Number(process.env.E2E_SERVER_PORT ?? 2567);
 const clientPort = Number(process.env.E2E_CLIENT_PORT ?? 5174);
+// story 8.1: the e2e server keeps its accounts in a throwaway folder (set once, so workers see the same value)
+process.env.E2E_DATA_DIR ??= join(tmpdir(), `cinecards-e2e-${serverPort}-${Date.now()}`);
 
 export default defineConfig({
   testDir: 'e2e',
@@ -15,7 +19,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter @cinecards/server start',
-      env: { PORT: String(serverPort) },
+      env: { PORT: String(serverPort), DATA_DIR: process.env.E2E_DATA_DIR },
       url: `http://localhost:${serverPort}/health`,
       reuseExistingServer: true,
       timeout: 30_000,

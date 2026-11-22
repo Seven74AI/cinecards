@@ -56,6 +56,8 @@ export interface ServerMessages {
 export interface RoomOptions {
   mode?: DeckMode;
   nickname?: string;
+  /** Account session token (story 8.1); the server then uses the account's nickname. Absent = guest. */
+  session?: string;
 }
 
 export const ROOM_NAME = 'duel';

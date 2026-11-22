@@ -1,13 +1,5 @@
 import type { Catalog, GameEvent, PlayerId } from '@cinecards/engine';
 
-export interface Fx {
-  id: number;
-  /** card iid or `hero:<player>` */
-  at: string;
-  text: string;
-  kind: 'dmg' | 'heal' | 'buff' | 'debuff' | 'status' | 'save' | 'death' | 'play';
-}
-
 /** One animation "time" (story 12.1): exactly one per engine event, played in order. */
 export interface Beat {
   /** Position of the event in its batch. */
@@ -15,7 +7,6 @@ export interface Beat {
   event: GameEvent;
   /** Milliseconds (normal speed) before the next beat starts. */
   gap: number;
-  fx: Fx[];
   dice?: { value: number; label: string };
   highlight?: { name: string; cardId: string; player: PlayerId };
   sound?: string;
@@ -42,40 +33,31 @@ export const TIMING = {
   turn: 200,
 } as const;
 
-let nextId = 1;
-
-/** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1). */
+/** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1); `ui/director.ts` stages them. */
 export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
   return events.map((e, index) => {
-    const b: Beat = { index, event: e, gap: 0, fx: [] };
-    const fx = (at: string, text: string, kind: Fx['kind']) => b.fx.push({ id: nextId++, at, text, kind });
+    const b: Beat = { index, event: e, gap: 0 };
     switch (e.type) {
       case 'damageDealt':
-        fx(e.target, e.amount > 0 ? `−${e.amount}` : '0', 'dmg');
         b.sound = 'hit';
         b.gap = TIMING.damage;
         break;
       case 'healed':
-        fx(e.target, `+${e.amount}`, 'heal');
         b.sound = 'heal';
         b.gap = TIMING.heal;
         break;
       case 'modified':
         if (e.atk || e.hp) {
           const up = e.atk + e.hp >= 0;
-          const text = [e.atk ? `${e.atk > 0 ? '+' : ''}${e.atk}⚔` : '', e.hp ? `${e.hp > 0 ? '+' : ''}${e.hp}♥` : ''].filter(Boolean).join(' ');
-          fx(e.target, text, up ? 'buff' : 'debuff');
           b.sound = up ? 'buff' : 'debuff';
           b.gap = TIMING.modify;
         }
         break;
       case 'statusApplied':
-        fx(e.target, '✦', 'status');
         b.sound = 'status';
         b.gap = TIMING.status;
         break;
       case 'deathPrevented':
-        fx(e.iid, 'Sauvé !', 'save');
         b.sound = 'heal';
         b.gap = TIMING.save;
         break;
@@ -84,7 +66,6 @@ export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
         b.gap = TIMING.death;
         break;
       case 'playerDamaged':
-        fx(`hero:${e.player}`, `−${e.amount}`, 'dmg');
         b.sound = 'heroHit';
         b.gap = TIMING.heroDamage;
         break;

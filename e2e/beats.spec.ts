@@ -93,3 +93,35 @@ test('an attack on the player dashes at the portrait and comes back', async ({ p
   expect(Math.abs(path.at(-1)! - (path[0]! + 4))).toBeLessThan(1);
   expect(shook).toBe(true);
 });
+
+/** Story 12.3: a sized damage number splashes, the HP badge rolls down, and a shield cracks with "absorbé". */
+test('damage shows a number, the HP counter rolls, and a shield absorbs', async ({ page }) => {
+  await page.goto('/?scene=bouclier');
+  await page.evaluate((name) => {
+    const w = window as unknown as { __ccHp: string[]; __ccNums: string[] };
+    w.__ccHp = [];
+    w.__ccNums = [];
+    const tick = () => {
+      const hp = document.querySelector(`.board.theirs [aria-label="${name}"] .badge.hp`)?.textContent ?? '';
+      if (w.__ccHp.at(-1) !== hp) w.__ccHp.push(hp);
+      document.querySelectorAll('.fx-num').forEach((n) => {
+        if (!w.__ccNums.includes(n.textContent!)) w.__ccNums.push(n.textContent!);
+      });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, NI);
+  await attackNi(page);
+  await expect(page.locator('.board.theirs').getByRole('button', { name: NI }).locator('.badge.hp')).toHaveText('40');
+  await page.waitForTimeout(300);
+  const { hp, nums } = await page.evaluate(() => {
+    const w = window as unknown as { __ccHp: string[]; __ccNums: string[] };
+    return { hp: w.__ccHp.map(Number), nums: w.__ccNums };
+  });
+  // 40 absorbed, 110 taken: the badge rolls from 150 to 40 through values in between
+  expect(hp[0]).toBe(150);
+  expect(hp.at(-1)).toBe(40);
+  expect(hp.filter((v) => v < 150 && v > 40).length).toBeGreaterThan(2);
+  expect(nums).toContain('−110');
+  expect(nums).toContain('absorbé 40');
+});

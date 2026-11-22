@@ -605,42 +605,6 @@ h3 {
   margin-left: 0;
 }
 
-/* floating numbers */
-.fx {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  font-family: var(--display);
-  font-weight: 900;
-  font-size: 18px;
-  pointer-events: none;
-  text-shadow: 0 2px 0 #000, 0 0 8px #000;
-  animation: floatUp 1.3s ease-out forwards;
-  z-index: 5;
-  white-space: nowrap;
-}
-.fx-dmg {
-  color: #ff5a4a;
-}
-.fx-heal {
-  color: #7fe0a8;
-}
-.fx-buff {
-  color: var(--gold2);
-  font-size: 13px;
-}
-.fx-debuff {
-  color: #c9a0ff;
-  font-size: 13px;
-}
-.fx-status {
-  color: var(--arcane);
-}
-.fx-save {
-  color: var(--gold2);
-  font-size: 13px;
-}
 .fx-death {
   position: absolute;
   inset: 10%;
@@ -670,6 +634,86 @@ h3 {
 .fx-glow {
   border-radius: 6px;
   box-shadow: 0 0 0 3px #f2d27a, 0 0 28px 6px rgba(242, 210, 122, 0.9), inset 0 0 18px rgba(242, 210, 122, 0.6);
+}
+
+/* story 12.3: numbers, veils, arrows, shields and statuses */
+.fx-layer.fx-num,
+.fx-layer.fx-arrow {
+  z-index: 62;
+}
+.fx-num {
+  font-family: var(--display);
+  font-weight: 900;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 0 #4d0c0a;
+  transform: translate(-50%, -50%);
+  font-variant-numeric: tabular-nums;
+}
+.fx-num.heal {
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 0 #0c4d1e;
+}
+.fx-num.small {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.fx-tint {
+  border-radius: 4px;
+  opacity: 0;
+}
+.fx-tint.hurt {
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 70, 40, 0.55), rgba(142, 31, 31, 0.6));
+}
+.fx-tint.heal {
+  background: linear-gradient(to top, rgba(111, 220, 140, 0.6), rgba(111, 220, 140, 0.05));
+}
+.fx-dot,
+.fx-bubble,
+.fx-shard {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 6px var(--c);
+}
+.fx-bubble {
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--c) 45%, rgba(0, 0, 0, 0.2));
+}
+.fx-shard {
+  border-radius: 1px;
+  width: 6px;
+  height: 3px;
+}
+.fx-arrow {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 15px;
+  text-shadow: 0 0 4px #000, 0 1px 0 #000;
+}
+.fx-shield svg,
+.fx-chains svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.fx-status svg {
+  display: block;
+}
+.card .chains {
+  position: absolute;
+  inset: 8% 10%;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 3;
+}
+.card .chains svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* story 12.1: a destroyed card stays in its slot for its death beat */
@@ -703,9 +747,6 @@ h3 {
   font-family: var(--display);
   font-size: 10px;
   font-weight: 700;
-}
-.card:has(.fx-dmg) {
-  animation: shake 0.35s;
 }
 
 /* ---------- table ---------- */
@@ -838,9 +879,6 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-}
-.hero:has(.fx-dmg) {
-  animation: shake 0.4s;
 }
 .foe-hand {
   display: flex;
@@ -1952,10 +1990,6 @@ h3 {
   .tok-laurel,
   .orn-sheen {
     animation: none !important;
-  }
-  .fx {
-    animation: none;
-    opacity: 1;
   }
 }
 

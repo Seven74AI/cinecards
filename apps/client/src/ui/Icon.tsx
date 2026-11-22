@@ -60,3 +60,9 @@ export const STATUS_ICON: Record<string, { icon: string; label: string; color: s
   precision: { icon: 'eye', label: 'Précision', color: '#4FD1C5' },
   spellImmune: { icon: 'spell', label: 'Intouchable par les sorts', color: '#FFB0A0' },
 };
+
+/** The same icon as an SVG string, for effects drawn outside React (epic 12). */
+export function iconSvg(name: string, size: number, color: string): string {
+  const filled = FILLED.has(name);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? color : 'none'}" stroke="${filled ? 'none' : color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] ?? ''}</svg>`;
+}

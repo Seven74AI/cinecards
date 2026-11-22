@@ -2,6 +2,7 @@ import type { Card } from '@cinecards/cards';
 import type { ComputedStats, Status } from '@cinecards/engine';
 import { cardArt } from '../game/catalog.ts';
 import { Icon, STATUS_ICON } from './Icon.tsx';
+import { Counter } from './Counter.tsx';
 
 export { abilityBody, abilityTag } from '../game/labels.ts';
 
@@ -99,7 +100,8 @@ export interface CardViewProps {
   state?: 'selected' | 'target' | 'ready' | 'disabled' | 'attacker' | null;
   onClick?: () => void;
   iid?: string;
-  fx?: { id: number; text: string; kind: string }[];
+  /** Milliseconds for the HP badge to roll to a new value (story 12.3). */
+  count?: number;
   cost?: number;
   /** Destroyed, still shown for its death animation (story 12.1). */
   dying?: boolean;
@@ -109,11 +111,11 @@ function statClass(cur: number, base: number) {
   return cur > base ? ' up' : cur < base ? ' down' : '';
 }
 
-export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, fx, cost, dying }: CardViewProps) {
+export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
-  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : ''].join(' ');
+  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
     <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
       <span className="card-frame">
@@ -133,7 +135,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
           </span>
           <span className={'badge hp' + (stats.hp < stats.maxHp ? ' down' : statClass(stats.maxHp, stats.baseHp))}>
             <Icon name="heart" size={10} />
-            {multi ? `${multi.filter((b) => b.alive).length}/${multi.length}` : stats.hp}
+            {multi ? `${multi.filter((b) => b.alive).length}/${multi.length}` : <Counter value={stats.hp} ms={count} />}
           </span>
         </span>
       ) : null}
@@ -171,11 +173,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
         ) : null}
       </span>
       {dying ? <span className="fx-death" aria-hidden="true" /> : null}
-      {fx?.map((f) => (
-        <span key={f.id} className={`fx fx-${f.kind}`}>
-          {f.text}
-        </span>
-      ))}
+      {statuses.some((s) => s.kind === 'silence') ? <Chains /> : null}
     </button>
   );
 }
@@ -183,4 +181,12 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
 /** Face-down card (opponent hand, deck). */
 export function CardBack({ small }: { small?: boolean }) {
   return <span className={'card-back' + (small ? ' small' : '')} aria-hidden="true" />;
+}
+
+/** Chains crossed over a silenced card (story 12.3); also drawn, animated, when the silence lands. */
+export const CHAINS_SVG =
+  '<svg viewBox="0 0 60 84" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#cfd9e1" stroke-width="3" stroke-dasharray="7 3" stroke-linecap="round"><path d="M4 6L56 78"/><path d="M56 6L4 78"/></g><circle cx="30" cy="42" r="7" fill="#3a4450" stroke="#cfd9e1" stroke-width="2.5"/></svg>';
+
+function Chains() {
+  return <span className="chains" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CHAINS_SVG }} />;
 }

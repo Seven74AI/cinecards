@@ -12,10 +12,10 @@ import {
   type Target,
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
-import type { Fx } from '../game/fx.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
 import { deathFx } from './anim.ts';
 import { direct } from './director.ts';
+import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
@@ -70,7 +70,6 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const { openRules } = useRefs();
   const [journalOpen, setJournalOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; at: number } | null>(null);
-  const [fx, setFx] = useState<Fx[]>([]);
   const [dice, setDice] = useState<{ value: number; label: string; key: number } | null>(null);
   const [highlight, setHighlight] = useState<{ name: string; cardId: string; key: number } | null>(null);
   const [muted, setMutedState] = useState(isMuted());
@@ -105,31 +104,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     return () => clearTimeout(t);
   }, [toast]);
 
-  // event batch → beats (stories 7.2, 12.1); every timer is cleared on unmount
-  const fxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  useEffect(
-    () => () => {
-      fxTimers.current.forEach(clearTimeout);
-      pb.flush();
-    },
-    [pb],
-  );
-  const later = (fn: () => void, ms: number) => {
-    const t = setTimeout(() => {
-      fxTimers.current = fxTimers.current.filter((x) => x !== t);
-      fn();
-    }, ms);
-    fxTimers.current.push(t);
-  };
+  // event batch → beats (stories 7.2, 12.1); the playback's timers end with the table
+  useEffect(() => () => pb.flush(), [pb]);
   pb.onCue = (cue: Cue) => {
-    const { beat, ms, rate } = cue;
+    const { beat, ms } = cue;
     sfx(beat.sound);
     direct(cue);
-    if (beat.fx.length) {
-      setFx((cur) => [...cur, ...beat.fx]);
-      const ids = new Set(beat.fx.map((f) => f.id));
-      later(() => setFx((cur) => cur.filter((f) => !ids.has(f.id))), Math.max(600, 1400 * Math.min(1, rate * 2)));
-    }
     if (beat.dice) setDice({ ...beat.dice, key: Date.now() });
     if (beat.highlight) setHighlight({ name: beat.highlight.name, cardId: beat.highlight.cardId, key: Date.now() });
     if (beat.event.type === 'cardDestroyed') {
@@ -180,7 +160,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     setInspect(null);
   };
 
-  const fxAt = (at: string) => fx.filter((f) => f.at === at);
+  /** HP counters roll at the playback's pace (story 12.3); instantly when nothing plays. */
+  const countMs = pb.playing ? Math.round(450 * pb.rate()) : 0;
   const nameOf = (iid: string) => catalog.get(state.instances[iid]?.cardId ?? '')?.name ?? '?';
 
   // ----- starting actions (targets and options are asked by the engine when the ability fires, story 11.4) -----
@@ -309,7 +290,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         dying={dying}
         state={dying ? null : cardState(iid, owner)}
         onClick={() => tapCard(iid)}
-        fx={fxAt(iid)}
+        count={countMs}
       />
     );
   };
@@ -384,7 +365,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           <div className="hero-line">
             <span className="hero-name">{names[player]}</span>
             <span className="hero-hp">
-              <Icon name="heart" size={12} color="#FF8A8A" /> {P.hp} / {RULES.PLAYER_HP}
+              <Icon name="heart" size={12} color="#FF8A8A" /> <Counter value={P.hp} ms={countMs} /> / {RULES.PLAYER_HP}
             </span>
           </div>
           <div className="hpbar">
@@ -407,11 +388,6 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             <Icon name="grave" size={12} /> {P.graveyard.length}
           </span>
         </span>
-        {fxAt(`hero:${player}`).map((f) => (
-          <span key={f.id} className={`fx fx-${f.kind}`}>
-            {f.text}
-          </span>
-        ))}
       </div>
     );
   };

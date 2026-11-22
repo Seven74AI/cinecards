@@ -11,6 +11,8 @@ const SCENES: Record<string, [string[], string[]]> = {
   joueur: [['hs-topper'], []],
   // the Knights' special attack "Ni !" silences an enemy character, without contact
   speciale: [['hg-ni'], ['hg-lancelot', 'hg-black-knight']],
+  // the Knights carry a 40-point shield (`+shield`): Topper's hit cracks it, then they survive at 40 PV
+  bouclier: [['hs-topper'], ['hg-ni+shield', 'hg-black-knight']],
 };
 
 export function devScene(catalog: Catalog, name: string): GameState | null {
@@ -25,12 +27,14 @@ export function devScene(catalog: Catalog, name: string): GameState | null {
     P.turnNumber = 3;
     P.coins = 10;
     P.coinCap = 10;
-    chars.forEach((cardId, slot) => {
+    chars.forEach((spec, slot) => {
+      const [cardId = '', extra] = spec.split('+');
       const iid = byCard.get(cardId);
       if (!iid) return;
       state.sharedDeck = state.sharedDeck.filter((x) => x !== iid);
       state.instances[iid]!.owner = player as PlayerId;
       state.instances[iid]!.playedOnTurn = 1;
+      if (extra === 'shield') state.instances[iid]!.statuses.push({ kind: 'shield', amount: 40, source: 'scene' });
       P.characters[slot] = iid;
     });
     for (let i = 0; i < 4 && state.sharedDeck.length; i++) {

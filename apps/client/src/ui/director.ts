@@ -1,6 +1,8 @@
 import type { GameEvent, PlayerId, Target } from '@cinecards/engine';
 import type { Cue } from '../game/playback.ts';
 import { animate, cardEl, EASE } from './anim.ts';
+import { CHAINS_SVG } from './CardView.tsx';
+import { iconSvg, STATUS_ICON } from './Icon.tsx';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -160,6 +162,151 @@ function effectTargets(events: GameEvent[], from: number): string[] {
   return out;
 }
 
+/** How big a card is compared with the demo's cards (100 px wide): effects scale with it. */
+const fitOf = (el: Element) => Math.min(1.2, Math.max(0.6, el.getBoundingClientRect().width / 90));
+
+/** Story 12.3: a number that splashes up from the target; its size follows the value. */
+function floatText(x: number, y: number, text: string, color: string, size: number, r: number, cls = '') {
+  const t = overlay(`fx-num ${cls}`, x, y);
+  t.textContent = text;
+  t.style.color = color;
+  t.style.fontSize = `${Math.round(size)}px`;
+  void animate(
+    t,
+    [
+      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0 },
+      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: 0.2 },
+      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: 0.7 },
+      { transform: 'translate(-50%,-140%) scale(.95)', opacity: 0 },
+    ],
+    1100 * Math.max(r, 0.5),
+  ).then(() => t.remove());
+}
+
+/** A colored veil over the card for a moment (the card "turns red" when hit, glows green when healed). */
+function tint(el: HTMLElement, cls: string, r: number, ms = 380) {
+  const rect = el.getBoundingClientRect();
+  const v = overlay(`fx-tint ${cls}`, rect.left, rect.top);
+  v.style.width = `${rect.width}px`;
+  v.style.height = `${rect.height}px`;
+  void animate(v, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], ms * r).then(() => v.remove());
+}
+
+/** Small particles (poison bubbles, healing sparks, shield shards) rising from the card. */
+function particles(el: HTMLElement, n: number, colors: string[], r: number, rise = 50, ms = 700, cls = 'fx-dot') {
+  const rect = el.getBoundingClientRect();
+  for (let i = 0; i < n; i++) {
+    const x = rect.left + rect.width * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
+    const y = rect.top + rect.height * (0.55 + (0.35 * ((i * 53) % 100)) / 100);
+    const d = overlay(cls, x, y);
+    d.style.setProperty('--c', colors[i % colors.length]!);
+    const dx = ((i * 29) % 21) - 10;
+    const up = rise * (0.6 + ((i * 41) % 40) / 100);
+    void animate(
+      d,
+      [
+        { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0 },
+        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.2 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% - ${up}px)) scale(.6)`, opacity: 0 },
+      ],
+      ms * r * (0.8 + ((i * 17) % 40) / 100),
+      { delay: i * 25 * r },
+    ).then(() => d.remove());
+  }
+}
+
+/** Golden arrow up / violet arrow down on the ATK or HP badge, with the value. */
+function statArrow(card: HTMLElement, which: 'atk' | 'hp', delta: number, r: number) {
+  const badge = card.querySelector<HTMLElement>(`.badge.${which}`) ?? card;
+  const c = center(badge);
+  const up = delta > 0;
+  const color = up ? '#f2d27a' : '#b98cff';
+  const path = up ? 'M12 3l8 10h-5v8H9v-8H4z' : 'M12 21l8-10h-5V3H9v8H4z';
+  const a = overlay('fx-arrow', c.x, c.y - 16, `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="${path}" fill="${color}" stroke="#2a1a0e" stroke-width="1.2"/></svg><b style="color:${color}">${up ? '+' : '−'}${Math.abs(delta)}</b>`);
+  void animate(
+    a,
+    [
+      { transform: `translate(-50%,${up ? '-10%' : '-90%'})`, opacity: 0 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.3 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.7 },
+      { transform: `translate(-50%,${up ? '-140%' : '40%'})`, opacity: 0 },
+    ],
+    900 * Math.max(r, 0.5),
+  ).then(() => a.remove());
+}
+
+const SHIELD =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" fill="rgba(242,210,122,.35)" stroke="#f2d27a" stroke-width="1.4"/></svg>';
+const CRACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l-1.5 5 3 3-3.5 4 2 3-1 4M13.5 11l4 1M10 15l-4 .5" fill="none" stroke="#fff3d6" stroke-width="1.1" stroke-linecap="round"/></svg>';
+
+/** The shield takes the hit: it cracks, and shatters if it is used up. */
+function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: number) {
+  const c = center(card);
+  const size = card.getBoundingClientRect().width * 0.8;
+  const box = (html: string) => {
+    const el = overlay('fx-shield', c.x, c.y, html);
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    return el;
+  };
+  const shield = box(SHIELD);
+  const crack = box(CRACK);
+  const total = (broken ? 700 : 600) * r;
+  void animate(
+    shield,
+    [
+      { transform: 'translate(-50%,-50%) scale(.7)', opacity: 0 },
+      { transform: 'translate(-50%,-50%) scale(1.08)', opacity: 1, offset: 0.25 },
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.6 },
+      { transform: `translate(-50%,-50%) scale(${broken ? 1.3 : 1})`, opacity: 0 },
+    ],
+    total,
+  ).then(() => shield.remove());
+  void animate(
+    crack,
+    [
+      { transform: 'translate(-50%,-50%)', opacity: 0 },
+      { transform: 'translate(-50%,-50%)', opacity: 0, offset: 0.25 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.35 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.75 },
+      { transform: 'translate(-50%,-50%)', opacity: 0 },
+    ],
+    total,
+  ).then(() => crack.remove());
+  if (broken) particles(card, 10, ['#f2d27a', '#fff3d6'], r, 30, 600, 'fx-shard');
+  floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', 12 * fitOf(card), r, 'small');
+}
+
+/** Each status lands with its own effect: chains for silence, bubbles for poison, a shield, or its icon. */
+function statusFx(card: HTMLElement, kind: string, r: number) {
+  const meta = STATUS_ICON[kind];
+  const c = center(card);
+  const rect = card.getBoundingClientRect();
+  const land = [
+    { transform: 'translate(-50%,-50%) scale(1.8)', opacity: 0 },
+    { transform: 'translate(-50%,-50%) scale(.9)', opacity: 1, offset: 0.55 },
+    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.8 },
+    { transform: 'translate(-50%,-50%) scale(1)', opacity: 0 },
+  ];
+  if (kind === 'silence') {
+    const ch = overlay('fx-chains', c.x, c.y, CHAINS_SVG);
+    ch.style.width = `${rect.width}px`;
+    ch.style.height = `${rect.height}px`;
+    void animate(ch, land, 650 * r).then(() => ch.remove());
+  } else if (kind === 'poison') {
+    particles(card, 12, ['#8fe36a', '#4fbf3a', '#c6f5a8'], r, 60, 800, 'fx-bubble');
+  } else {
+    const shield = kind === 'shield';
+    const ic = overlay('fx-status', c.x, c.y, shield ? SHIELD : iconSvg(meta?.icon ?? 'star', Math.round(rect.width * 0.5), meta?.color ?? '#f2d27a'));
+    if (shield) {
+      ic.style.width = `${rect.width * 0.8}px`;
+      ic.style.height = `${rect.width * 0.8}px`;
+    }
+    void animate(ic, land, 650 * r).then(() => ic.remove());
+  }
+  if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, 13 * fitOf(card), r, 'small');
+}
+
 export function direct(cue: Cue) {
   const { beat, rate: r, events } = cue;
   const e = beat.event;
@@ -174,7 +321,15 @@ export function direct(cue: Cue) {
     }
     case 'damageDealt': {
       const tgt = elOf(e.target);
-      if (!tgt || e.amount <= 0) break;
+      if (!tgt) break;
+      const c = center(tgt);
+      if (e.absorbed > 0) shieldHit(tgt, e.absorbed, !cue.after.instances[e.target]?.statuses.some((st) => st.kind === 'shield'), r);
+      if (e.amount <= 0) {
+        if (!e.absorbed) floatText(c.x, c.y, '0', '#c9c2b4', 16 * fitOf(tgt), r);
+        break;
+      }
+      floatText(c.x, c.y - 6, `−${e.amount}`, '#ffd7c2', Math.min(30, 15 + e.amount / 10) * fitOf(tgt) * 1.1, r, 'dmg');
+      tint(tgt, 'hurt', r);
       const riposte = !!current && e.target === current.attacker && current.target.kind === 'card' && e.source === current.target.iid;
       splat(tgt, e.amount, r, riposte);
       recoil(tgt, elOf(e.source), r, riposte ? 0.7 : 1);
@@ -186,8 +341,31 @@ export function direct(cue: Cue) {
       const face = portraitEl(e.player);
       if (!hero || !face) break;
       splat(face, e.amount, r);
+      const c = center(face);
+      floatText(c.x + 30, c.y, `−${e.amount}`, '#ff6a5a', Math.min(40, 20 + e.amount / 8), r, 'dmg');
       recoil(hero, current ? cardEl(current.attacker) : null, r, 0.8);
       shake(e.amount, r);
+      break;
+    }
+    case 'healed': {
+      const tgt = elOf(e.target);
+      if (!tgt) break;
+      const c = center(tgt);
+      tint(tgt, 'heal', r, 500);
+      particles(tgt, 8, ['#6fdc8c', '#c6f5a8'], r, 45, 650);
+      floatText(c.x, c.y - 6, `+${e.amount}`, '#7fe0a8', Math.min(28, 15 + e.amount / 10) * fitOf(tgt), r, 'heal');
+      break;
+    }
+    case 'modified': {
+      const tgt = cardEl(e.target);
+      if (!tgt) break;
+      if (e.atk) statArrow(tgt, 'atk', e.atk, r);
+      if (e.hp) statArrow(tgt, 'hp', e.hp, r);
+      break;
+    }
+    case 'statusApplied': {
+      const tgt = cardEl(e.target);
+      if (tgt) statusFx(tgt, e.status, r);
       break;
     }
     case 'abilityUsed': {

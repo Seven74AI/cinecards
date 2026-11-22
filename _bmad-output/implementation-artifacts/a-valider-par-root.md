@@ -52,6 +52,8 @@ _(aucune pour l'instant)_
 - [ ] **13.2** — Sur la table compacte, la main adverse n'a plus de rangée de dos de cartes : son nombre est dans la ligne du héros (comme dans la maquette). La main déborde du bas comme dans la maquette : ATQ/PV des cartes en main se lisent sur la fiche. Au-delà de 7 cartes, la main défile horizontalement (chaque carte garde 44 px touchables).
 - [ ] **12.5** — Durées : une pose dure 0,62 s (au lieu de 0,35 s, vol en arc de la démo), un sort instantané 0,7 s (il grandit au centre de la table puis brûle), une pioche 0,42 s ; à partir de la 3ᵉ carte piochée d'un coup (Epok…), les pioches se chevauchent (0,14 s d'écart). Une carte piochée reste cachée dans ma main jusqu'à son tour dans l'animation.
 - [ ] **12.5** — L'« onde de famille » d'un terrain est une onde verte qui part de son sceau ; l'onde qui parcourt les cartes de sa famille arrive avec son effet (12.6). Un équipement fait un reflet métallique et des éclats argentés. Une carte invoquée (Néo → Trinity…) vole depuis le cimetière, la main ou l'autre camp.
+- [ ] **12.6** — Toute capacité qui se déclenche (à l'arrivée, à la mort, début de tour, quand son camp pose une carte…) a sa pulsation et son étiquette « déclencheur · « nom » » (0,55 s avant la suite) ; les attaques spéciales et réactions gardent leur trait sans attente (0,65 s). Couleur du trait : vert pour un déclencheur, bleu pour une attaque spéciale, doré pour une réaction ; un sort envoie un projectile depuis le centre de la table.
+- [ ] **12.6** — L'onde d'un terrain parcourt les personnages de son monde du côté de son propriétaire (les cartes que son aura renforce), de proche en proche.
 
 ## Textes de cartes modifiés (story 11.8)
 

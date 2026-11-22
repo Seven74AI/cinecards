@@ -4,6 +4,7 @@ import { animate, cardEl, EASE } from './anim.ts';
 import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 import { CATALOG, cardArt } from '../game/catalog.ts';
+import { abilityTag } from '../game/labels.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -579,7 +580,7 @@ function handOrigin(iid: string, owner: PlayerId): Pt | null {
   return ptOf(handZone(owner));
 }
 
-function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: number) {
+function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: number, after: GameState) {
   const from = handOrigin(e.iid, e.player);
   if (e.zone === 'resolved') {
     if (from) castSpell(e.cardId, from, ms, r);
@@ -593,7 +594,10 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
   later(() => {
     const at = boardEl(e.iid);
     if (!at) return;
-    if (cat === 'terrain') sealLanding(at, r);
+    if (cat === 'terrain') {
+      sealLanding(at, r);
+      familyWave(e.iid, e.player, e.cardId, r, after);
+    }
     else if (cat === 'equipment') metalLanding(at, r);
     else runeLanding(at, r);
   }, fly * 0.82);
@@ -648,6 +652,94 @@ function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameSta
     const at = cardEl(e.iid);
     if (at) runeLanding(at, r);
   }, fly * 0.82);
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Story 12.6: who triggers what. The source pulses, a label (trigger + ability name) rises over it, then a
+// beam (a card's ability) or a projectile (a spell) reaches each target. A terrain sends a wave over its family.
+// ---------------------------------------------------------------------------------------------------------
+
+/** "À l'arrivée · « Lumière EPOK »" over the source, for a moment. */
+function tagOver(at: { x: number; top: number }, text: string, tone: string, r: number) {
+  const t = overlay(`fx-tag t-${tone}`, at.x, Math.max(14, at.top - 12));
+  t.textContent = text;
+  // keep the whole label on screen
+  const half = t.offsetWidth / 2;
+  t.style.left = `${Math.min(innerWidth - half - 8, Math.max(half + 8, at.x))}px`;
+  void animate(
+    t,
+    [
+      { transform: 'translate(-50%,-20%)', opacity: 0 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.2 },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: 0.8 },
+      { transform: 'translate(-50%,-80%)', opacity: 0 },
+    ],
+    1300 * Math.max(r, 0.5),
+  ).then(() => t.remove());
+}
+
+/** A glowing orb in an arc from a spell to its target (demo scene "Sort"). */
+function projectile(from: Pt, to: HTMLElement, ms: number) {
+  const b = ptOf(to);
+  if (!b) return;
+  const o = overlay('fx-orb', from.x, from.y);
+  const dx = b.x - from.x;
+  const dy = b.y - from.y;
+  void animate(
+    o,
+    [
+      { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0.6 },
+      { transform: `translate(calc(-50% + ${dx * 0.4 + 50}px), calc(-50% + ${dy * 0.4 - 40}px)) scale(1)`, opacity: 1, offset: 0.5 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.2)`, opacity: 1 },
+    ],
+    ms,
+    { easing: 'ease-in' },
+  ).then(() => o.remove());
+}
+
+/** Where a fired ability comes from: its card on the table, or the middle of the table for a spell. */
+function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: GameEvent[], index: number, gap: number, r: number, after: GameState) {
+  const card = CATALOG.get(after.instances[e.iid]?.cardId ?? '');
+  const ab = card?.abilities[e.ability];
+  const special = e.trigger === 'attack' || e.trigger === 'reaction';
+  const spell = card?.category === 'spell';
+  const src = spell ? null : boardEl(e.iid);
+  const mid = tableMid();
+  const from: Pt = ptOf(src) ?? mid;
+  if (src) glow(src, r);
+  const label = card && ab ? abilityTag(card, ab) : { label: special ? 'Attaque spéciale' : 'Effet', tone: 'eff' };
+  const rect = src?.getBoundingClientRect();
+  tagOver({ x: from.x, top: rect ? rect.top : mid.y - 70 }, `${label.label} · « ${e.name} »`, label.tone, r);
+  const targets = effectTargets(events, index)
+    .map(elOf)
+    .filter((x): x is HTMLElement => !!x && x !== src);
+  if (!targets.length) return;
+  // the label shows first, then the effect leaves (straight away for a special attack, as in 12.2)
+  const delay = special ? 0 : Math.min(gap * 0.45, 260 * r);
+  later(() => {
+    for (const to of targets) {
+      if (spell || !src) projectile(from, to, Math.max(200 * r, gap - delay));
+      else beam(src, to, r, e.trigger === 'reaction' ? '#ffd27a' : special ? '#b8d4ff' : '#9fe0b0');
+    }
+  }, delay);
+}
+
+/** Story 12.6: a terrain's colour wave runs over the cards of its family on its owner's side. */
+function familyWave(terrainIid: string, owner: PlayerId, cardId: string, r: number, after: GameState) {
+  const terrain = CATALOG.get(cardId);
+  const origin = ptOf(boardEl(terrainIid));
+  if (!terrain || !origin) return;
+  for (const iid of after.players[owner].characters) {
+    if (!iid || CATALOG.get(after.instances[iid]?.cardId ?? '')?.set !== terrain.set) continue;
+    const el = cardEl(iid);
+    const at = ptOf(el);
+    if (!el || !at) continue;
+    const delay = (Math.hypot(at.x - origin.x, at.y - origin.y) * 0.9 + 250) * r;
+    later(() => {
+      tint(el, 'family', r, 520);
+      void animate(el, [{ scale: '1' }, { scale: '1.07', offset: 0.4 }, { scale: '1' }], 420 * r);
+    }, delay);
+  }
 }
 
 /** Positions of the cards on the table, read before a change of layout (story 13.2). */
@@ -731,7 +823,8 @@ export function direct(cue: Cue) {
     }
     case 'cardPlayed': {
       const ms = Math.max(0, cue.ms - 16);
-      requestAnimationFrame(() => played(e, ms, r));
+      const after = cue.after;
+      requestAnimationFrame(() => played(e, ms, r, after));
       break;
     }
     case 'cardDrawn': {
@@ -774,17 +867,9 @@ export function direct(cue: Cue) {
       if (tgt) statusFx(tgt, e.status, r);
       break;
     }
-    case 'abilityUsed': {
-      if (e.trigger !== 'attack' && e.trigger !== 'reaction') break;
-      const src = cardEl(e.iid);
-      if (!src) break;
-      glow(src, r);
-      for (const at of effectTargets(events, beat.index)) {
-        const to = elOf(at);
-        if (to && to !== src) beam(src, to, r, e.trigger === 'reaction' ? '#ffd27a' : '#b8d4ff');
-      }
+    case 'abilityUsed':
+      abilityFired(e, events, beat.index, cue.ms, r, cue.after);
       break;
-    }
     default:
       break;
   }

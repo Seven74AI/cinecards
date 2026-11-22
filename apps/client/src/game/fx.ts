@@ -30,8 +30,8 @@ export const TIMING = {
   summon: 420,
   returned: 500,
   dice: 1300,
-  ability: 250,
-  special: 600, // glow + beam of a special attack or a reaction
+  ability: 550, // pulse + label, then the beam or projectile (story 12.6)
+  special: 650, // glow + label + beam of a special attack or a reaction
   coin: 60,
   turn: 200,
 } as const;

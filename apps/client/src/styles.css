@@ -2779,3 +2779,32 @@ span.mod-src {
 .fx-anchor {
   opacity: 1;
 }
+
+/* story 12.6: trigger label, spell projectile, terrain family wave */
+.fx-layer.fx-tag {
+  z-index: 63;
+  padding: 4px 9px;
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 0 0 1px rgba(242, 210, 122, 0.6), 0 3px 8px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%);
+}
+.fx-orb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, #ff8a3d 50%, #c0392b);
+  box-shadow: 0 0 16px #ff8a3d, 0 0 4px #fff;
+}
+.fx-tint.family {
+  background: linear-gradient(to top, rgba(127, 220, 90, 0.55), rgba(127, 220, 90, 0.08));
+  box-shadow: 0 0 14px rgba(127, 220, 90, 0.7);
+}

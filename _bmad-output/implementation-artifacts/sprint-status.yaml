@@ -107,7 +107,7 @@ development_status:
   12-3-degats-soins-statuts: done
   12-4-mort-et-departs: done
   12-5-poser-et-piocher: done
-  12-6-declencheurs-et-sorts: backlog
+  12-6-declencheurs-et-sorts: done
   12-7-rythme-du-tour: backlog
   epic-12-retrospective: optional
   # epic-13 (retours du playtest 2) : après les stories 12.1 à 12.4, avant 12.5

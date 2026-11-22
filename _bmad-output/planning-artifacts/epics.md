@@ -964,6 +964,22 @@ As a joueur, I want savoir quelle carte donne un bonus ou un malus, So that je s
 - **And** la fiche liste chaque modificateur avec la miniature et le nom de la carte source, le nom de la capacité, la valeur et la durée restante ; toucher une source ouvre son aperçu (story 13.1)
 - **And** une source qui n'est plus en jeu (bonus permanent) est indiquée « carte partie »
 
+### Story 13.4: L'ATQ de Néo double tous les 2 tours, de façon cumulative
+As a joueur, I want que Néo devienne de plus en plus fort, So that sa carte fasse ce que Root a voulu.
+**Constat :** « Y m'faut des armes, un maximum d'armes » (`mx-neo`) est encodé `cycleAttackMultiplier` : les dégâts d'attaque sont doublés un tour sur deux seulement. L'ATQ affichée reste 160, donc l'effet passe inaperçu. **Règle voulue par Root (2026-11-22) :** tous les 2 tours, l'ATQ de Néo double et garde ce gain (160 → 320 → 640…).
+**Acceptance Criteria:**
+- **Given** Néo en jeu depuis son tour de pose t
+- **When** commence le tour t+2, t+4… de son propriétaire
+- **Then** son ATQ double, par un modificateur permanent attaché à Néo, avec sa source et visible dans « Bonus et malus » ; le journal et l'animation de bonus le montrent
+- **And** l'effet s'arrête s'il est réduit au silence, et le gain est perdu s'il quitte la table (une carte rejouée repart de son ATQ de base)
+- **And** le texte de la carte devient : « Tous les 2 tours, l'ATQ de Néo double (le bonus se cumule). »
+- **And** la capacité « Élu de Sion » (insensible tous les 2 tours) ne change pas
+- **And** le compte à rebours de cycle sur la carte annonce le prochain doublement ; test de règle sur 3 doublements ; simulation de 200 parties ; le risque d'équilibrage (1 280 ATQ au 6e tour) est noté dans `a-valider-par-root.md`
+
+### Story 13.5: Type de la carte source dans « Bonus et malus »
+As a joueur, I want voir d'un coup d'œil si un bonus vient d'un personnage, d'un sort, d'un équipement ou d'un terrain, So that je sache comment l'enlever.
+**Acceptance Criteria:** **Given** la liste « Bonus et malus » d'une fiche **Then** chaque ligne montre le type de la carte source avec son icône de jeton (blason, sceau, écrou, losange) et son nom (« Personnage », « Sort », « Équipement », « Terrain »), lisible à 390 px ; l'aperçu de la source (13.1) reste accessible d'un appui.
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 ### Story 8.1: Connexion

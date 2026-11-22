@@ -19,3 +19,4 @@
 - 2026-11-22 — Epic 12 « Retours visuels de chaque action » approuvé (spécification retours-visuels-actions.md, démo animée docs/design/animations/demo.html) ; à faire juste après l'epic 11, avant 8, 9, 10.
 - 2026-11-22 — Playtest 2 de Root : epic 13 (aperçu des cartes citées, table sans défilement vertical sur mobile, origine des bonus et malus), après 12.1-12.4 et avant 12.5.
 - 2026-11-22 — Story 13.2 : disposition mobile B (vue d'ensemble + zoom) retenue par Root ; maquettes dans docs/design/mobile-table/.
+- 2026-11-22 — Root : l'ATQ de Néo double tous les 2 tours et le bonus se cumule (story 13.4) ; type de la carte source dans « Bonus et malus » (13.5).

@@ -115,4 +115,6 @@ development_status:
   13-1-apercu-des-cartes-citees: done
   13-2-table-sans-defilement-vertical-sur-mobile: done
   13-3-origine-des-bonus-et-malus-sur-la-carte: done
+  13-4-atq-de-neo-double-tous-les-2-tours-cumulatif: backlog
+  13-5-type-de-la-carte-source-dans-bonus-et-malus: backlog
   epic-13-retrospective: optional

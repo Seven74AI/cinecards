@@ -24,3 +24,4 @@
 - 2026-11-22 — Root : sorts plus lents sur téléphone (13.7), même fiche table/main (13.8), liens d'origine seulement à la demande (13.9), mise en avant des cartes jouées et retirées (13.10, maquette d'abord).
 - 2026-11-22 — Root valide les scènes « Mise en avant » et « Carte retirée » (13.10) ; demande des courbes d'accélération partout et une entrée de carte depuis la main plus lente (13.11).
 - 2026-11-22 — Root valide le lot 1 de `a-valider-par-root.md` (règles et moteur : 16 points, stories 11.3-11.6 et 13.4). Néo : doublement gardé tel quel, sans plafond, à revoir après un playtest entre humains.
+- 2026-11-22 — Root valide le lot 2 de `a-valider-par-root.md` (en ligne et sessions : 5 points, stories 11.2 et 12.1).

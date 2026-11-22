@@ -14,10 +14,11 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - **Tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`. Plan: `_bmad-output/planning-artifacts/epics.md`. Rules: the GDD (`planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`). History of decisions: `decision-log.md` next to it.
 
 ## Waiting on Root (go through these first)
-1. **`_bmad-output/implementation-artifacts/a-valider-par-root.md`:** ~58 unchecked items. They are rule readings marked `[ASSUMPTION]`, behaviour choices, changed card texts, and proposed rarities for spells, equipment and terrains. Help Root review them in batches.
-2. **Neo's balance (13.4):** his ATK doubles every 2 turns and stacks. In the simulation his highest ATK reached 1,600, and his side won 84 of 107 games (81 before). The dev logged mitigation options.
-3. **Phone smoothness (13.12):** Root should open the game with `?fps` on his iPhone and report the numbers. Emulated Chromium hits ~59 fps. Linux WebKit without a GPU doesn't, but that is not representative of a real iPhone. Also ask whether Low Power Mode or Reduce Motion is on.
-4. **Bot turn length:** the 13.10 spotlight (3 s) also applies to the bot's spells and arrival effects. Check whether it drags.
+- **Done 2026-11-22:** Root validated all of `a-valider-par-root.md` (batches 1-4b). Neo's doubling stays uncapped
+  until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects.
+- **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
+  `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.
+1. **Phone smoothness (13.12):** Root should open the game with `?fps` on his iPhone and report the numbers (and whether Low Power Mode or Reduce Motion is on).
 
 ## Next options (let Root choose)
 - **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.

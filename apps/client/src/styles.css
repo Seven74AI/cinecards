@@ -649,6 +649,38 @@ h3 {
   animation: burst 0.7s ease-out forwards;
   pointer-events: none;
 }
+/* story 12.1: a destroyed card stays in its slot for its death beat */
+.card.is-dying {
+  pointer-events: none;
+  z-index: 2;
+}
+.card.is-dying::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  background: radial-gradient(ellipse at 50% 55%, rgba(40, 18, 6, 0.55), rgba(10, 4, 0, 0.9));
+  opacity: 0;
+  animation: scorch var(--death-ms, 0.8s) ease-in forwards;
+  pointer-events: none;
+}
+@keyframes scorch {
+  to {
+    opacity: 1;
+  }
+}
+.icon-btn.speed-btn {
+  width: auto;
+  min-width: 32px;
+  padding: 0 7px;
+  border-radius: 16px;
+  gap: 3px;
+}
+.speed-btn small {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+}
 .card:has(.fx-dmg) {
   animation: shake 0.35s;
 }

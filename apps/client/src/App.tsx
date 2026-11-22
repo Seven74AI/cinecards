@@ -18,6 +18,17 @@ export function App() {
 
   useEffect(() => () => session?.dispose(), [session]);
 
+  // dev server only: `?scene=<name>` opens a prepared solo position for the e2e tests (story 12.1)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const name = new URLSearchParams(location.search).get('scene');
+    if (!name) return;
+    void import('./game/devscene.ts').then(({ devScene }) => {
+      const initial = devScene(CATALOG, name);
+      if (initial) setSession(localSession(CATALOG, { kind: 'bot', mode: 'shared', initial }));
+    });
+  }, []);
+
   const start = (s: Start) => {
     setError(null);
     if (s.kind === 'hotseat' || s.kind === 'bot') {

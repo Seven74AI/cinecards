@@ -1,91 +1,138 @@
-import type { Catalog, GameEvent, GameState, PlayerId } from '@cinecards/engine';
+import type { Catalog, GameEvent, PlayerId } from '@cinecards/engine';
 
 export interface Fx {
   id: number;
-  /** card iid, `slot:<player>:<index>` or `hero:<player>` */
+  /** card iid or `hero:<player>` */
   at: string;
   text: string;
   kind: 'dmg' | 'heal' | 'buff' | 'debuff' | 'status' | 'save' | 'death' | 'play';
 }
+
+/** One animation "time" (story 12.1): exactly one per engine event, played in order. */
 export interface Beat {
-  delay: number;
+  /** Position of the event in its batch. */
+  index: number;
+  event: GameEvent;
+  /** Milliseconds (normal speed) before the next beat starts. */
+  gap: number;
   fx: Fx[];
   dice?: { value: number; label: string };
   highlight?: { name: string; cardId: string; player: PlayerId };
   sound?: string;
 }
 
+/** Durations at normal speed, in ms (demo docs/design/animations/demo.html). */
+export const TIMING = {
+  attack: 390, // lift 220 + dash 170; the impact lands on the next beat
+  damage: 300,
+  heroDamage: 420,
+  heal: 300,
+  modify: 200,
+  status: 260,
+  save: 600,
+  death: 800,
+  play: 350,
+  legend: 1500,
+  summon: 420,
+  returned: 450,
+  dice: 1300,
+  ability: 250,
+  coin: 60,
+  turn: 200,
+} as const;
+
 let nextId = 1;
 
-/** Turns an event batch into a timeline of animation beats (story 7.2). */
-export function eventsToBeats(events: GameEvent[], catalog: Catalog, before: GameState): Beat[] {
-  const beats: Beat[] = [];
-  let t = 0;
-  const push = (b: Omit<Beat, 'delay'>, step = 260) => {
-    beats.push({ delay: t, ...b });
-    t += step;
-  };
-  const slotOf = (iid: string): string | null => {
-    for (const p of [0, 1] as const) {
-      const i = before.players[p].characters.indexOf(iid);
-      if (i >= 0) return `slot:${p}:${i}`;
-    }
-    return null;
-  };
-  for (const e of events) {
+/** Turns an event batch into a timeline of animation beats (stories 7.2, 12.1). */
+export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
+  return events.map((e, index) => {
+    const b: Beat = { index, event: e, gap: 0, fx: [] };
+    const fx = (at: string, text: string, kind: Fx['kind']) => b.fx.push({ id: nextId++, at, text, kind });
     switch (e.type) {
       case 'damageDealt':
-        push({ fx: [{ id: nextId++, at: e.target, text: e.amount > 0 ? `−${e.amount}` : '0', kind: 'dmg' }], sound: 'hit' });
+        fx(e.target, e.amount > 0 ? `−${e.amount}` : '0', 'dmg');
+        b.sound = 'hit';
+        b.gap = TIMING.damage;
         break;
       case 'healed':
-        push({ fx: [{ id: nextId++, at: e.target, text: `+${e.amount}`, kind: 'heal' }], sound: 'heal' });
+        fx(e.target, `+${e.amount}`, 'heal');
+        b.sound = 'heal';
+        b.gap = TIMING.heal;
         break;
       case 'modified':
         if (e.atk || e.hp) {
           const up = e.atk + e.hp >= 0;
           const text = [e.atk ? `${e.atk > 0 ? '+' : ''}${e.atk}⚔` : '', e.hp ? `${e.hp > 0 ? '+' : ''}${e.hp}♥` : ''].filter(Boolean).join(' ');
-          push({ fx: [{ id: nextId++, at: e.target, text, kind: up ? 'buff' : 'debuff' }], sound: up ? 'buff' : 'debuff' }, 120);
+          fx(e.target, text, up ? 'buff' : 'debuff');
+          b.sound = up ? 'buff' : 'debuff';
+          b.gap = TIMING.modify;
         }
         break;
       case 'statusApplied':
-        push({ fx: [{ id: nextId++, at: e.target, text: '✦', kind: 'status' }], sound: 'status' }, 120);
+        fx(e.target, '✦', 'status');
+        b.sound = 'status';
+        b.gap = TIMING.status;
         break;
       case 'deathPrevented':
-        push({ fx: [{ id: nextId++, at: e.iid, text: 'Sauvé !', kind: 'save' }], sound: 'heal' });
+        fx(e.iid, 'Sauvé !', 'save');
+        b.sound = 'heal';
+        b.gap = TIMING.save;
         break;
-      case 'cardDestroyed': {
-        const slot = slotOf(e.iid);
-        push({ fx: slot ? [{ id: nextId++, at: slot, text: '', kind: 'death' }] : [], sound: 'death' }, 320);
+      case 'cardDestroyed':
+        b.sound = 'death';
+        b.gap = TIMING.death;
         break;
-      }
       case 'playerDamaged':
-        push({ fx: [{ id: nextId++, at: `hero:${e.player}`, text: `−${e.amount}`, kind: 'dmg' }], sound: 'heroHit' });
+        fx(`hero:${e.player}`, `−${e.amount}`, 'dmg');
+        b.sound = 'heroHit';
+        b.gap = TIMING.heroDamage;
         break;
       case 'diceRolled':
-        push({ fx: [], dice: { value: e.value, label: e.label }, sound: 'dice' }, 1300);
+        b.dice = { value: e.value, label: e.label };
+        b.sound = 'dice';
+        b.gap = TIMING.dice;
         break;
       case 'cardPlayed': {
         const card = catalog.get(e.cardId);
-        if (card?.rarity === 'legendary') push({ fx: [], highlight: { name: card.name, cardId: card.id, player: e.player }, sound: 'legend' }, 1500);
-        else push({ fx: [], sound: card?.category === 'spell' ? 'spell' : 'play' }, 150);
+        if (card?.rarity === 'legendary') {
+          b.highlight = { name: card.name, cardId: card.id, player: e.player };
+          b.sound = 'legend';
+          b.gap = TIMING.legend;
+        } else {
+          b.sound = card?.category === 'spell' ? 'spell' : 'play';
+          b.gap = TIMING.play;
+        }
         break;
       }
+      case 'summoned':
+        b.sound = 'play';
+        b.gap = TIMING.summon;
+        break;
+      case 'returnedToHand':
+        b.gap = TIMING.returned;
+        break;
+      case 'abilityUsed':
+        b.gap = TIMING.ability;
+        break;
       case 'attackDeclared':
-        push({ fx: [], sound: 'swing' }, 180);
+        b.sound = 'swing';
+        b.gap = TIMING.attack;
         break;
       case 'coinsGained':
       case 'coinBonus':
-        push({ fx: [], sound: 'coin' }, 60);
+        b.sound = 'coin';
+        b.gap = TIMING.coin;
         break;
       case 'turnStarted':
-        push({ fx: [], sound: 'turn' }, 60);
+        b.sound = 'turn';
+        b.gap = TIMING.turn;
         break;
       case 'gameOver':
-        push({ fx: [], sound: 'end' }, 0);
+        b.sound = 'end';
         break;
       default:
         break;
     }
-  }
-  return beats;
+    return b;
+  });
 }

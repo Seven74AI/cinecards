@@ -101,17 +101,19 @@ export interface CardViewProps {
   iid?: string;
   fx?: { id: number; text: string; kind: string }[];
   cost?: number;
+  /** Destroyed, still shown for its death animation (story 12.1). */
+  dying?: boolean;
 }
 
 function statClass(cur: number, base: number) {
   return cur > base ? ' up' : cur < base ? ' down' : '';
 }
 
-export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, fx, cost }: CardViewProps) {
+export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, fx, cost, dying }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
-  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : ''].join(' ');
+  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : ''].join(' ');
   return (
     <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={card.name}>
       <span className="card-frame">
@@ -168,6 +170,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
           </span>
         ) : null}
       </span>
+      {dying ? <span className="fx-death" aria-hidden="true" /> : null}
       {fx?.map((f) => (
         <span key={f.id} className={`fx fx-${f.kind}`}>
           {f.text}

@@ -34,6 +34,8 @@ export interface Session {
   send(action: Action): void;
   /** Hot seat: the next player dismissed the pass-the-device screen; their clock starts now. */
   ready?(): void;
+  /** Solo (story 12.1): the bot waits until the table has finished replaying the previous batch. */
+  pace?(busyFor: () => number): void;
   dispose(): void;
 }
 
@@ -151,10 +153,11 @@ export class LocalClock {
 /** Hot-seat (two players on one device) or a game against the built-in bot. Runs the engine in the browser. */
 export function localSession(
   catalog: Catalog,
-  opts: { kind: 'hotseat' | 'bot'; mode: DeckMode; seed?: number; names?: [string, string]; turnMs?: number; reactionMs?: number },
+  opts: { kind: 'hotseat' | 'bot'; mode: DeckMode; seed?: number; names?: [string, string]; turnMs?: number; reactionMs?: number; initial?: GameState },
 ): Session {
   const seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
-  const { state, events } = createGame(catalog, { seed, mode: opts.mode });
+  // `initial`: a prepared position (dev test scenes only)
+  const { state, events } = opts.initial ? { state: opts.initial, events: [] as GameEvent[] } : createGame(catalog, { seed, mode: opts.mode });
   const names: [string, string] = opts.names ?? (opts.kind === 'bot' ? ['Joueur', 'Le Grimoire'] : ['Joueur 1', 'Joueur 2']);
   const viewerOf = (s: GameState): PlayerId => (opts.kind === 'bot' ? 0 : (s.pending?.player ?? s.active));
   const base: Snapshot = { state, events, seq: 1, log: [], error: null, viewer: viewerOf(state), names, turnEndsAt: null, reactionEndsAt: null, status: 'playing' };
@@ -162,6 +165,7 @@ export function localSession(
   const store = new Store(base);
   const rnd = botRandom(seed ^ 0x5bd1e995);
   let botTimer: ReturnType<typeof setTimeout> | null = null;
+  let busyFor: () => number = () => 0;
 
   const publishClock = () => store.set({ turnEndsAt: clock.turnEndsAt, turnMsLeft: clock.turnMsLeft, reactionEndsAt: clock.reactionEndsAt });
 
@@ -209,7 +213,12 @@ export function localSession(
     const s = store.snap.state;
     const actor = s.pending ? s.pending.player : s.active;
     if (s.phase === 'finished' || actor !== 1) return;
-    botTimer = setTimeout(() => {
+    const run = () => {
+      const wait = busyFor();
+      if (wait > 0) {
+        botTimer = setTimeout(run, Math.min(wait, 4000) + 250);
+        return;
+      }
       botTimer = null;
       const cur = store.snap.state;
       const who = cur.pending ? cur.pending.player : cur.active;
@@ -219,7 +228,8 @@ export function localSession(
         const r = apply(catalog, cur, step.action);
         if (r.ok) commit(r.state, r.events);
       }
-    }, 900);
+    };
+    botTimer = setTimeout(run, 900);
   };
 
   // The coin toss may hand the first turn to the bot: start it right away (story 11.1).
@@ -234,6 +244,9 @@ export function localSession(
       const r = apply(catalog, store.snap.state, action);
       if (!r.ok) store.set({ error: { error: r.error, at: Date.now() } });
       else commit(r.state, r.events);
+    },
+    pace(fn) {
+      busyFor = fn;
     },
     ready() {
       if (!clock.handoff) return;

@@ -12,7 +12,9 @@ import {
   type Target,
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
-import { eventsToBeats, type Fx } from '../game/fx.ts';
+import type { Fx } from '../game/fx.ts';
+import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
+import { deathFx } from './anim.ts';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
@@ -74,6 +76,11 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const [handoffFor, setHandoffFor] = useState<PlayerId | null>(session.kind === 'hotseat' ? viewer : null);
   const [confirmQuit, setConfirmQuit] = useState<null | 'quit' | 'concede'>(null);
   const prevState = useRef<GameState>(state);
+  // presentation layer (story 12.1): the board shows `shown`, replayed beat by beat; rules and taps use `state`
+  const [pb] = useState(() => new Playback(catalog, state, loadSpeed()));
+  const view = useSyncExternalStore(pb.subscribe, pb.get);
+  const shown = view.state;
+  const [speed, setSpeed] = useState<AnimSpeed>(pb.speed);
   const now = useNow(!!snap.turnEndsAt || !!snap.reactionEndsAt || !!snap.awayUntil);
 
   // hot-seat: hide the table when the device changes hands
@@ -97,35 +104,57 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     return () => clearTimeout(t);
   }, [toast]);
 
-  // event batch → animation beats (story 7.2); timers survive later batches, cleared on unmount
+  // event batch → beats (stories 7.2, 12.1); every timer is cleared on unmount
   const fxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  useEffect(() => () => fxTimers.current.forEach(clearTimeout), []);
+  useEffect(
+    () => () => {
+      fxTimers.current.forEach(clearTimeout);
+      pb.flush();
+    },
+    [pb],
+  );
+  const later = (fn: () => void, ms: number) => {
+    const t = setTimeout(() => {
+      fxTimers.current = fxTimers.current.filter((x) => x !== t);
+      fn();
+    }, ms);
+    fxTimers.current.push(t);
+  };
+  pb.onCue = ({ beat, ms, rate }: Cue) => {
+    sfx(beat.sound);
+    if (beat.fx.length) {
+      setFx((cur) => [...cur, ...beat.fx]);
+      const ids = new Set(beat.fx.map((f) => f.id));
+      later(() => setFx((cur) => cur.filter((f) => !ids.has(f.id))), Math.max(600, 1400 * Math.min(1, rate * 2)));
+    }
+    if (beat.dice) setDice({ ...beat.dice, key: Date.now() });
+    if (beat.highlight) setHighlight({ name: beat.highlight.name, cardId: beat.highlight.cardId, key: Date.now() });
+    if (beat.event.type === 'cardDestroyed') {
+      const iid = beat.event.iid;
+      // the dying card is rendered on this beat: animate it once it is in the DOM
+      requestAnimationFrame(() => deathFx(iid, Math.max(0, ms - 16)));
+    }
+  };
   useEffect(() => {
     const before = prevState.current;
     prevState.current = state;
-    if (snap.seq <= 1) return;
-    const beats = eventsToBeats(snap.events, catalog, before);
-    const fast = reducedMotion();
-    const later = (fn: () => void, ms: number) => {
-      const t = setTimeout(() => {
-        fxTimers.current = fxTimers.current.filter((x) => x !== t);
-        fn();
-      }, ms);
-      fxTimers.current.push(t);
-    };
-    for (const b of beats) {
-      later(() => {
-        sfx(b.sound);
-        if (b.fx.length) {
-          setFx((cur) => [...cur, ...b.fx]);
-          const ids = new Set(b.fx.map((f) => f.id));
-          later(() => setFx((cur) => cur.filter((f) => !ids.has(f.id))), 1400);
-        }
-        if (b.dice) setDice({ ...b.dice, key: Date.now() });
-        if (b.highlight) setHighlight({ name: b.highlight.name, cardId: b.highlight.cardId, key: Date.now() });
-      }, fast ? 0 : b.delay);
-    }
+    if (before === state || snap.seq <= 1) return;
+    pb.push(before, state, snap.events);
   }, [snap.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  // solo: Le Grimoire waits for the replay; hot seat: nothing plays behind the hand-over screen
+  useEffect(() => session.pace?.(() => pb.busyFor()), [session, pb]);
+  useEffect(() => pb.pause(handoffFor !== null), [pb, handoffFor]);
+  useEffect(() => {
+    const hide = () => document.hidden && pb.flush();
+    document.addEventListener('visibilitychange', hide);
+    return () => document.removeEventListener('visibilitychange', hide);
+  }, [pb]);
+  const cycleSpeed = () => {
+    const next = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]!;
+    setSpeed(next);
+    saveSpeed(next);
+    pb.setSpeed(next);
+  };
 
   // reset interaction when the position changes; a target prompt of mine opens the picking mode (story 11.4)
   useEffect(() => {
@@ -142,6 +171,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const myTurn = state.active === me && !state.pending && state.phase === 'main';
   const send = (a: Action) => {
     sfx('click');
+    pb.hurry();
     session.send(a);
     setMode({ k: 'idle' });
     setInspect(null);
@@ -251,19 +281,30 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     return null;
   };
 
+  const shownStats = (iid: string) => {
+    try {
+      return view.stats[iid] ?? computeStats(catalog, shown, iid);
+    } catch {
+      return null;
+    }
+  };
   const renderBoardCard = (iid: string, owner: PlayerId) => {
-    const inst = state.instances[iid]!;
-    const card = catalog.get(inst.cardId)!;
-    const sick = card.category === 'character' && inst.playedOnTurn >= state.players[owner].turnNumber && canAttack(catalog, state, iid)?.code === 'SUMMONING_SICK';
+    const inst = shown.instances[iid];
+    const card = inst && catalog.get(inst.cardId);
+    if (!inst || !card) return null;
+    const dying = view.dying.has(iid);
+    const sick = !dying && card.category === 'character' && inst.playedOnTurn >= shown.players[owner].turnNumber && canAttack(catalog, shown, iid)?.code === 'SUMMONING_SICK';
     return (
       <CardView
+        key={iid}
         iid={iid}
         card={card}
-        stats={card.category === 'character' ? computeStats(catalog, state, iid) : null}
-        statuses={inst.statuses}
+        stats={card.category === 'character' ? shownStats(iid) : null}
+        statuses={view.statuses[iid] ?? inst.statuses}
         sick={!!sick}
-        cycle={cycleCountdown(catalog, state, iid)}
-        state={cardState(iid, owner)}
+        cycle={dying ? null : cycleCountdown(catalog, shown, iid)}
+        dying={dying}
+        state={dying ? null : cardState(iid, owner)}
         onClick={() => tapCard(iid)}
         fx={fxAt(iid)}
       />
@@ -271,12 +312,11 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   };
 
   const Board = ({ player }: { player: PlayerId }) => {
-    const P = state.players[player];
+    const P = shown.players[player];
     const placing = player === me && playableSlots === 'characters';
     return (
       <div className={'board' + (player === me ? ' mine' : ' theirs')} aria-label={player === me ? 'Ta table' : 'Table adverse'}>
         {P.characters.map((iid, slot) => {
-          const deathFx = fxAt(`slot:${player}:${slot}`);
           return (
             <div
               key={slot}
@@ -287,9 +327,6 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             >
               <span className="rune-ring" aria-hidden="true" />
               {!iid ? <span className="slot-num">{ROMAN[slot]}</span> : renderBoardCard(iid, player)}
-              {deathFx.map((f) => (
-                <span key={f.id} className="fx-death" aria-hidden="true" />
-              ))}
             </div>
           );
         })}
@@ -298,7 +335,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   };
 
   const Zones = ({ player }: { player: PlayerId }) => {
-    const P = state.players[player];
+    const P = shown.players[player];
     const zone = (kind: 'terrains' | 'spells') => (
       <div className={'zone ' + kind}>
         {P[kind].map((iid, slot) => {
@@ -315,7 +352,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
                 <Icon name={kind === 'terrains' ? 'terrain' : 'spell'} size={12} color="rgba(212,167,74,.45)" />
               </span>
             );
-          const card = catalog.get(state.instances[iid]!.cardId)!;
+          const card = catalog.get(shown.instances[iid]?.cardId ?? '');
+          if (!card) return null;
           return (
             <button key={slot} type="button" className={(kind === 'terrains' ? 'seal' : 'rune') + ' filled' + (targetable(iid) ? ' is-target' : '')} onClick={() => tapCard(iid)} title={card.name}>
               <MiniArt card={card} />
@@ -333,7 +371,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   };
 
   const Hero = ({ player }: { player: PlayerId }) => {
-    const P = state.players[player];
+    const P = shown.players[player];
     const canHit = mode.k === 'attack' && mode.targets.some((t) => t.kind === 'player' && t.player === player);
     const active = state.active === player;
     return (
@@ -462,6 +500,10 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           </button>
           {snap.roomCode ? <span className="room-code">Salle {snap.roomCode}</span> : <span className="room-code">CineCards</span>}
           <span className="spacer" />
+          <button type="button" className="icon-btn speed-btn" onClick={cycleSpeed} aria-label={`Vitesse des animations : ${SPEED_FR[speed]}`} title={`Vitesse des animations : ${SPEED_FR[speed]}`}>
+            <Icon name="speed" size={16} />
+            <small>{speed === 'normal' ? '×1' : speed === 'fast' ? '×2' : '⏭'}</small>
+          </button>
           <button type="button" className="icon-btn" onClick={openRules} aria-label="Règles et mots-clés">
             <Icon name="help" size={16} />
           </button>

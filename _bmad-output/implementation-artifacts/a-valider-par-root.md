@@ -1,6 +1,6 @@
 # À valider par Root
 
-Décisions prises par le dev pendant l'epic 11, sans attendre (règle : « décide et note »).
+Décisions prises par le dev pendant les epics 11 et 12, sans attendre (règle : « décide et note »).
 Chaque entrée renvoie à la story et, si c'est une règle, à l'`[ASSUMPTION]` ajoutée dans le GDD.
 Coche ou corrige après ton prochain playtest.
 
@@ -35,6 +35,10 @@ _(aucune pour l'instant)_
 - [ ] **11.8** — Renvoi « … » : vers une carte si le nom correspond (nom exact, sans article — « Sentinelles » → Les sentinelles —, partie avant « a.k.a » — « Smith » —, ou nom unique qui le contient — « A.P.U »), sinon vers une capacité de ce nom ; « Matrix », « Les Agents », « Le Lazar » ne renvoient à rien (pas de carte de ce nom).
 - [ ] **11.8** — L'écran « Règles et mots-clés » s'ouvre depuis l'accueil (lien sous « Voir les cartes ») et depuis la barre du haut de la table (bouton « ? ») ; sur l'accueil, toucher une carte de la collection ouvre sa fiche.
 - [ ] **11.8** — Message d'erreur quand on vise les PV adverses protégés : « Barrage : tant que ton adversaire a un personnage en jeu, ses PV ne peuvent pas être attaqués. »
+- [ ] **12.1** — Réglage « Vitesse des animations » : un bouton dans la barre du haut de la table (×1 normale → ×2 rapide → ⏭ instantanée), gardé sur l'appareil. Par défaut : normale.
+- [ ] **12.1** — Quand le joueur agit pendant une animation, la suite se joue 4 fois plus vite (2 fois plus vite quand plusieurs lots attendent) ; la main, les boutons et les fenêtres de choix suivent tout de suite l'état réel.
+- [ ] **12.1** — En solo, le Grimoire attend la fin de l'animation précédente avant son action suivante (son tour dure donc un peu plus). En hot seat, l'animation se met en pause derrière l'écran « Passe l'appareil » et reprend quand le joueur suivant est prêt. Si l'onglet passe en arrière-plan, on saute à la fin.
+- [ ] **12.1** — Durées de base (vitesse normale) : attaque 0,39 s + impact 0,3 s, dégâts 0,3 s, coup au joueur 0,42 s, mort 0,8 s (la carte reste dans son socle pendant ce temps), pose 0,35 s, légendaire 1,5 s, dé 1,3 s.
 
 ## Textes de cartes modifiés (story 11.8)
 

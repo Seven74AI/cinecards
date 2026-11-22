@@ -18,9 +18,10 @@ export function App() {
 
   useEffect(() => () => session?.dispose(), [session]);
 
-  // dev server only: `?scene=<name>` opens a prepared solo position for the e2e tests (story 12.1)
+  // dev server only: `?scene=<name>` opens a prepared solo position for the e2e tests (story 12.1); story 13.12: also
+  // in a production build made with VITE_SCENES=1, so `scripts/perf-phone.mjs` times the real (minified) client
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!import.meta.env.DEV && !import.meta.env.VITE_SCENES) return;
     const name = new URLSearchParams(location.search).get('scene');
     if (!name) return;
     void import('./game/devscene.ts').then(({ devScene, devBotSeed }) => {

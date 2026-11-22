@@ -9,6 +9,7 @@ import { CATALOG, cardArt } from '../game/catalog.ts';
 import { abilityBody, abilityTag } from '../game/labels.ts';
 import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
 import { removalText, STAMP } from '../game/removal.ts';
+import { PHONE_FX, particleBudget } from '../game/perf.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -299,10 +300,18 @@ function tint(el: HTMLElement, cls: string, r: number, ms = 380) {
   void animate(v, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], ms * r).then(() => v.remove());
 }
 
+/** Story 13.12: particles on screen right now (the portrait phone table caps them, see `PHONE_FX`). */
+let liveParticles = 0;
+
 /** Small particles (poison bubbles, healing sparks, shield shards) rising from the card. */
 function particles(el: HTMLElement, n: number, colors: string[], r: number, rise = 50, ms = 700, cls = 'fx-dot') {
   const rect = rectOf(el);
-  for (let i = 0; i < n; i++) {
+  const count = particleBudget(n, compactTable(), liveParticles);
+  liveParticles += count;
+  // on the phone a smaller burst keeps the spread of the full one (every k-th particle of it)
+  const every = n / Math.max(1, count);
+  for (let j = 0; j < count; j++) {
+    const i = Math.floor(j * every);
     const x = rect.left + rect.width * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
     const y = rect.top + rect.height * (0.55 + (0.35 * ((i * 53) % 100)) / 100);
     const d = overlay(cls, x, y);
@@ -318,8 +327,11 @@ function particles(el: HTMLElement, n: number, colors: string[], r: number, rise
       ],
       ms * r * (0.8 + ((i * 17) % 40) / 100),
       EASING.easeOut,
-      { delay: i * 25 * r },
-    ).then(() => d.remove());
+      { delay: j * 25 * r },
+    ).then(() => {
+      d.remove();
+      liveParticles--;
+    });
   }
 }
 
@@ -453,7 +465,7 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
     const g = graveEl(owner);
     if (!g) return;
     const to = center(g);
-    const n = 12;
+    const n = compactTable() ? PHONE_FX.ashes : 12;
     let left = n;
     for (let i = 0; i < n; i++) {
       const x = rect.left + rect.width * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
@@ -931,8 +943,9 @@ function turnBanner(mine: boolean, r: number) {
 
 /** My playable cards light up for a moment (hand cards I can afford, characters ready to attack). */
 export function playableGlow(r: number) {
-  document.querySelectorAll<HTMLElement>('.table .hand .card.is-ready, .table .board.mine .card.is-ready').forEach((el, i) => {
-    const rect = el.getBoundingClientRect();
+  // story 13.12: every place is read first, then the glows are added (no layout between two reads)
+  const rects = [...document.querySelectorAll<HTMLElement>('.table .hand .card.is-ready, .table .board.mine .card.is-ready')].map((el) => el.getBoundingClientRect());
+  rects.forEach((rect, i) => {
     if (!rect.width) return;
     const g = overlay('fx-glow playable', rect.left, rect.top);
     g.style.width = `${rect.width}px`;
@@ -961,7 +974,8 @@ function gameEnd(winner: PlayerId | 'draw', ms: number, r: number) {
     }
   }
   if (winner === me) {
-    for (let i = 0; i < 36; i++) {
+    const coins = compactTable() ? PHONE_FX.gold : 36;
+    for (let i = 0; i < coins; i++) {
       const x = (innerWidth * ((i * 37) % 100)) / 100;
       const coin = overlay('fx-gold', x, -12);
       void animate(coin, [{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translateY(${innerHeight + 30}px) rotate(${(i % 2 ? 1 : -1) * 540}deg)`, opacity: 0.9 }], (1300 + ((i * 53) % 700)) * k, { delay: (500 + ((i * 29) % 900)) * k, easing: EASING.easeIn }).then(() => coin.remove());

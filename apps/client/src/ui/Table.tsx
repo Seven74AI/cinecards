@@ -38,14 +38,41 @@ type Mode =
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
 
-function useNow(active: boolean) {
+/**
+ * The clock of the countdowns. Story 13.12: the table renders again only when a shown second changes (it was
+ * every 500 ms, a whole table render each time, also in the middle of an animation).
+ */
+function useNow(deadlines: readonly (number | null | undefined)[]) {
+  const ds = deadlines.filter((d): d is number => !!d);
+  const key = ds.join(',');
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!active) return;
-    const t = setInterval(() => setNow(Date.now()), 500);
+    if (!ds.length) return;
+    const secs = (t: number) => ds.map((d) => Math.ceil((d - t) / 1000)).join(',');
+    let shown = secs(Date.now());
+    setNow(Date.now());
+    const t = setInterval(() => {
+      const n = Date.now();
+      const s = secs(n);
+      if (s === shown) return;
+      shown = s;
+      setNow(n);
+    }, 200);
     return () => clearInterval(t);
-  }, [active]);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   return now;
+}
+
+/** Runs `fn` at the next frame (or after 100 ms if no frame comes, e.g. the tab was just hidden), once. */
+function nextFrame(fn: () => void) {
+  let done = false;
+  const run = () => {
+    if (done) return;
+    done = true;
+    fn();
+  };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run);
+  setTimeout(run, 100);
 }
 
 function useMedia(q: string) {
@@ -109,10 +136,13 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   pb.alertFor = alertFor;
   pb.names = names;
   pb.onFlush = clearLeads;
+  // story 13.12: the ambient effects (runes, embers, candle) pause while actions play
+  pb.onPlaying = (on) => document.documentElement.classList.toggle('cc-playing', on);
+  useEffect(() => () => document.documentElement.classList.remove('cc-playing'), []);
   const view = useSyncExternalStore(pb.subscribe, pb.get);
   const shown = view.state;
   const [speed, setSpeed] = useState<AnimSpeed>(pb.speed);
-  const now = useNow(!!snap.turnEndsAt || !!snap.reactionEndsAt || !!snap.awayUntil);
+  const now = useNow([snap.turnEndsAt, snap.reactionEndsAt, snap.awayUntil]);
 
   // hot-seat: hide the table when the device changes hands
   const lastViewer = useRef(viewer);
@@ -144,14 +174,36 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (beat.dice) setDice({ ...beat.dice, key: Date.now() });
     if (beat.highlight) setHighlight({ name: beat.highlight.name, cardId: beat.highlight.cardId, key: Date.now() });
   };
+  // story 13.12: a batch starts playing at the next frame, so the frame of the tap (rules, React render) and the
+  // frame where the staging starts (layout reads, first animations) are two shorter frames instead of one long one
+  const toPush = useRef<[GameState, GameState, import('@cinecards/engine').GameEvent[]][]>([]);
+  const pushFrame = useRef(0);
   useEffect(() => {
     const before = prevState.current;
     prevState.current = state;
     if (before === state || snap.seq <= 1) return;
-    pb.push(before, state, snap.events);
+    toPush.current.push([before, state, snap.events]);
+    if (pushFrame.current) return;
+    const drain = () => {
+      pushFrame.current = 0;
+      const q = toPush.current;
+      toPush.current = [];
+      for (const [b, a, e] of q) pb.push(b, a, e);
+    };
+    if (document.hidden || typeof requestAnimationFrame !== 'function') drain();
+    else pushFrame.current = requestAnimationFrame(drain);
   }, [snap.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** Playing, or about to: a new position not yet handed to the playback (it starts at the next frame). */
+  const busy = pb.playing || state !== prevState.current || toPush.current.length > 0;
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(pushFrame.current);
+      pushFrame.current = 0;
+    },
+    [],
+  );
   // solo: Le Grimoire waits for the replay; hot seat: nothing plays behind the hand-over screen
-  useEffect(() => session.pace?.(() => pb.busyFor()), [session, pb]);
+  useEffect(() => session.pace?.(() => (toPush.current.length ? 1000 : pb.busyFor())), [session, pb]);
   useEffect(() => pb.pause(handoffFor !== null), [pb, handoffFor]);
   useEffect(() => {
     const hide = () => document.hidden && pb.flush();
@@ -215,8 +267,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (autoSide !== null) setDismissed(autoKey);
   };
   useEffect(() => {
-    if (heldZoom && snap.seq > heldZoom.seq && !pb.playing) setHeldZoom(null);
-  }, [heldZoom, snap.seq, view, pb]);
+    if (heldZoom && snap.seq > heldZoom.seq && !busy) setHeldZoom(null);
+  }, [heldZoom, snap.seq, view, busy]);
   useEffect(() => {
     if (!heldZoom) return;
     const t = setTimeout(() => setHeldZoom(null), 6000);
@@ -271,7 +323,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const send = (a: Action) => {
     sfx('click');
     pb.hurry();
-    session.send(a);
+    // story 13.12: the rules run at the next frame; the frame of the tap only closes the menus (shorter frames)
+    nextFrame(() => session.send(a));
     if (auto !== null) setHeldZoom({ side: auto, seq: snap.seq, attack: mode.k === 'attack' });
     setManualZoom(null);
     setMode({ k: 'idle' });
@@ -664,7 +717,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const pending = state.pending;
 
   return (
-    <div className={'table-root' + (wide ? ' wide' : '')}>
+    <div className={'table-root' + (wide ? ' wide' : '') + (compact ? ' phone' : '')}>
       <Ambient />
       {wide ? <div className="col-left">{journal}</div> : null}
       <main className={'table' + (compact ? ` compact zoom-${zoom === null ? 'none' : zoom === me ? 'mine' : 'theirs'}${fold ? ' fold' : ''}` : '')}>
@@ -852,7 +905,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         </div>
       ) : null}
       {/* story 12.7: the end screen waits for the victory or defeat moment */}
-      {state.phase === 'finished' && !pb.playing ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
+      {state.phase === 'finished' && !busy ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
       {confirmQuit === 'quit' ? (
         <div className="overlay">
           <div className="parchment card-panel">

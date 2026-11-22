@@ -85,6 +85,18 @@ const LAUREL = [
   [50, 13, -50],
 ] as const;
 
+function Laurel({ glow = false }: { glow?: boolean }) {
+  return (
+    <svg className={'tok-laurel' + (glow ? ' glow' : '')} viewBox="0 0 68 68" aria-hidden="true">
+      <g fill="#f2d27a" stroke="#8a6416" strokeWidth=".6">
+        {LAUREL.map(([x, y, r], i) => (
+          <ellipse key={i} cx={x} cy={y} rx="3" ry="6.5" transform={`rotate(${r} ${x} ${y})`} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
 /** Cost token: its shape and icon give the category; ring, set gem and laurel grow with the rarity. */
 export function CostToken({ card, cost }: { card: Pick<Card, 'category' | 'rarity'>; cost: number }) {
   const tok = CATEGORY_TOKEN[card.category] ?? CATEGORY_TOKEN.character!;
@@ -92,13 +104,11 @@ export function CostToken({ card, cost }: { card: Pick<Card, 'category' | 'rarit
   return (
     <span className={`card-token ${tok.shape}`} title={CATEGORY_FR[card.category]}>
       {lv === 3 ? (
-        <svg className="tok-laurel" viewBox="0 0 68 68" aria-hidden="true">
-          <g fill="#f2d27a" stroke="#8a6416" strokeWidth=".6">
-            {LAUREL.map(([x, y, r], i) => (
-              <ellipse key={i} cx={x} cy={y} rx="3" ry="6.5" transform={`rotate(${r} ${x} ${y})`} />
-            ))}
-          </g>
-        </svg>
+        <>
+          <Laurel />
+          {/* story 13.12: the same laurel with its strong glow drawn once; only its opacity pulses */}
+          <Laurel glow />
+        </>
       ) : null}
       {lv >= 1 ? (
         <span className="tok-ring">

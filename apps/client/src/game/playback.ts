@@ -94,6 +94,9 @@ export class Playback {
   onCue: (c: Cue) => void = () => {};
   /** Story 13.10: everything queued was dropped (instant speed, hidden tab): overlays of a lead must go. */
   onFlush: () => void = () => {};
+  /** Story 13.12: a playback starts (true) or is over (false); the table pauses its ambient effects meanwhile. */
+  onPlaying: (on: boolean) => void = () => {};
+  private wasPlaying = false;
 
   constructor(
     private readonly catalog: Catalog,
@@ -163,6 +166,7 @@ export class Playback {
       this.view = idleView(last);
       this.emit();
     }
+    this.syncPlaying();
   }
 
   /** Milliseconds until the queued playback is over (estimate, for pacing the bot). */
@@ -186,6 +190,14 @@ export class Playback {
     const queued = this.queue.flatMap((b) => drawnBy(b.events));
     if (queued.length) this.view = { ...this.view, incoming: new Set([...this.view.incoming, ...queued]) };
     for (const l of this.listeners) l();
+    this.syncPlaying();
+  }
+
+  private syncPlaying() {
+    const on = this.playing;
+    if (on === this.wasPlaying) return;
+    this.wasPlaying = on;
+    this.onPlaying(on);
   }
 
   private refresh() {
@@ -199,6 +211,7 @@ export class Playback {
     const batch = this.queue.shift();
     if (!batch) {
       this.cur = null;
+      this.syncPlaying();
       return;
     }
     this.cur = { batch, played: 0, held: new Set(), led: -1 };

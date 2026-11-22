@@ -131,6 +131,21 @@ describe('12.1 playback', () => {
     expect(rates.at(-1)).toBe(1);
   });
 
+  it('13.12 tells when a playback starts and ends (the ambient effects pause meanwhile)', () => {
+    const { before, after, events } = killScene();
+    const pb = new Playback(MVP, before, 'normal');
+    const seen: boolean[] = [];
+    pb.onPlaying = (on) => seen.push(on);
+    pb.push(before, after, events);
+    expect(seen).toEqual([true]);
+    vi.advanceTimersByTime(10_000);
+    expect(pb.playing).toBe(false);
+    expect(seen).toEqual([true, false]);
+    pb.push(before, after, events);
+    pb.flush();
+    expect(seen).toEqual([true, false, true, false]);
+  });
+
   it('pauses (hot-seat hand-over) and resumes', () => {
     const { before, after, events } = killScene();
     const pb = new Playback(MVP, before, 'fast');

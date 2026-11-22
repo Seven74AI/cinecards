@@ -25,6 +25,21 @@ function ac(): AudioContext | null {
   return ctx;
 }
 
+/**
+ * Story 13.12: creating the AudioContext takes a while; it is made on the first touch or key (when the browser
+ * allows it), so the first played action does not pay for it in the middle of its animation.
+ */
+export function warmAudio() {
+  if (typeof window === 'undefined') return;
+  const warm = () => {
+    if (!muted) ac();
+    window.removeEventListener('pointerdown', warm, true);
+    window.removeEventListener('keydown', warm, true);
+  };
+  window.addEventListener('pointerdown', warm, true);
+  window.addEventListener('keydown', warm, true);
+}
+
 function tone(freq: number, dur: number, type: OscillatorType = 'sine', gain = 0.12, slide = 0, delay = 0) {
   const a = ac();
   if (!a) return;

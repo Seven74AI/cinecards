@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-22T20:16:11.793Z",
+  "url": "http://localhost:5676",
+  "device": "iPhone 13",
+  "results": [
+    {
+      "label": "before dpr1",
+      "engine": "webkit",
+      "scene": "mort",
+      "avgFps": 41.5,
+      "worstMs": 148,
+      "over50": 4.7,
+      "over34": 15.7,
+      "runs": [
+        {
+          "frames": 159,
+          "avgFps": 45.1,
+          "worstMs": 137,
+          "p95Ms": 41,
+          "over50": 5,
+          "over34": 14
+        },
+        {
+          "frames": 139,
+          "avgFps": 39.5,
+          "worstMs": 147,
+          "p95Ms": 41,
+          "over50": 3,
+          "over34": 17
+        },
+        {
+          "frames": 141,
+          "avgFps": 40,
+          "worstMs": 148,
+          "p95Ms": 42,
+          "over50": 6,
+          "over34": 16
+        }
+      ]
+    },
+    {
+      "label": "before dpr1",
+      "engine": "webkit",
+      "scene": "pose",
+      "avgFps": 56.6,
+      "worstMs": 333,
+      "over50": 2.7,
+      "over34": 6.3,
+      "runs": [
+        {
+          "frames": 332,
+          "avgFps": 54.7,
+          "worstMs": 333,
+          "p95Ms": 26,
+          "over50": 3,
+          "over34": 6
+        },
+        {
+          "frames": 347,
+          "avgFps": 57.2,
+          "worstMs": 168,
+          "p95Ms": 27,
+          "over50": 3,
+          "over34": 8
+        },
+        {
+          "frames": 351,
+          "avgFps": 57.8,
+          "worstMs": 163,
+          "p95Ms": 26,
+          "over50": 2,
+          "over34": 5
+        }
+      ]
+    },
+    {
+      "label": "before dpr1",
+      "engine": "webkit",
+      "scene": "repos",
+      "avgFps": 61.5,
+      "worstMs": 31,
+      "over50": 0,
+      "over34": 0,
+      "runs": [
+        {
+          "frames": 184,
+          "avgFps": 61.7,
+          "worstMs": 28,
+          "p95Ms": 18,
+          "over50": 0,
+          "over34": 0
+        },
+        {
+          "frames": 184,
+          "avgFps": 61.6,
+          "worstMs": 27,
+          "p95Ms": 17,
+          "over50": 0,
+          "over34": 0
+        },
+        {
+          "frames": 183,
+          "avgFps": 61.3,
+          "worstMs": 31,
+          "p95Ms": 18,
+          "over50": 0,
+          "over34": 0
+        }
+      ]
+    }
+  ]
+}

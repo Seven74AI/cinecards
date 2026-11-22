@@ -70,65 +70,73 @@ Coche ou corrige après ton prochain playtest.
 
 ## Textes de cartes modifiés (story 13.4)
 
+✅ Validé par Root (2026-11-22, lot 3).
+
 | Carte — capacité | Avant | Après |
 |---|---|---|
 | Néo a.k.a L'élu — « Y m'faut des armes, un maximum d'armes » | Néo s'équipe dans la Matrice : tous les 2 tours, ses dégâts sont doublés. | Tous les 2 tours, l'ATQ de Néo double (le bonus se cumule). |
 
 ## Textes de cartes modifiés (story 11.8)
 
+✅ Validé par Root (2026-11-22, lot 3).
+
 « Attaque » → « Attaque spéciale » en tête des 6 capacités d'attaque, le reste du texte inchangé : Les Chevaliers qui disent « Ni ! » (« Ni ! »), Ramada Thompson (« Le dîner romantique »), Les sentinelles (« Attaque groupée sur Sion »), Le Mulo (« la femme en robe rouge »), Kevin Copeland (« Couverture grillée »), Heather et Megan Vandergeld (« Langue de vipère »).
 
 ## Raretés proposées pour les sorts, équipements et terrains (story 11.7)
+
+✅ Validé par Root (2026-11-22, lot 3).
 
 Courbe du GDD : commune 1-3, rare 4-5, épique 6-8, légendaire 9+ ; terrains selon leur impact.
 
 | Carte | Catégorie | Coût | Rareté proposée | OK ? |
 |---|---|---|---|---|
-| Fuyez ! Fuyez ! | Sort | 2 | Commune | |
-| Le dîner sur le ventre | Sort | 3 | Commune | |
-| Battle de danse | Sort | 5 | Rare | |
-| La Sainte Grenade d'Antioche | Sort | 6 | Épique | |
-| Missile à tête chercheuse | Sort | 7 | Épique | |
-| Les pilules de Morpheus | Sort | 7 | Épique | |
-| E.M.P | Sort | 8 | Épique | |
-| Ça pisse tu m'étonnes | Sort | 12 | Légendaire | |
-| Unité A.P.U | Équipement | 6 | Épique | |
-| Le porte-avions | Terrain | 3 | Commune (+20 ATQ seulement) | |
-| Camelot | Terrain | 3 | Rare (+30 PV et bloque un terrain adverse) | |
-| Les Hamptons | Terrain | 3 | Rare (+30 ATQ et plafond +3) | |
-| La Matrice | Terrain | 0 | Légendaire (−50 % de dégâts pour tout Matrix) | |
+| Fuyez ! Fuyez ! | Sort | 2 | Commune | ✅ |
+| Le dîner sur le ventre | Sort | 3 | Commune | ✅ |
+| Battle de danse | Sort | 5 | Rare | ✅ |
+| La Sainte Grenade d'Antioche | Sort | 6 | Épique | ✅ |
+| Missile à tête chercheuse | Sort | 7 | Épique | ✅ |
+| Les pilules de Morpheus | Sort | 7 | Épique | ✅ |
+| E.M.P | Sort | 8 | Épique | ✅ |
+| Ça pisse tu m'étonnes | Sort | 12 | Légendaire | ✅ |
+| Unité A.P.U | Équipement | 6 | Épique | ✅ |
+| Le porte-avions | Terrain | 3 | Commune (+20 ATQ seulement) | ✅ |
+| Camelot | Terrain | 3 | Rare (+30 PV et bloque un terrain adverse) | ✅ |
+| Les Hamptons | Terrain | 3 | Rare (+30 ATQ et plafond +3) | ✅ |
+| La Matrice | Terrain | 0 | Légendaire (−50 % de dégâts pour tout Matrix) | ✅ |
 
 ## Textes de cartes modifiés (story 11.6)
 
+✅ Validé par Root (2026-11-22, lot 3).
+
 | Carte — capacité (réplique inchangée) | Ancien texte | Nouveau texte | OK ? |
 |---|---|---|---|
-| Les Chevaliers qui disent « Ni ! » — « Ni ! » | Réduit au silence un personnage adverse pendant 1 tour. | Attaque : réduit au silence un personnage adverse pendant 1 tour. | |
-| Tim l'Enchanteur — « Certains m'appellent… Tim » | À son arrivée : inflige 50 dégâts au personnage adverse de votre choix. | À l'arrivée : inflige 50 dégâts au personnage adverse de votre choix. | |
-| Patsy — « Clip-clop » | Arthur peut attaquer dès son arrivée (voir « Au galop ! »). | Tant que Patsy est sur votre table, Arthur a la hâte (voir « Au galop ! »). | |
-| Camelot — « Personne n'a envie d'y aller » | À son arrivée : l'adversaire ne peut pas poser de terrain à son prochain tour. | À l'arrivée : l'adversaire ne peut pas poser de terrain à son prochain tour. | |
-| Ramada Thompson — « Le dîner romantique » | Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour. | Attaque : Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour. | |
-| Amiral Benson — « Vétéran de toutes les guerres » | Au début de votre tour, il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ. | Début de votre tour : il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ jusqu'à la fin du tour. | |
-| Le Commandant de l'escadrille — « Briefing » | À son arrivée : un de vos personnages peut attaquer une deuxième fois ce tour. | À l'arrivée : un de vos personnages peut attaquer une deuxième fois ce tour. | |
-| Le maître des clés — « Il y a un immeuble, dans cet immeuble il y a un étage auquel nul escalier ne conduit… » | Vous regardez les 6 prochaines cartes de VOTRE deck et en choisissez 3. | À l'arrivée : regardez les 6 prochaines cartes de VOTRE deck et gardez-en jusqu'à 3. | |
-| Epok — « Lumière EPOK » | Vous piochez 3 cartes. | À l'arrivée : vous piochez 3 cartes. | |
-| Epok — « J'espère que l'oracle t'a prédit de bonnes choses » | Vous boostez TOUTES les cartes du monde de « Matrix » : +30 ATQ / +50 PV. | À l'arrivée : vous boostez TOUTES les cartes du monde de « Matrix » en jeu : +30 ATQ / +50 PV. | |
-| Dozer — « Ça dégraisse les moteurs et ça tue les cellules grises » | Cocktail de Dozer du Nebuchadnezzar : GUÉRIT TOUTES vos cartes des effets NÉGATIFS. | À l'arrivée : cocktail de Dozer du Nebuchadnezzar, GUÉRIT TOUTES vos cartes des effets NÉGATIFS. | |
-| Unité A.P.U — « Commandant Lock, toutes les A.P.U sont en position ! » | Si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Ne fonctionne qu'avec les cartes neutres du monde de « Matrix » : +100 ATQ. | À l'arrivée : si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Sinon, une de vos cartes du monde de « Matrix » gagne +100 ATQ. | |
-| Les sentinelles — « Attaque groupée sur Sion » | Vous absorbez l'ATQ de vos cartes présentes sur le terrain pendant 1 tour (usage unique). | Attaque, usage unique : vous absorbez l'ATQ de vos autres cartes présentes sur le terrain jusqu'à la fin de votre prochain tour. | |
-| Les sentinelles — « Ville des machines » | Tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV. | Début de votre tour : tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV. | |
-| Switch — « Écoute, on n'a pas le temps de jouer à question-réponse, obéis-moi ou bien casse-toi ! » | Confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes. | À l'arrivée : confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes. | |
-| L'ange sans ailes — « Là-bas en face de l'ascenseur il y a un vestiaire… Vous avez la charge » | Lors de votre arrivée, vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse. | À l'arrivée : vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse de votre choix. | |
-| L'ange sans ailes — « Un code est inséré dans le computer… » | Piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci. | À l'arrivée, au choix : piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci. | |
-| Tank — « Opérateur ?! Eh, l'magicien, fais-moi sortir maintenant ! » | Les agents sont à vos trousses : choisissez 3 cartes sur le terrain avant de les renvoyer dans la main de leur propriétaire. | À l'arrivée : les agents sont à vos trousses, choisissez jusqu'à 3 cartes sur le terrain et renvoyez-les dans la main de leur propriétaire. | |
-| Smith a.k.a The Virus — « Je hais cette planète, ce zoo, cette prison, cette réalité peu importe comment vous la nommez » | Vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain. | À l'arrivée : vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain. | |
-| Smith a.k.a The Virus — « Je n'peux plus la supporter, elle sent la MERDE ! » | Vous piochez dans votre cimetière jusqu'à 15 cartes max. dans votre main. | À l'arrivée : choisissez jusqu'à 15 cartes de votre cimetière et prenez-les en main. | |
-| Le Mulo — « Ah au fait, on m'a dit que t'as eu droit à mon programme spécial « la femme en robe rouge »… » | Vos adversaires se battent pour la femme en robe rouge : chaque ennemi attaque ses alliés adjacents. | Attaque, tous les 2 tours : vos adversaires se battent pour la femme en robe rouge, chaque ennemi attaque ses alliés adjacents. | |
-| Le Mulo — « Le p'tit derrière toi c'est l'Mulo » | TOUTES les cartes du monde de « MATRIX » gagnent +40 ATQ / +50 PV. | À l'arrivée : TOUTES les cartes du monde de « MATRIX » en jeu gagnent +40 ATQ / +50 PV. | |
-| Trinity — « Je crois en la prophétie de l'Oracle » | Pendant 2 tours, TOUTES les cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS. | À l'arrivée : pendant 2 tours, TOUTES vos cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS. | |
-| Néo a.k.a L'élu — « Trinity ! Aide-moi ! » | Si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain. | À l'arrivée : si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain. | |
-| Cypher — « Je veux être… quelqu'un d'important… comme un acteur. Les ignorants sont bénis » | Vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ. | À l'arrivée : vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ actuels. | |
-| Latrell Spencer — « A Thousand Miles » | À son arrivée : les personnages adverses ne peuvent pas attaquer pendant 1 tour (ils sont sous le charme). | À l'arrivée : les personnages adverses ne peuvent pas attaquer pendant 1 tour (ils sont sous le charme). | |
-| Kevin Copeland — « Couverture grillée » | Une fois par partie : retire tous les effets (bonus et malus) d'une carte. | Attaque, une fois par partie : retire tous les effets (bonus et malus) d'une carte. | |
-| Brittany et Tiffany Wilson — « Héritières » | À leur arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | À l'arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | |
-| Heather et Megan Vandergeld — « Langue de vipère » | Un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | Attaque : un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | |
-| Le Chef Elliott Gordon — « Vous êtes virés ! » | À son arrivée : l'adversaire défausse une carte au hasard. | À l'arrivée : l'adversaire défausse une carte au hasard. | |
+| Les Chevaliers qui disent « Ni ! » — « Ni ! » | Réduit au silence un personnage adverse pendant 1 tour. | Attaque : réduit au silence un personnage adverse pendant 1 tour. | ✅ |
+| Tim l'Enchanteur — « Certains m'appellent… Tim » | À son arrivée : inflige 50 dégâts au personnage adverse de votre choix. | À l'arrivée : inflige 50 dégâts au personnage adverse de votre choix. | ✅ |
+| Patsy — « Clip-clop » | Arthur peut attaquer dès son arrivée (voir « Au galop ! »). | Tant que Patsy est sur votre table, Arthur a la hâte (voir « Au galop ! »). | ✅ |
+| Camelot — « Personne n'a envie d'y aller » | À son arrivée : l'adversaire ne peut pas poser de terrain à son prochain tour. | À l'arrivée : l'adversaire ne peut pas poser de terrain à son prochain tour. | ✅ |
+| Ramada Thompson — « Le dîner romantique » | Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour. | Attaque : Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour. | ✅ |
+| Amiral Benson — « Vétéran de toutes les guerres » | Au début de votre tour, il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ. | Début de votre tour : il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ jusqu'à la fin du tour. | ✅ |
+| Le Commandant de l'escadrille — « Briefing » | À son arrivée : un de vos personnages peut attaquer une deuxième fois ce tour. | À l'arrivée : un de vos personnages peut attaquer une deuxième fois ce tour. | ✅ |
+| Le maître des clés — « Il y a un immeuble, dans cet immeuble il y a un étage auquel nul escalier ne conduit… » | Vous regardez les 6 prochaines cartes de VOTRE deck et en choisissez 3. | À l'arrivée : regardez les 6 prochaines cartes de VOTRE deck et gardez-en jusqu'à 3. | ✅ |
+| Epok — « Lumière EPOK » | Vous piochez 3 cartes. | À l'arrivée : vous piochez 3 cartes. | ✅ |
+| Epok — « J'espère que l'oracle t'a prédit de bonnes choses » | Vous boostez TOUTES les cartes du monde de « Matrix » : +30 ATQ / +50 PV. | À l'arrivée : vous boostez TOUTES les cartes du monde de « Matrix » en jeu : +30 ATQ / +50 PV. | ✅ |
+| Dozer — « Ça dégraisse les moteurs et ça tue les cellules grises » | Cocktail de Dozer du Nebuchadnezzar : GUÉRIT TOUTES vos cartes des effets NÉGATIFS. | À l'arrivée : cocktail de Dozer du Nebuchadnezzar, GUÉRIT TOUTES vos cartes des effets NÉGATIFS. | ✅ |
+| Unité A.P.U — « Commandant Lock, toutes les A.P.U sont en position ! » | Si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Ne fonctionne qu'avec les cartes neutres du monde de « Matrix » : +100 ATQ. | À l'arrivée : si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Sinon, une de vos cartes du monde de « Matrix » gagne +100 ATQ. | ✅ |
+| Les sentinelles — « Attaque groupée sur Sion » | Vous absorbez l'ATQ de vos cartes présentes sur le terrain pendant 1 tour (usage unique). | Attaque, usage unique : vous absorbez l'ATQ de vos autres cartes présentes sur le terrain jusqu'à la fin de votre prochain tour. | ✅ |
+| Les sentinelles — « Ville des machines » | Tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV. | Début de votre tour : tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV. | ✅ |
+| Switch — « Écoute, on n'a pas le temps de jouer à question-réponse, obéis-moi ou bien casse-toi ! » | Confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes. | À l'arrivée : confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes. | ✅ |
+| L'ange sans ailes — « Là-bas en face de l'ascenseur il y a un vestiaire… Vous avez la charge » | Lors de votre arrivée, vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse. | À l'arrivée : vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse de votre choix. | ✅ |
+| L'ange sans ailes — « Un code est inséré dans le computer… » | Piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci. | À l'arrivée, au choix : piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci. | ✅ |
+| Tank — « Opérateur ?! Eh, l'magicien, fais-moi sortir maintenant ! » | Les agents sont à vos trousses : choisissez 3 cartes sur le terrain avant de les renvoyer dans la main de leur propriétaire. | À l'arrivée : les agents sont à vos trousses, choisissez jusqu'à 3 cartes sur le terrain et renvoyez-les dans la main de leur propriétaire. | ✅ |
+| Smith a.k.a The Virus — « Je hais cette planète, ce zoo, cette prison, cette réalité peu importe comment vous la nommez » | Vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain. | À l'arrivée : vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain. | ✅ |
+| Smith a.k.a The Virus — « Je n'peux plus la supporter, elle sent la MERDE ! » | Vous piochez dans votre cimetière jusqu'à 15 cartes max. dans votre main. | À l'arrivée : choisissez jusqu'à 15 cartes de votre cimetière et prenez-les en main. | ✅ |
+| Le Mulo — « Ah au fait, on m'a dit que t'as eu droit à mon programme spécial « la femme en robe rouge »… » | Vos adversaires se battent pour la femme en robe rouge : chaque ennemi attaque ses alliés adjacents. | Attaque, tous les 2 tours : vos adversaires se battent pour la femme en robe rouge, chaque ennemi attaque ses alliés adjacents. | ✅ |
+| Le Mulo — « Le p'tit derrière toi c'est l'Mulo » | TOUTES les cartes du monde de « MATRIX » gagnent +40 ATQ / +50 PV. | À l'arrivée : TOUTES les cartes du monde de « MATRIX » en jeu gagnent +40 ATQ / +50 PV. | ✅ |
+| Trinity — « Je crois en la prophétie de l'Oracle » | Pendant 2 tours, TOUTES les cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS. | À l'arrivée : pendant 2 tours, TOUTES vos cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS. | ✅ |
+| Néo a.k.a L'élu — « Trinity ! Aide-moi ! » | Si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain. | À l'arrivée : si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain. | ✅ |
+| Cypher — « Je veux être… quelqu'un d'important… comme un acteur. Les ignorants sont bénis » | Vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ. | À l'arrivée : vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ actuels. | ✅ |
+| Latrell Spencer — « A Thousand Miles » | À son arrivée : les personnages adverses ne peuvent pas attaquer pendant 1 tour (ils sont sous le charme). | À l'arrivée : les personnages adverses ne peuvent pas attaquer pendant 1 tour (ils sont sous le charme). | ✅ |
+| Kevin Copeland — « Couverture grillée » | Une fois par partie : retire tous les effets (bonus et malus) d'une carte. | Attaque, une fois par partie : retire tous les effets (bonus et malus) d'une carte. | ✅ |
+| Brittany et Tiffany Wilson — « Héritières » | À leur arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | À l'arrivée : bonus de pièces +3 pour ce tour (même au-delà du plafond). | ✅ |
+| Heather et Megan Vandergeld — « Langue de vipère » | Un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | Attaque : un personnage adverse perd 30 ATQ jusqu'à la fin de la partie. | ✅ |
+| Le Chef Elliott Gordon — « Vous êtes virés ! » | À son arrivée : l'adversaire défausse une carte au hasard. | À l'arrivée : l'adversaire défausse une carte au hasard. | ✅ |

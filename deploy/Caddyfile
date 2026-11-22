@@ -1,5 +1,0 @@
-# HTTPS certificate is automatic. WebSockets are proxied as-is.
-{$DOMAIN} {
-	encode gzip
-	reverse_proxy server:2567
-}

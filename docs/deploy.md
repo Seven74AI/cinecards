@@ -9,29 +9,31 @@ Le jeu local (deux joueurs sur un téléphone, ou contre le Grimoire) marche san
 
 ## 1. Le serveur sur le VPS
 
-Prérequis : Docker et Docker Compose installés, un sous-domaine (par ex. `cinecards.tondomaine.fr`)
-qui pointe vers l'IP du VPS (enregistrement DNS de type A), ports 80 et 443 ouverts.
+Prérequis : Docker et Docker Compose installés. Le serveur est exposé via le **Cloudflare Tunnel**
+`sevend-io-stream` (pas de port public, pas de Caddy) : la route `cinecards.sevend.io` →
+`http://localhost:2567` est configurée dans le tunnel, et le conteneur publie `127.0.0.1:2567` en
+loopback uniquement. HTTPS/WSS se terminent au edge Cloudflare.
 
 ```bash
 git clone <ton dépôt> cinecards
 cd cinecards/deploy
-DOMAIN=cinecards.tondomaine.fr docker compose up -d --build
+docker compose up -d --build
 ```
 
-Caddy obtient le certificat HTTPS tout seul. Vérification :
+Vérification :
 
 ```bash
-curl https://cinecards.tondomaine.fr/health   # répond "ok"
+curl https://cinecards.sevend.io/health   # répond "ok"
 ```
 
-Mise à jour après des changements : `git pull && DOMAIN=... docker compose up -d --build`.
+Mise à jour après des changements : `git pull && docker compose up -d --build`.
 
 ## 2. Le site sur GitHub Pages
 
 1. Pousse le dépôt sur GitHub (branche `main`).
 2. *Settings → Pages → Build and deployment → Source* : **GitHub Actions**.
 3. *Settings → Secrets and variables → Actions → Variables* : crée la variable
-   `CINECARDS_SERVER_URL` = `wss://cinecards.tondomaine.fr`.
+   `CINECARDS_SERVER_URL` = `wss://cinecards.sevend.io`.
 4. Chaque push sur `main` reconstruit le site (workflow `pages.yml`).
 
 Sans la variable, le site fonctionne mais l'onglet « En ligne » est désactivé.

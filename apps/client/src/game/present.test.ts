@@ -104,6 +104,19 @@ describe('12.1 playback', () => {
     expect(normal.get().state).toBe(after);
   });
 
+  it('acting hurries what was queued, not the batch the action brings', () => {
+    const { before, after, events } = killScene();
+    const pb = new Playback(MVP, before, 'normal');
+    const rates: number[] = [];
+    pb.onCue = (c) => rates.push(c.rate);
+    pb.push(before, after, events);
+    pb.hurry();
+    pb.push(after, after, [{ type: 'turnEnded', player: 0 }, { type: 'turnStarted', player: 1, turnNumber: 4 }]);
+    vi.advanceTimersByTime(10_000);
+    expect(rates[1]).toBe(0.25);
+    expect(rates.at(-1)).toBe(1);
+  });
+
   it('pauses (hot-seat hand-over) and resumes', () => {
     const { before, after, events } = killScene();
     const pb = new Playback(MVP, before, 'fast');

@@ -39,6 +39,7 @@ _(aucune pour l'instant)_
 - [ ] **12.1** — Quand le joueur agit pendant une animation, la suite se joue 4 fois plus vite (2 fois plus vite quand plusieurs lots attendent) ; la main, les boutons et les fenêtres de choix suivent tout de suite l'état réel.
 - [ ] **12.1** — En solo, le Grimoire attend la fin de l'animation précédente avant son action suivante (son tour dure donc un peu plus). En hot seat, l'animation se met en pause derrière l'écran « Passe l'appareil » et reprend quand le joueur suivant est prêt. Si l'onglet passe en arrière-plan, on saute à la fin.
 - [ ] **12.1** — Durées de base (vitesse normale) : attaque 0,39 s + impact 0,3 s, dégâts 0,3 s, coup au joueur 0,42 s, mort 0,8 s (la carte reste dans son socle pendant ce temps), pose 0,35 s, légendaire 1,5 s, dé 1,3 s.
+- [ ] **12.2** — Sur le téléphone, la table est plus haute que dans la démo : l'attaquant s'arrête juste avant sa cible (les cartes se touchent) au lieu de 78 % du trajet. Les réactions (« pendant le tour adverse ») ont le même trait que l'attaque spéciale, en doré au lieu de bleu.
 
 ## Textes de cartes modifiés (story 11.8)
 

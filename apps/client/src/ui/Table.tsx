@@ -15,6 +15,7 @@ import type { Session } from '../game/session.ts';
 import type { Fx } from '../game/fx.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
 import { deathFx } from './anim.ts';
+import { direct } from './director.ts';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
@@ -120,8 +121,10 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     }, ms);
     fxTimers.current.push(t);
   };
-  pb.onCue = ({ beat, ms, rate }: Cue) => {
+  pb.onCue = (cue: Cue) => {
+    const { beat, ms, rate } = cue;
     sfx(beat.sound);
+    direct(cue);
     if (beat.fx.length) {
       setFx((cur) => [...cur, ...beat.fx]);
       const ids = new Set(beat.fx.map((f) => f.id));
@@ -375,7 +378,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     const canHit = mode.k === 'attack' && mode.targets.some((t) => t.kind === 'player' && t.player === player);
     const active = state.active === player;
     return (
-      <div className={'hero' + (canHit ? ' is-target' : '') + (active ? ' active' : '')} onClick={() => tapHero(player)} role={canHit ? 'button' : undefined}>
+      <div data-hero={player} className={'hero' + (canHit ? ' is-target' : '') + (active ? ' active' : '')} onClick={() => tapHero(player)} role={canHit ? 'button' : undefined}>
         <span className="avatar">{names[player].slice(0, 1).toUpperCase()}</span>
         <div className="hero-main">
           <div className="hero-line">

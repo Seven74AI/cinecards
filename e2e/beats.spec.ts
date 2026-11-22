@@ -60,3 +60,36 @@ test('instant speed: the result shows at once, and the setting is kept', async (
   await expect(page.getByRole('button', { name: /Vitesse des animations : normale/ })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('cinecards.animSpeed'))).toBe('normal');
 });
+
+/** Story 12.2: the attacker lifts, dashes at the portrait, and comes back to its slot; the table shakes. */
+test('an attack on the player dashes at the portrait and comes back', async ({ page }) => {
+  await page.goto('/?scene=joueur');
+  await page.locator('.board.mine').getByRole('button', { name: 'Topper Harley' }).click();
+  await page.getByRole('button', { name: 'Choisir une cible' }).click();
+  // follow the attacker frame by frame
+  await page.evaluate(() => {
+    const el = document.querySelector('.board.mine [aria-label="Topper Harley"]')!;
+    const slot = el.closest('.slot')!;
+    const w = window as unknown as { __ccPath: number[]; __ccShake: boolean };
+    w.__ccPath = [];
+    w.__ccShake = false;
+    const tick = () => {
+      w.__ccPath.push(el.getBoundingClientRect().top - slot.getBoundingClientRect().top);
+      if (document.querySelector('.table')!.getAnimations().length) w.__ccShake = true;
+      if (w.__ccPath.length < 150) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.locator('.hero.is-target').click();
+  await expect(page.locator('[data-hero="1"] .hero-hp')).toContainText('550');
+  await page.waitForFunction(() => (window as unknown as { __ccPath: number[] }).__ccPath.length >= 150);
+  const { path, shook } = await page.evaluate(() => {
+    const w = window as unknown as { __ccPath: number[]; __ccShake: boolean };
+    return { path: w.__ccPath, shook: w.__ccShake };
+  });
+  // the foe's portrait is above: the card travels well up, then is back home
+  expect(Math.min(...path)).toBeLessThan(path[0]! - 150);
+  // back in its slot (the 4 px lift of the selected card is gone once the attack is sent)
+  expect(Math.abs(path.at(-1)! - (path[0]! + 4))).toBeLessThan(1);
+  expect(shook).toBe(true);
+});

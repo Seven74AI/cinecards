@@ -37,6 +37,7 @@ export const TIMING = {
   returned: 450,
   dice: 1300,
   ability: 250,
+  special: 600, // glow + beam of a special attack or a reaction
   coin: 60,
   turn: 200,
 } as const;
@@ -112,7 +113,7 @@ export function planBeats(events: GameEvent[], catalog: Catalog): Beat[] {
         b.gap = TIMING.returned;
         break;
       case 'abilityUsed':
-        b.gap = TIMING.ability;
+        b.gap = e.trigger === 'attack' || e.trigger === 'reaction' ? TIMING.special : TIMING.ability;
         break;
       case 'attackDeclared':
         b.sound = 'swing';

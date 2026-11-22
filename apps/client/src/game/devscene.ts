@@ -7,6 +7,10 @@ import { createGame, type Catalog, type GameState, type PlayerId } from '@cineca
 const SCENES: Record<string, [string[], string[]]> = {
   // Topper Harley (150 ATQ) can kill the Knights who say "Ni!" (150 PV) next to the Black Knight
   mort: [['hs-topper', 'hg-lancelot'], ['hg-ni', 'hg-black-knight']],
+  // nobody in the foe's slots: Topper can hit the player's portrait
+  joueur: [['hs-topper'], []],
+  // the Knights' special attack "Ni !" silences an enemy character, without contact
+  speciale: [['hg-ni'], ['hg-lancelot', 'hg-black-knight']],
 };
 
 export function devScene(catalog: Catalog, name: string): GameState | null {

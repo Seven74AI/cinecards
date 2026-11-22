@@ -649,6 +649,29 @@ h3 {
   animation: burst 0.7s ease-out forwards;
   pointer-events: none;
 }
+/* epic 12: effects drawn over the table for a moment (outside React) */
+.fx-layer {
+  position: fixed;
+  pointer-events: none;
+  z-index: 60;
+  will-change: transform, opacity;
+}
+.fx-splat {
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+}
+.fx-beam {
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 2px;
+  transform-origin: 0 50%;
+}
+.fx-glow {
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #f2d27a, 0 0 28px 6px rgba(242, 210, 122, 0.9), inset 0 0 18px rgba(242, 210, 122, 0.6);
+}
+
 /* story 12.1: a destroyed card stays in its slot for its death beat */
 .card.is-dying {
   pointer-events: none;

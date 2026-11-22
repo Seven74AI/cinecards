@@ -18,7 +18,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects.
 - **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
   `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.
-1. **Phone smoothness (13.12):** Root should open the game with `?fps` on their iPhone and report the numbers (and whether Low Power Mode or Reduce Motion is on).
+- **Parked by Root (2026-11-22):** the iPhone `?fps` check and further performance tests. Do not bring them up until Root does.
 
 ## Next options (let Root choose)
 - **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.

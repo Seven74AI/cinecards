@@ -21,7 +21,7 @@ describe('where bonuses and penalties come from (story 13.3)', () => {
   });
 
   it('counts the sources of each badge', () => {
-    expect(sourceCounts(stats.sources)).toEqual({ atk: 3, hp: 2 });
+    expect(sourceCounts(stats.sources)).toEqual({ atk: 4, hp: 2 }); // + the A.P.U (story 13.5)
     expect(sourceCounts(undefined)).toEqual({ atk: 0, hp: 0 });
   });
 

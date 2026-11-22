@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { cardArt, SET_TITLES } from '../game/catalog.ts';
 import { modifierLines, signed, type ModifierLine } from '../game/modifiers.ts';
-import { atkDoublingEvery, CardView, CATEGORY_FR, cycleTitle, RARITY_FR } from './CardView.tsx';
+import { atkDoublingEvery, CardView, CATEGORY_FR, CategoryTag, cycleTitle, RARITY_FR } from './CardView.tsx';
 import { AbilityText, useRefs } from './Refs.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
@@ -192,6 +192,7 @@ function Modifiers({ catalog, lines }: { catalog: Catalog; lines: ModifierLine[]
                 {art ? <img src={art} alt="" draggable={false} /> : <Icon name="star" size={14} />}
               </span>
               <span className="mod-txt">
+                {src ? <CategoryTag category={src.category} /> : null}
                 <b>{src ? (l.self ? `${src.name} (elle-même)` : src.name) : l.label}</b>
                 {src ? <small>« {l.label} »</small> : null}
               </span>
@@ -208,7 +209,7 @@ function Modifiers({ catalog, lines }: { catalog: Catalog; lines: ModifierLine[]
           return (
             <li key={i}>
               {src ? (
-                <button type="button" className={'mod-src ' + l.tone} onClick={() => previewCard(src.id, l.ability)} aria-label={`${src.name} : ${l.label}`}>
+                <button type="button" className={'mod-src ' + l.tone} onClick={() => previewCard(src.id, l.ability)} aria-label={`${src.name} (${CATEGORY_FR[src.category] ?? src.category}) : ${l.label}`}>
                   {body}
                 </button>
               ) : (

@@ -22,6 +22,29 @@ const CATEGORY_TOKEN: Record<string, { cls: string; shape: string; icon: string 
   terrain: { cls: 'cat-terr', shape: 'tok-dia', icon: '<path d="M2 20l7-11 4 6 3-4 6 9z"/>' },
 };
 
+/** Token outlines in a 24 × 26 box, same shapes as the cost token's clip-paths. */
+const TAG_SHAPE: Record<string, { d: string; fill: string; stroke: string }> = {
+  character: { d: 'M1 1H23V16L12 25L1 16Z', fill: '#c9962e', stroke: '#3a2608' },
+  spell: { d: 'M12 1.5A11.5 11.5 0 1 1 11.99 1.5Z', fill: '#a3271f', stroke: '#fff' },
+  equipment: { d: 'M6.5 2H17.5L23.5 13L17.5 24H6.5L0.5 13Z', fill: '#4a5662', stroke: '#fff' },
+  terrain: { d: 'M12 0.5L23.5 13L12 25.5L0.5 13Z', fill: '#3e7a1c', stroke: '#fff' },
+};
+
+/** Story 13.5: the category of a card as its cost-token shape and icon, plus its French name. */
+export function CategoryTag({ category }: { category: string }) {
+  const tok = CATEGORY_TOKEN[category] ?? CATEGORY_TOKEN.character!;
+  const shape = TAG_SHAPE[category] ?? TAG_SHAPE.character!;
+  return (
+    <span className={`cat-tag ${tok.cls}`}>
+      <svg viewBox="0 0 24 26" width="15" height="16" aria-hidden="true">
+        <path d={shape.d} fill={shape.fill} stroke="#8a6416" strokeWidth="1.2" />
+        <g transform="translate(5.5 5) scale(0.55)" fill="none" stroke={shape.stroke} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: tok.icon }} />
+      </svg>
+      {CATEGORY_FR[category] ?? category}
+    </span>
+  );
+}
+
 /** Rarity ornaments drawn in SVG (mockup F): corner brackets (rare), fleurons (epic+), filigree and sheen (legendary). */
 function Ornaments({ level }: { level: number }) {
   if (level === 0) return null;

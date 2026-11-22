@@ -22,7 +22,7 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // Patsy's text cites Arthur (story 13.1): tapping the name previews Arthur, whose slot glows
   renvois: [['hg-patsy', 'hg-arthur'], ['hs-ramada', 'hs-topper']],
   // Lancelot's bonuses and penalties come from Arthur's aura, the Camelot terrain, Heather and Megan (foe)
-  // and the red pill, a spell already in the graveyard (story 13.3, see EXTRA)
+  // and the red pill, a spell already in the graveyard (story 13.3, see EXTRA), and the A.P.U, an equipment (13.5)
   sources: [['hg-lancelot', 'hg-arthur'], ['wc-vandergeld', 'hs-topper']],
   // a spell, a terrain and an equipment in hand (stories 12.5, 12.6): the missile seeks the strongest ATK, Camelot
   // lifts the Holy Grail family
@@ -54,10 +54,13 @@ const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: strin
     state.players[0].terrains[0] = camelot;
     const pills = take('mx-pills', 0)!;
     state.players[0].graveyard.push(pills);
+    const apu = take('mx-apu', 0)!; // an equipment, also gone (story 13.5: every category shows in the list)
+    state.players[0].graveyard.push(apu);
     const lancelot = state.instances[iidOf('hg-lancelot')]!;
     lancelot.modifiers.push(
       { source: iidOf('wc-vandergeld'), label: 'Langue de vipère', atk: -30, hp: 0 },
       { source: pills, label: 'Choisis la pilule rouge et on descend avec le lapin blanc au fond du gouffre', atk: 100, hp: 100 },
+      { source: apu, label: 'Commandant Lock, toutes les A.P.U sont en position !', atk: 100, hp: 0 },
     );
   },
 };

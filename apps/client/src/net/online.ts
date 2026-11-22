@@ -26,6 +26,28 @@ export function joinErrorMessage(err: unknown, hadSeat: boolean): string {
 export const localDeadline = (msLeft: number | null | undefined, endsAt: number | null, now = Date.now()): number | null =>
   msLeft === undefined ? endsAt : msLeft === null ? null : now + msLeft;
 
+type TokenRoom = Pick<Room, 'roomId' | 'reconnectionToken' | 'onReconnect'>;
+
+/**
+ * Keeps the saved seat token in step with the room (story 11.2 fix). The server issues a new token on every
+ * reconnection and refuses the old one, but the SDK (0.18) runs `onReconnect` listeners before it stores
+ * the new token: saving it there kept a dead token, and the next "Reprendre" or code entry was refused.
+ * So the token is read one tick after a reconnection, and again on every view. Returns that check.
+ */
+export function watchSeatToken(r: TokenRoom, save: (code: string, token: string) => void): () => void {
+  let saved = '';
+  const remember = () => {
+    const token = r.reconnectionToken;
+    if (token && token !== saved) {
+      saved = token;
+      save(r.roomId, token);
+    }
+  };
+  r.onReconnect(() => setTimeout(remember, 0));
+  remember();
+  return remember;
+}
+
 const codeOfToken = (token: string) => token.split(':')[0] ?? '';
 
 /** Online duel through the Colyseus server (stories 6.1–6.6, 11.2). The engine runs on the server; we only render views. */
@@ -47,18 +69,17 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
   let disposed = false;
   const client = new Client(SERVER_URL);
 
-  const remember = (r: Room) => {
-    if (r.reconnectionToken) saveSeat(r.roomId, r.reconnectionToken);
-  };
+  let remember: () => void = () => {};
 
   const wire = (r: Room) => {
     room = r;
-    remember(r);
+    remember = watchSeatToken(r, saveSeat);
     r.onMessage('lobby', (m: LobbyMessage) => {
       store.set({ roomCode: m.code, seats: m.seats, viewer: m.you, status: store.snap.status === 'connecting' ? 'waiting' : store.snap.status });
     });
     r.onMessage('view', (m: ViewMessage) => {
       const seq = m.seq;
+      remember();
       store.set({
         state: m.view.state,
         events: m.events,
@@ -81,10 +102,7 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
     });
     // the SDK retries on its own after a drop; the token changes on each reconnection
     r.onDrop(() => store.set({ reconnecting: true }));
-    r.onReconnect(() => {
-      remember(r);
-      store.set({ reconnecting: false });
-    });
+    r.onReconnect(() => store.set({ reconnecting: false }));
     r.onLeave(() => {
       if (!disposed && store.snap.state.phase !== 'finished') onFatal('La connexion avec la salle est perdue. Saisis le code pour revenir dans les 90 s.');
     });

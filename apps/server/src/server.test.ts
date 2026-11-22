@@ -198,6 +198,30 @@ describe('6.1 / 6.6 duel room over WebSocket', () => {
     await roomA.leave(true);
   }, 20000);
 
+  it('11.2 after an automatic reconnection, the token read a tick later resumes the seat (the old one is refused)', async () => {
+    const { roomA, roomB } = await pair();
+    await new Promise((r) => setTimeout(r, 5200)); // the SDK only auto-reconnects rooms joined 5 s ago
+    let inListener = '';
+    let nextTick = '';
+    const back = new Promise<void>((res) =>
+      roomB.onReconnect(() => {
+        inListener = roomB.reconnectionToken;
+        setTimeout(() => ((nextTick = roomB.reconnectionToken), res()), 0);
+      }),
+    );
+    (roomB as unknown as { connection: { transport: { ws: WebSocket } } }).connection.transport.ws.close(); // a drop, not a leave
+    await back;
+    expect(nextTick).not.toBe(inListener);
+    await roomB.leave(true);
+    await new Promise((r) => setTimeout(r, 200));
+    await expect(new Client(url()).reconnect(inListener)).rejects.toThrow(/invalid or expired/);
+    const again = await new Client(url()).reconnect(nextTick);
+    again.send('action', { type: 'concede', player: 1 });
+    await new Promise((r) => setTimeout(r, 200));
+    await again.leave(true);
+    await roomA.leave(true);
+  }, 20000);
+
   it('11.2 a waiting room survives its host leaving, then expires', async () => {
     roomConfig.lobbyTtlMs = 800;
     const a = await new Client(url()).create('duel', { mode: 'shared', nickname: 'Hôte' });

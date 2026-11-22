@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { DeckMode } from '@cinecards/engine';
 import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
 import { CardView } from './CardView.tsx';
+import { useRefs } from './Refs.tsx';
 
 export type Start =
   | { kind: 'hotseat' | 'bot'; mode: DeckMode }
@@ -23,6 +24,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [code, setCode] = useState(initialCode ?? '');
   const [tab, setTab] = useState<'local' | 'online'>(initialCode ? 'online' : 'local');
   const [showCards, setShowCards] = useState(false);
+  const { openCard, openRules } = useRefs();
   const nick = nickname.trim() || 'Invité';
   const remember = () => {
     try {
@@ -120,6 +122,9 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
       <button type="button" className="link" onClick={() => setShowCards((v) => !v)}>
         {showCards ? 'Masquer les cartes' : `Voir les ${PLAYABLE.length} cartes`}
       </button>
+      <button type="button" className="link" onClick={openRules}>
+        Règles et mots-clés
+      </button>
       {showCards ? (
         <div className="collection">
           {Object.keys(SET_TITLES).map((set) => (
@@ -129,7 +134,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                 {[...CATALOG.values()]
                   .filter((c) => c.set === set)
                   .map((c) => (
-                    <CardView key={c.id} card={c} size="hand" />
+                    <CardView key={c.id} card={c} size="hand" onClick={() => openCard(c.id)} />
                   ))}
               </div>
             </section>

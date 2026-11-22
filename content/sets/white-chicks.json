@@ -126,7 +126,7 @@
             "count": 2
           },
           "kind": "attack",
-          "text": "Attaque, une fois par partie : retire tous les effets (bonus et malus) d'une carte.",
+          "text": "Attaque spéciale, une fois par partie : retire tous les effets (bonus et malus) d'une carte.",
           "effects": [
             {
               "op": "oncePerGame"
@@ -189,7 +189,7 @@
             "count": 1
           },
           "kind": "attack",
-          "text": "Attaque : un personnage adverse perd 30 ATQ jusqu'à la fin de la partie.",
+          "text": "Attaque spéciale : un personnage adverse perd 30 ATQ jusqu'à la fin de la partie.",
           "effects": [
             {
               "op": "modify",

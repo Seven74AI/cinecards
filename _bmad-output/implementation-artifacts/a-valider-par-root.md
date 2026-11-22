@@ -31,6 +31,14 @@ _(aucune pour l'instant)_
 - [ ] **11.7** — Étiquettes de capacité : « Effet » pour les sorts (y compris les pilules de Morpheus, au choix) ; « Activée » pour la seule capacité activée de personnage restante (Topper, « Pilote d'élite ») ; les autres reprennent le nom du déclencheur (« À l'arrivée », « Attaque spéciale », « Passif », « Début de votre tour »…). Sur la fiche, l'étiquette remplace les mots de tête du texte (« À l'arrivée : » n'est pas répété).
 - [ ] **11.7** — En miniature (carte de moins de ~88 px de large : main et socles sur téléphone), le jeton montre sa forme et le coût, sans l'icône ; l'icône apparaît en fiche et sur les cartes plus grandes (ordinateur).
 - [ ] **11.7** — Une carte légendaire, quelle que soit sa catégorie, déclenche maintenant la mise en avant « Légendaire » quand elle est posée (avant : personnages seulement, faute de rareté).
+- [ ] **11.8** — Le glossaire du jeu est lu dans `glossaire-mots-cles.md` au moment de la construction : corriger un texte là-bas suffit (il apparaît au prochain déploiement). Les formes reconnues dans les textes de cartes (« réduit au silence », « GUÉRIT », « une fois par partie » → Usage unique, « au choix » → Choix exclusif, « monde de » → Famille, « débarque » → Invoquer depuis…) sont listées dans `apps/client/src/game/richtext.ts`.
+- [ ] **11.8** — Renvoi « … » : vers une carte si le nom correspond (nom exact, sans article — « Sentinelles » → Les sentinelles —, partie avant « a.k.a » — « Smith » —, ou nom unique qui le contient — « A.P.U »), sinon vers une capacité de ce nom ; « Matrix », « Les Agents », « Le Lazar » ne renvoient à rien (pas de carte de ce nom).
+- [ ] **11.8** — L'écran « Règles et mots-clés » s'ouvre depuis l'accueil (lien sous « Voir les cartes ») et depuis la barre du haut de la table (bouton « ? ») ; sur l'accueil, toucher une carte de la collection ouvre sa fiche.
+- [ ] **11.8** — Message d'erreur quand on vise les PV adverses protégés : « Barrage : tant que ton adversaire a un personnage en jeu, ses PV ne peuvent pas être attaqués. »
+
+## Textes de cartes modifiés (story 11.8)
+
+« Attaque » → « Attaque spéciale » en tête des 6 capacités d'attaque, le reste du texte inchangé : Les Chevaliers qui disent « Ni ! » (« Ni ! »), Ramada Thompson (« Le dîner romantique »), Les sentinelles (« Attaque groupée sur Sion »), Le Mulo (« la femme en robe rouge »), Kevin Copeland (« Couverture grillée »), Heather et Megan Vandergeld (« Langue de vipère »).
 
 ## Raretés proposées pour les sorts, équipements et terrains (story 11.7)
 

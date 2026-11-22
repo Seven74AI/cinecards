@@ -1,7 +1,8 @@
 import type { Card } from '@cinecards/cards';
 import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { SET_TITLES } from '../game/catalog.ts';
-import { abilityBody, abilityTag, CardView, CATEGORY_FR, RARITY_FR } from './CardView.tsx';
+import { CardView, CATEGORY_FR, RARITY_FR } from './CardView.tsx';
+import { AbilityText } from './Refs.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
 export interface SheetAction {
@@ -103,7 +104,6 @@ export function CardSheet({
             const why = usable ? canUseAbility(catalog, state, viewer, iid, index) : null;
             const choose = hasChooseOne(card, index);
             const labels = choose ? choiceLabels(ab.text) : null;
-            const tag = abilityTag(card, ab);
             return (
               <li key={index} className={'ability k-' + ab.kind}>
                 <div className="ability-head">
@@ -116,8 +116,7 @@ export function CardSheet({
                   <strong>{ab.name}</strong>
                 </div>
                 <p>
-                  <span className={'tg t-' + tag.tone}>{tag.label}</span>
-                  {abilityBody(card, ab)}
+                  <AbilityText card={card} ability={ab} />
                 </p>
                 {usable ? (
                   <div className="ability-actions">

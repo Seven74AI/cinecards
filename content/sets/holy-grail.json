@@ -163,7 +163,7 @@
             "count": 1
           },
           "kind": "attack",
-          "text": "Attaque : réduit au silence un personnage adverse pendant 1 tour.",
+          "text": "Attaque spéciale : réduit au silence un personnage adverse pendant 1 tour.",
           "effects": [
             {
               "op": "status",

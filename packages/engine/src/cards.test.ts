@@ -20,10 +20,10 @@ describe('11.6 abilities follow the trigger model', () => {
     expect(legacy).toEqual(['hs-topper:1']); // Pilote d'élite: already an attack, every 2 turns (unchanged)
   });
 
-  it('texts announce their trigger: « À l’arrivée » and « Attaque »', () => {
+  it('texts announce their trigger: « À l’arrivée » and « Attaque spéciale »', () => {
     for (const { c, a } of all) {
       if (a.kind === 'onPlay' && c.category !== 'spell') expect(a.text, c.id).toMatch(/^À l'arrivée/);
-      if (a.kind === 'attack') expect(a.text, c.id).toMatch(/^Attaque/);
+      if (a.kind === 'attack') expect(a.text, c.id).toMatch(/^Attaque spéciale[ ,:]/);
     }
   });
 

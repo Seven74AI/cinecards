@@ -274,7 +274,7 @@
             "count": 2
           },
           "kind": "attack",
-          "text": "Attaque, usage unique : vous absorbez l'ATQ de vos autres cartes présentes sur le terrain jusqu'à la fin de votre prochain tour.",
+          "text": "Attaque spéciale, usage unique : vous absorbez l'ATQ de vos autres cartes présentes sur le terrain jusqu'à la fin de votre prochain tour.",
           "effects": [
             {
               "op": "oncePerGame"
@@ -715,7 +715,7 @@
             "count": 2
           },
           "kind": "attack",
-          "text": "Attaque, tous les 2 tours : vos adversaires se battent pour la femme en robe rouge, chaque ennemi attaque ses alliés adjacents.",
+          "text": "Attaque spéciale, tous les 2 tours : vos adversaires se battent pour la femme en robe rouge, chaque ennemi attaque ses alliés adjacents.",
           "effects": [
             {
               "op": "cooldown",

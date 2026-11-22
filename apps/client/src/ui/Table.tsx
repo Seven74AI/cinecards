@@ -17,6 +17,7 @@ import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
+import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
 import { Icon } from './Icon.tsx';
 import { Dice } from './Dice.tsx';
@@ -63,6 +64,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const wide = useWide();
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   const [inspect, setInspect] = useState<string | null>(null);
+  const { openRules } = useRefs();
   const [journalOpen, setJournalOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; at: number } | null>(null);
   const [fx, setFx] = useState<Fx[]>([]);
@@ -460,6 +462,9 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           </button>
           {snap.roomCode ? <span className="room-code">Salle {snap.roomCode}</span> : <span className="room-code">CineCards</span>}
           <span className="spacer" />
+          <button type="button" className="icon-btn" onClick={openRules} aria-label="Règles et mots-clés">
+            <Icon name="help" size={16} />
+          </button>
           {!wide ? (
             <button type="button" className="icon-btn" onClick={() => setJournalOpen(true)} aria-label="Journal">
               <Icon name="book" size={16} />

@@ -72,7 +72,7 @@
             "count": 1
           },
           "kind": "attack",
-          "text": "Attaque : Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour.",
+          "text": "Attaque spéciale : Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour.",
           "effects": [
             {
               "op": "modify",

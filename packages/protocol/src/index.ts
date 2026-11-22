@@ -25,6 +25,8 @@ export interface ViewMessage {
   /** Milliseconds left on the turn timer when the message was sent (absent from older servers). */
   turnMsLeft?: number | null;
   reactionMsLeft?: number | null;
+  /** True while the turn timer is paused by a reaction window; `turnMsLeft` is then frozen (story 11.3 follow-up). */
+  turnPaused?: boolean;
 }
 
 export interface LobbyMessage {

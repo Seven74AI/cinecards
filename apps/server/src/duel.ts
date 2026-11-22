@@ -28,6 +28,8 @@ export class Duel {
   seq = 1;
   turnEndsAt: number | null = null;
   reactionEndsAt: number | null = null;
+  /** Turn time left while the turn timer is paused by a reaction window (GDD Turn Structure, architecture P3). */
+  turnPausedMs: number | null = null;
   private turnTimer: unknown = null;
   private reactionTimer: unknown = null;
 
@@ -83,14 +85,17 @@ export class Duel {
   }
 
   private message(seat: PlayerId, events: GameEvent[]): ViewMessage {
+    const paused = this.turnPausedMs !== null;
     return {
       view: { you: seat, state: redactState(this.state, seat), names: this.names },
       events: redactEvents(events, seat),
       seq: this.seq,
-      turnEndsAt: this.turnEndsAt,
+      // older clients only read the absolute time: give them a deadline as if the timer were running
+      turnEndsAt: paused ? this.clock.now() + this.turnPausedMs! : this.turnEndsAt,
       reactionEndsAt: this.reactionEndsAt,
       // remaining time, so clients with a skewed clock still show the right countdown (story 11.3)
-      turnMsLeft: this.turnEndsAt === null ? null : Math.max(0, this.turnEndsAt - this.clock.now()),
+      turnMsLeft: paused ? this.turnPausedMs : this.turnEndsAt === null ? null : Math.max(0, this.turnEndsAt - this.clock.now()),
+      ...(paused ? { turnPaused: true } : {}),
       reactionMsLeft: this.reactionEndsAt === null ? null : Math.max(0, this.reactionEndsAt - this.clock.now()),
     };
   }
@@ -109,22 +114,34 @@ export class Duel {
   private armTimers(newTurn: boolean) {
     if (this.finished) {
       this.clear();
-      this.turnEndsAt = this.reactionEndsAt = null;
+      this.turnEndsAt = this.reactionEndsAt = this.turnPausedMs = null;
       return;
     }
-    if (newTurn || this.turnEndsAt === null) {
-      if (this.turnTimer) this.clock.clearTimeout(this.turnTimer);
-      this.turnEndsAt = this.clock.now() + this.turnMs;
-      this.turnTimer = this.clock.setTimeout(() => this.onTurnTimeout(), this.turnMs);
-    }
+    if (newTurn || (this.turnEndsAt === null && this.turnPausedMs === null)) this.startTurnTimer(this.turnMs);
     if (this.reactionTimer) this.clock.clearTimeout(this.reactionTimer);
     this.reactionTimer = null;
     this.reactionEndsAt = null;
     const p = this.state.pending;
     if (p?.kind === 'reaction') {
+      // the turn timer stops while the defender decides (GDD Turn Structure, architecture P3)
+      if (this.turnPausedMs === null && this.turnEndsAt !== null) {
+        this.turnPausedMs = Math.max(0, this.turnEndsAt - this.clock.now());
+        if (this.turnTimer) this.clock.clearTimeout(this.turnTimer);
+        this.turnTimer = null;
+        this.turnEndsAt = null;
+      }
       this.reactionEndsAt = this.clock.now() + this.reactionMs;
       this.reactionTimer = this.clock.setTimeout(() => this.act(p.player, { type: 'pass', player: p.player }), this.reactionMs);
+    } else if (this.turnPausedMs !== null) {
+      this.startTurnTimer(this.turnPausedMs);
     }
+  }
+
+  private startTurnTimer(ms: number) {
+    if (this.turnTimer) this.clock.clearTimeout(this.turnTimer);
+    this.turnPausedMs = null;
+    this.turnEndsAt = this.clock.now() + ms;
+    this.turnTimer = this.clock.setTimeout(() => this.onTurnTimeout(), ms);
   }
 
   /** Time is up: resolve whatever is pending with its default, then end the turn of the active player. */

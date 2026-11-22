@@ -80,6 +80,33 @@ describe('6.4 / 6.5 timers', () => {
     duel.dispose();
   });
 
+  it('pauses the turn timer during a reaction window and resumes it afterwards (11.3 follow-up)', () => {
+    const clock = new FakeClock();
+    const views: ViewMessage[] = [];
+    const duel = new Duel(catalog, { seed: 3, mode: 'shared' }, ['A', 'B'], { view: (p, m) => p === 0 && views.push(m), rejected: () => {} }, clock);
+    const first = duel.state.active;
+    const defender: PlayerId = first === 0 ? 1 : 0;
+    clock.advance(20000); // 55 s left
+    duel.state.pending = { kind: 'reaction', player: defender, options: [], key: 'x' };
+    (duel as unknown as { armTimers(n: boolean): void }).armTimers(false);
+    duel.resend(0);
+    expect(views.at(-1)!.turnPaused).toBe(true);
+    expect(views.at(-1)!.turnMsLeft).toBe(55000);
+    clock.advance(4000);
+    duel.resend(0);
+    expect(views.at(-1)!.turnMsLeft).toBe(55000); // frozen
+    clock.advance(1000); // reaction auto-passes at 5 s
+    expect(duel.state.pending).toBeNull();
+    duel.resend(0);
+    expect(views.at(-1)!.turnPaused).toBeUndefined();
+    expect(views.at(-1)!.turnMsLeft).toBe(55000);
+    clock.advance(54999);
+    expect(duel.state.active).toBe(first);
+    clock.advance(1);
+    expect(duel.state.active).not.toBe(first);
+    duel.dispose();
+  });
+
   it('rejects actions sent for the wrong seat with a typed error', () => {
     const rejected: string[] = [];
     const duel = new Duel(catalog, { seed: 3, mode: 'shared' }, ['A', 'B'], { view: () => {}, rejected: (_p, e) => rejected.push(e.code) }, new FakeClock());

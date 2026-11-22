@@ -15,7 +15,7 @@ _(aucune pour l'instant)_
 - [ ] **11.2** — En solo et en hot seat, « Quitter » ramène à l'accueil sans garder la partie ; « Abandonner » (avec confirmation) affiche la défaite.
 - [ ] **11.2** — Une salle d'attente vide expire 10 min après le départ de son dernier joueur ; une partie terminée et vide est fermée tout de suite.
 - [ ] **11.3** — Choix par défaut à la fin du chrono : une réaction est laissée passer, un choix de cartes garde les premières proposées, puis le tour se termine.
-- [ ] **11.3** — En solo et hot seat, le chrono du tour est en pause pendant une fenêtre de réaction (5 s) ; en ligne, le serveur ne le met pas en pause (comportement inchangé).
+- [ ] **11.3** — Le chrono du tour est en pause pendant une fenêtre de réaction (5 s), dans tous les modes. ~~En ligne, le serveur ne le met pas en pause~~ → **résolu** (suivi 11.3) : le serveur met aussi son chrono en pause, comme le disent le GDD et l'architecture (P3).
 - [ ] **11.3** — En solo, le chrono tourne aussi pendant le tour du Grimoire (il joue bien plus vite que 75 s).
 
 ## Textes de cartes modifiés (story 11.6)

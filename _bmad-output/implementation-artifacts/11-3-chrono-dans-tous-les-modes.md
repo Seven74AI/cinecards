@@ -28,7 +28,7 @@ So that le rythme reste tenu quel que soit le mode.
 
 ## Dev Notes
 
-- Le serveur ne met pas son chrono de tour en pause pendant une réaction (5 s max) ; seul le client local le fait, comme demandé. Noté dans `a-valider-par-root.md`.
+- Suivi : le serveur met désormais son chrono de tour en pause pendant une fenêtre de réaction (GDD Turn Structure, architecture P3) ; `ViewMessage.turnPaused` (optionnel) indique la pause, `turnMsLeft` est alors figé. Un ancien client voit le chrono continuer pendant ces 5 s, sans autre effet.
 - Compatibilité : nouveaux champs optionnels ; un ancien client lit toujours `turnEndsAt`, un nouveau client tolère un serveur sans `turnMsLeft`.
 
 ## Dev Agent Record
@@ -48,4 +48,5 @@ So that le rythme reste tenu quel que soit le mode.
 
 ## Change Log
 
+- 2026-11-22 — Suivi : pause du chrono serveur pendant une réaction (test `pauses the turn timer during a reaction window`).
 - 2026-11-22 — Chrono de 75 s en solo et hot seat, temps restant envoyé par le serveur (mode autonome).

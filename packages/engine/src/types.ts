@@ -54,9 +54,49 @@ export interface PlayerState {
   usedOncePerGame: string[]; // "iid:ability" keys
 }
 
+/** What woke an ability (story 11.4). `active` / `choice` / `attack` are used by the player; the rest are triggered. */
+export type TriggerKind =
+  | 'onPlay'
+  | 'onAllyPlayed'
+  | 'onEnemyPlayed'
+  | 'onDeath'
+  | 'startOfTurn'
+  | 'endOfTurn'
+  | 'onAttack'
+  | 'onAttacked'
+  | 'onKill'
+  | 'attack'
+  | 'active'
+  | 'choice'
+  | 'reaction';
+
+/** One chosen-target request of an ability: pick between `min` and `count` of `options`. */
+export interface TargetRequest {
+  spec: string;
+  count: number;
+  min: number;
+  options: string[];
+}
+
+/** A triggered ability waiting to resolve (resolved in order; it may first ask its controller to choose). */
+export interface QueuedAbility {
+  source: string;
+  ability: number;
+  player: PlayerId;
+  trigger: TriggerKind;
+  option?: number;
+  /** Targets declared with the action (older clients, tests): used as given, no prompt. */
+  targets?: Target[];
+  /** Targets chosen at trigger time, one list per request. */
+  picks?: string[][];
+  fromSpell?: boolean;
+}
+
 export type Pending =
   | { kind: 'reaction'; player: PlayerId; options: { iid: string; ability: number }[]; key: string }
-  | { kind: 'pick'; player: PlayerId; options: string[]; count: number; source: string; label: string };
+  | { kind: 'pick'; player: PlayerId; options: string[]; count: number; min?: number; source: string; label: string }
+  | { kind: 'targets'; player: PlayerId; source: string; ability: number; label: string; trigger: TriggerKind; requests: TargetRequest[] }
+  | { kind: 'option'; player: PlayerId; source: string; ability: number; label: string; trigger: TriggerKind; choices: number };
 
 export interface GameState {
   seed: number;
@@ -71,6 +111,10 @@ export interface GameState {
   instances: Record<string, CardInstance>;
   nextIid: number;
   pending: Pending | null;
+  /** Triggered abilities waiting to resolve (story 11.4). Absent in states from older engines. */
+  queue?: QueuedAbility[];
+  /** The active player ended the turn; it passes once the end-of-turn triggers are resolved. */
+  endingTurn?: boolean;
 }
 
 export type Target = { kind: 'card'; iid: string } | { kind: 'player'; player: PlayerId };
@@ -81,6 +125,8 @@ export type Action =
   | { type: 'useAbility'; player: PlayerId; iid: string; ability: number; targets?: Target[]; option?: number }
   | { type: 'react'; player: PlayerId; iid: string; ability: number; target?: Target }
   | { type: 'choose'; player: PlayerId; picks: string[] }
+  | { type: 'chooseTargets'; player: PlayerId; targets: string[][] }
+  | { type: 'chooseOption'; player: PlayerId; option: number }
   | { type: 'pass'; player: PlayerId }
   | { type: 'endTurn'; player: PlayerId }
   | { type: 'concede'; player: PlayerId };
@@ -101,7 +147,7 @@ export type GameEvent =
   | { type: 'turnEnded'; player: PlayerId }
   | { type: 'conceded'; player: PlayerId }
   | { type: 'gameOver'; winner: PlayerId | 'draw' }
-  | { type: 'abilityUsed'; iid: string; ability: number; name: string; player: PlayerId }
+  | { type: 'abilityUsed'; iid: string; ability: number; name: string; player: PlayerId; trigger?: TriggerKind }
   | { type: 'modified'; target: string; atk: number; hp: number; label: string }
   | { type: 'statusApplied'; target: string; status: Status['kind']; turns?: number }
   | { type: 'healed'; target: string; amount: number }
@@ -116,6 +162,7 @@ export type GameEvent =
   | { type: 'reactionOffered'; player: PlayerId }
   | { type: 'reactionPassed'; player: PlayerId }
   | { type: 'pickOffered'; player: PlayerId; count: number }
+  | { type: 'targetsOffered'; player: PlayerId; iid: string; name: string; trigger: TriggerKind }
   | { type: 'picked'; player: PlayerId; count: number }
   | { type: 'chainLimitReached' };
 

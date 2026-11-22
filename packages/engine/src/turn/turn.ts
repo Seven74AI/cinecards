@@ -5,6 +5,7 @@ import { other } from '../state/helpers.ts';
 import { board, coinCap, passives, type G } from '../ctx.ts';
 import { checkWinner, damage, processDeaths } from '../effects/core.ts';
 import { runEffects } from '../effects/run.ts';
+import { drain, emit } from '../effects/triggers.ts';
 
 /** The pile a player draws from, depending on the deck mode. */
 export function pileOf(state: GameState, player: PlayerId): string[] {
@@ -73,11 +74,21 @@ export function startTurn(g: G, player: PlayerId): void {
   }
   processDeaths(g);
   checkWinner(g);
-  if (state.phase !== 'finished') drawCard(state, player, events);
+  if (state.phase === 'finished') return;
+  drawCard(state, player, events);
+  // start-of-turn triggers (story 11.4): queued, resolved by drain()
+  emit(g, { type: 'turnStarted', player });
 }
 
-/** End of turn: expire this player's timed statuses/modifiers, drop unused bonus coins, pass the turn. */
+/** The active player ends the turn: end-of-turn triggers resolve first, then the turn passes (story 11.4). */
 export function endTurn(g: G): void {
+  emit(g, { type: 'turnEnding', player: g.s.active });
+  g.s.endingTurn = true;
+  drain(g);
+}
+
+/** Expires this player's timed statuses/modifiers, drops unused bonus coins, passes the turn. */
+export function finishEndTurn(g: G): void {
   const { s: state, ev: events } = g;
   const player = state.active;
   for (const b of board(g).filter((x) => x.player === player)) tickTimers(state.instances[b.iid]!);

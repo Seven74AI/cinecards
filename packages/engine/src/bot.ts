@@ -1,6 +1,6 @@
 import { apply } from './apply.ts';
-import { abilityTargets, attackTargets, canAttack, canUseAbility, playTargets } from './query.ts';
-import type { Action, Catalog, GameState, PlayerId, Target } from './types.ts';
+import { attackTargets, canAttack, canUseAbility } from './query.ts';
+import type { Action, Catalog, GameState, PlayerId } from './types.ts';
 
 /** Tiny seeded RNG for the bot, independent from the game RNG. */
 export function botRandom(seed: number): () => number {
@@ -23,9 +23,6 @@ function sample(rnd: () => number, list: string[], n: number): string[] {
   return out;
 }
 
-const toTargets = (rnd: () => number, reqs: { count: number; options: string[] }[]): Target[] =>
-  reqs.flatMap((r) => sample(rnd, r.options, r.count).map((iid) => ({ kind: 'card', iid }) as Target));
-
 /** Candidate actions for `player` (playable cards, abilities, attacks). Not all are guaranteed legal. */
 export function candidateActions(catalog: Catalog, state: GameState, player: PlayerId, rnd: () => number): Action[] {
   const p = state.players[player];
@@ -33,6 +30,12 @@ export function candidateActions(catalog: Catalog, state: GameState, player: Pla
   if (pending) {
     if (pending.player !== player) return [];
     if (pending.kind === 'pick') return [{ type: 'choose', player, picks: sample(rnd, pending.options, pending.count) }];
+    if (pending.kind === 'option') return [{ type: 'chooseOption', player, option: Math.floor(rnd() * pending.choices) }];
+    if (pending.kind === 'targets') {
+      // any number between min and count per request
+      const targets = pending.requests.map((r) => sample(rnd, r.options, r.min + Math.floor(rnd() * (r.count - r.min + 1))));
+      return [{ type: 'chooseTargets', player, targets }];
+    }
     const opt = pickOne(rnd, pending.options)!;
     return [{ type: 'react', player, iid: opt.iid, ability: opt.ability }, { type: 'pass', player }];
   }
@@ -41,16 +44,17 @@ export function candidateActions(catalog: Catalog, state: GameState, player: Pla
   for (const iid of p.hand) {
     const card = catalog.get(state.instances[iid]!.cardId)!;
     if ((card.cost ?? 0) > p.coins) continue;
-    const option = card.abilities.some((a) => a.effects?.some((e) => e.op === 'chooseOne')) ? Math.floor(rnd() * 2) : undefined;
-    out.push({ type: 'playCard', player, iid, option, targets: toTargets(rnd, playTargets(catalog, state, player, iid, option)) });
+    // spells with two "choice" abilities pick one up front; other choices and targets are asked when the card arrives
+    const option = card.abilities.filter((a) => a.kind === 'choice').length > 1 ? Math.floor(rnd() * 2) : undefined;
+    out.push({ type: 'playCard', player, iid, ...(option !== undefined ? { option } : {}) });
   }
   const board = [...p.characters, ...p.terrains, ...p.spells].filter((x): x is string => !!x);
   for (const iid of board) {
     const card = catalog.get(state.instances[iid]!.cardId)!;
     card.abilities.forEach((ab, index) => {
-      if (ab.kind !== 'active') return;
+      if (ab.kind !== 'active' && ab.kind !== 'attack' && !(ab.kind === 'choice' && card.category === 'character')) return;
       if (canUseAbility(catalog, state, player, iid, index)) return;
-      out.push({ type: 'useAbility', player, iid, ability: index, option: Math.floor(rnd() * 2), targets: toTargets(rnd, abilityTargets(catalog, state, player, iid, index)) });
+      out.push({ type: 'useAbility', player, iid, ability: index });
     });
   }
   for (const iid of p.characters) {

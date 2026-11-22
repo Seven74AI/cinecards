@@ -5,7 +5,7 @@ import { cardOf, characters, cycleActive, hasStatus, inst, matches, onBoard, pas
 import { checkWinner, damage, damagePlayer, processDeaths } from '../effects/core.ts';
 import { runEffects } from '../effects/run.ts';
 import type { EffectCtx } from '../effects/targets.ts';
-import { offerReaction } from '../play/reactions.ts';
+import { emit, fireNow, settle } from '../effects/triggers.ts';
 
 const err = (code: RuleError['code'], params?: RuleError['params']): ApplyResult => ({ ok: false, error: params ? { code, params } : { code } });
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
@@ -70,6 +70,11 @@ export function strike(g: G, player: PlayerId, attacker: string, target: Target)
     }
   }
 
+  // onAttack abilities (story 11.4) resolve inside the strike
+  fireNow(g, attacker, 'onAttack', { source: attacker, player, targets: [], fromSpell: false, label: '', attacker, ...(finalTarget.kind === 'card' ? { defender: finalTarget.iid } : {}) });
+  if (!onBoard(g, attacker) || g.s.phase === 'finished') return;
+  if (finalTarget.kind === 'card' && !onBoard(g, finalTarget.iid)) return;
+
   const atkStats = stats(g, attacker);
   let atk = atkStats.atk;
 
@@ -90,6 +95,11 @@ export function strike(g: G, player: PlayerId, attacker: string, target: Target)
       processDeaths(g);
       return;
     }
+  }
+  fireNow(g, defender, 'onAttacked', ctx);
+  if (ctx.cancelAttack || !onBoard(g, attacker) || !onBoard(g, defender)) {
+    processDeaths(g);
+    return;
   }
 
   // conditional attack bonuses (Kent, Gomez)
@@ -116,6 +126,7 @@ export function strike(g: G, player: PlayerId, attacker: string, target: Target)
       if (e.reattack) a.attacksUsed = Math.max(0, a.attacksUsed - 1);
       if (e.effects) runEffects(g, e.effects, { source: attacker, player, targets: [], fromSpell: false, label: e._ability.name });
     }
+    emit(g, { type: 'killed', attacker, player });
   }
   checkWinner(g);
 }
@@ -131,7 +142,7 @@ export function attack(g: G, player: PlayerId, attacker: string, target: Target)
   inst(g, attacker).attacksUsed += 1;
   strike(g, player, attacker, target);
   inst(g, attacker).statuses = inst(g, attacker).statuses.filter((s) => s.kind !== 'precision');
-  offerReaction(g, player);
+  settle(g, true);
   return { ok: true, state: g.s, events: g.ev };
 }
 

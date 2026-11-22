@@ -1,4 +1,4 @@
-import type { Catalog, GameEvent, GameState, PlayerId, Target } from '@cinecards/engine';
+import type { Catalog, GameEvent, GameState, PlayerId, Target, TriggerKind } from '@cinecards/engine';
 
 const STATUS_FR: Record<string, string> = {
   silence: 'réduit au silence',
@@ -11,6 +11,45 @@ const STATUS_FR: Record<string, string> = {
   precision: 'vise juste',
   spellImmune: 'intouchable par les sorts',
 };
+
+/** "de Tim", "d’Epok", "du maître des clés", "des Sentinelles", "de la …". */
+export function deName(name: string): string {
+  if (/^Le\s/.test(name)) return `du ${name.slice(3)}`;
+  if (/^Les\s/.test(name)) return `des ${name.slice(4)}`;
+  if (/^L[’']/.test(name)) return `de ${name}`;
+  if (/^[aeiouyhâàéèêëîïôûAEIOUYHÂÀÉÈÊËÎÏÔÛ]/.test(name)) return `d’${name}`;
+  return `de ${name}`;
+}
+
+/** Journal prefix naming what woke an ability (story 11.4): « À l’arrivée d’Epok », « Attaque de Ni ! »… */
+export function triggerPhrase(trigger: TriggerKind | undefined, name: string): string {
+  switch (trigger) {
+    case 'onPlay':
+      return `À l’arrivée ${deName(name)}`;
+    case 'onDeath':
+      return `À la mort ${deName(name)}`;
+    case 'startOfTurn':
+      return `Début de tour ${deName(name)}`;
+    case 'endOfTurn':
+      return `Fin de tour ${deName(name)}`;
+    case 'onAllyPlayed':
+      return `${name}, quand son camp pose une carte`;
+    case 'onEnemyPlayed':
+      return `${name}, quand l’adversaire pose une carte`;
+    case 'onAttack':
+      return `${name} attaque`;
+    case 'onAttacked':
+      return `${name} est attaqué`;
+    case 'onKill':
+      return `${name} détruit une carte`;
+    case 'attack':
+      return `Attaque ${deName(name)}`;
+    case 'reaction':
+      return `Réaction ${deName(name)}`;
+    default:
+      return name;
+  }
+}
 
 export interface Names {
   players: [string, string];
@@ -56,7 +95,9 @@ export function describeEvent(e: GameEvent, catalog: Catalog, state: GameState, 
     case 'gameOver':
       return e.winner === 'draw' ? 'Égalité !' : `${who(e.winner)} remporte la partie !`;
     case 'abilityUsed':
-      return `${card(e.iid)} : « ${e.name} ».`;
+      return `${triggerPhrase(e.trigger, card(e.iid))} : « ${e.name} ».`;
+    case 'targetsOffered':
+      return null;
     case 'modified': {
       const parts = [e.atk ? `${e.atk > 0 ? '+' : ''}${e.atk} ATQ` : '', e.hp ? `${e.hp > 0 ? '+' : ''}${e.hp} PV` : ''].filter(Boolean);
       return parts.length ? `${card(e.target)} : ${parts.join(' / ')}.` : null;

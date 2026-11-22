@@ -1,16 +1,12 @@
 import type { Card } from '@cinecards/cards';
-import { canUseAbility, computeStats, cycleCountdown, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
+import { canUseAbility, computeStats, cycleCountdown, TRIGGERS, type Catalog, type GameState, type PlayerId } from '@cinecards/engine';
 import { SET_TITLES } from '../game/catalog.ts';
 import { CardView, RARITY_FR } from './CardView.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
 const KIND_FR: Record<string, string> = {
-  active: 'Active',
+  ...Object.fromEntries(Object.entries(TRIGGERS).map(([k, v]) => [k, v.label])),
   passive: 'Passive',
-  onPlay: 'À l’arrivée',
-  onDeath: 'À la mort',
-  reaction: 'Réaction',
-  choice: 'Au choix',
   flavor: 'Ambiance',
   spell: 'Sort',
 };
@@ -110,7 +106,7 @@ export function CardSheet({
         </div>
         <ol className="abilities">
           {card.abilities.map((ab, index) => {
-            const usable = mine && onBoard && myTurn && (ab.kind === 'active' || (ab.kind === 'choice' && card.category === 'character'));
+            const usable = mine && onBoard && myTurn && card.category === 'character' && (ab.kind === 'active' || ab.kind === 'attack' || ab.kind === 'choice');
             const why = usable ? canUseAbility(catalog, state, viewer, iid, index) : null;
             const choose = hasChooseOne(card, index);
             const labels = choose ? choiceLabels(ab.text) : null;
@@ -137,7 +133,19 @@ export function CardSheet({
                       ))
                     ) : (
                       <button type="button" className="btn small" disabled={!!why} onClick={() => onUseAbility(index)}>
-                        {why ? (why.code === 'ABILITY_USED' ? 'Déjà utilisée' : why.code === 'SILENCED' ? 'Silence' : 'Indisponible') : 'Utiliser'}
+                        {why
+                          ? why.code === 'ABILITY_USED'
+                            ? 'Déjà utilisée'
+                            : why.code === 'SILENCED'
+                              ? 'Silence'
+                              : why.code === 'NO_ATTACK_LEFT'
+                                ? 'Attaque déjà faite'
+                                : why.code === 'SUMMONING_SICK'
+                                  ? 'Au prochain tour'
+                                  : 'Indisponible'
+                          : ab.kind === 'attack'
+                            ? 'Utiliser (au lieu d’attaquer)'
+                            : 'Utiliser'}
                       </button>
                     )}
                   </div>

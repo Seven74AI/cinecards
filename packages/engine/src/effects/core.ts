@@ -2,8 +2,7 @@ import { RULES } from '../rules.ts';
 import { roundDamage } from '../state/compute-stats.ts';
 import type { PlayerId } from '../types.ts';
 import { board, cardOf, characters, cycleActive, hasStatus, inst, onBoard, passives, stats, type G } from '../ctx.ts';
-import { runEffects } from './run.ts';
-import type { EffectCtx } from './targets.ts';
+import { emit } from './triggers.ts';
 
 /** Clears a card's in-play state when it leaves the table. */
 export function resetInstance(g: G, iid: string): void {
@@ -141,7 +140,7 @@ function preventDeath(g: G, iid: string): boolean {
         if (e.oncePerGame ? g.s.players[i.owner].usedOncePerGame.includes(key) : ally2.usedAbilities.includes(index)) continue;
         if (e.oncePerGame) g.s.players[i.owner].usedOncePerGame.push(key);
         else ally2.usedAbilities.push(index);
-        g.ev.push({ type: 'abilityUsed', iid: ally.iid, ability: index, name: ab.name, player: i.owner });
+        g.ev.push({ type: 'abilityUsed', iid: ally.iid, ability: index, name: ab.name, player: i.owner, trigger: 'reaction' });
         if (e.op === 'cancelDeath') {
           setRemainingHp(g, iid, e.hp ?? 10);
           g.ev.push({ type: 'deathPrevented', iid, label: ab.name });
@@ -155,23 +154,15 @@ function preventDeath(g: G, iid: string): boolean {
   return false;
 }
 
-/** Destroys a board card (no prevention), firing onDeath abilities. */
+/** Destroys a board card (no prevention); its onDeath abilities are queued (story 11.4). */
 export function destroy(g: G, iid: string): void {
   const where = onBoard(g, iid);
   if (!where) return;
-  const card = cardOf(g, iid);
   const owner = inst(g, iid).owner;
   const silenced = hasStatus(g, iid, 'silence');
   toGraveyard(g, iid);
   g.ev.push({ type: 'cardDestroyed', iid, owner });
-  if (!silenced) {
-    card.abilities.forEach((ab, index) => {
-      if (ab.kind !== 'onDeath') return;
-      const ctx: EffectCtx = { source: iid, player: owner, targets: [], fromSpell: false, label: ab.name };
-      g.ev.push({ type: 'abilityUsed', iid, ability: index, name: ab.name, player: owner });
-      runEffects(g, (ab.effects ?? []) as never, ctx);
-    });
-  }
+  if (!silenced) emit(g, { type: 'died', iid, owner });
 }
 
 /** Sends every character at 0 hp to the graveyard, unless something prevents it. Repeats until stable. */

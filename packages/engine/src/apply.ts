@@ -4,7 +4,7 @@ import { playCard } from './play/play.ts';
 import { attack } from './combat/combat.ts';
 import { endTurn } from './turn/turn.ts';
 import { checkWinner } from './effects/core.ts';
-import { choose, pass, react, useAbility } from './play/abilities.ts';
+import { choose, chooseOption, chooseTargets, pass, react, useAbility } from './play/abilities.ts';
 
 /**
  * The engine's single entry point (architecture AR4): pure, deterministic, never throws for rule violations.
@@ -15,11 +15,11 @@ export function apply(catalog: Catalog, state: GameState, action: Action): Apply
   const pending = state.pending;
   if (action.type !== 'concede') {
     if (pending) {
-      const allowed = pending.kind === 'reaction' ? ['react', 'pass'] : ['choose'];
+      const allowed = pending.kind === 'reaction' ? ['react', 'pass'] : pending.kind === 'pick' ? ['choose'] : pending.kind === 'targets' ? ['chooseTargets'] : ['chooseOption'];
       if (action.player !== pending.player || !allowed.includes(action.type)) return { ok: false, error: { code: 'PENDING_DECISION' } };
     } else if (action.player !== state.active) {
       return { ok: false, error: { code: 'NOT_YOUR_TURN' } };
-    } else if (action.type === 'react' || action.type === 'pass' || action.type === 'choose') {
+    } else if (action.type === 'react' || action.type === 'pass' || action.type === 'choose' || action.type === 'chooseTargets' || action.type === 'chooseOption') {
       return { ok: false, error: { code: 'NOTHING_PENDING' } };
     }
   }
@@ -40,6 +40,10 @@ export function apply(catalog: Catalog, state: GameState, action: Action): Apply
       return pass(g, action.player);
     case 'choose':
       return choose(g, action.player, action.picks);
+    case 'chooseTargets':
+      return chooseTargets(g, action.player, Array.isArray(action.targets) ? action.targets : []);
+    case 'chooseOption':
+      return chooseOption(g, action.player, action.option);
     case 'endTurn':
       endTurn(g);
       return { ok: true, state: g.s, events: g.ev };

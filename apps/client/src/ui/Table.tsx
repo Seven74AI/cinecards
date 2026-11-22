@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Card } from '@cinecards/cards';
 import {
-  abilityTargets,
   attackTargets,
   canAttack,
   computeStats,
   cycleCountdown,
-  playTargets,
   RULES,
   type Action,
   type GameState,
@@ -15,7 +13,7 @@ import {
 } from '@cinecards/engine';
 import type { Session } from '../game/session.ts';
 import { eventsToBeats, type Fx } from '../game/fx.ts';
-import { describeEvent } from '../game/describe.ts';
+import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
@@ -23,12 +21,13 @@ import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardS
 import { Icon } from './Icon.tsx';
 import { Dice } from './Dice.tsx';
 
-type Req = { count: number; options: string[] };
+/** One target request of a prompt; `index` is its position in the engine's request list. */
+type Req = { count: number; min: number; options: string[]; index: number };
 type Mode =
   | { k: 'idle' }
   | { k: 'hand'; iid: string }
   | { k: 'attack'; iid: string; targets: Target[] }
-  | { k: 'targets'; base: Action; reqs: Req[]; picked: string[]; label: string };
+  | { k: 'targets'; total: number; reqs: Req[]; picked: string[]; label: string };
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
@@ -126,10 +125,15 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     }
   }, [snap.seq]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // reset interaction when the position changes
+  // reset interaction when the position changes; a target prompt of mine opens the picking mode (story 11.4)
   useEffect(() => {
-    setMode({ k: 'idle' });
-  }, [snap.seq]);
+    const p = state.pending;
+    if (p?.kind === 'targets' && p.player === viewer) {
+      const reqs = p.requests.map((r, index) => ({ count: r.count, min: r.min ?? r.count, options: r.options, index })).filter((r) => r.count > 0);
+      const name = catalog.get(state.instances[p.source]?.cardId ?? '')?.name ?? '';
+      setMode({ k: 'targets', total: p.requests.length, reqs, picked: [], label: `${triggerPhrase(p.trigger, name)} : « ${p.label} »` });
+    } else setMode({ k: 'idle' });
+  }, [snap.seq, viewer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const me = viewer;
   const foe = other(me);
@@ -144,32 +148,32 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const fxAt = (at: string) => fx.filter((f) => f.at === at);
   const nameOf = (iid: string) => catalog.get(state.instances[iid]?.cardId ?? '')?.name ?? '?';
 
-  // ----- starting actions -----
-  const startTargets = (base: Action, reqs: Req[], label: string) => {
-    const useful = reqs.map((r) => ({ count: Math.min(r.count, r.options.length), options: r.options })).filter((r) => r.count > 0);
-    if (!useful.length) return send(base);
-    setInspect(null);
-    setMode({ k: 'targets', base, reqs: useful, picked: [], label });
-  };
-
+  // ----- starting actions (targets and options are asked by the engine when the ability fires, story 11.4) -----
   const playFromHand = (iid: string, slot?: number, option?: number) => {
-    const base: Action = { type: 'playCard', player: me, iid, ...(slot !== undefined ? { slot } : {}), ...(option !== undefined ? { option } : {}) };
-    startTargets(base, playTargets(catalog, state, me, iid, option), `Cible pour ${nameOf(iid)}`);
+    send({ type: 'playCard', player: me, iid, ...(slot !== undefined ? { slot } : {}), ...(option !== undefined ? { option } : {}) });
   };
 
   const useAbility = (iid: string, ability: number, option?: number) => {
-    const base: Action = { type: 'useAbility', player: me, iid, ability, ...(option !== undefined ? { option } : {}) };
-    startTargets(base, abilityTargets(catalog, state, me, iid, ability), `Cible pour « ${catalog.get(state.instances[iid]!.cardId)!.abilities[ability]!.name} »`);
+    send({ type: 'useAbility', player: me, iid, ability, ...(option !== undefined ? { option } : {}) });
+  };
+
+  /** Splits the picks, in order, into one list per engine request. */
+  const groupsOf = (m: Extract<Mode, { k: 'targets' }>, picked: string[]): string[][] => {
+    const groups: string[][] = Array.from({ length: m.total }, () => []);
+    let n = 0;
+    for (const r of m.reqs) {
+      groups[r.index] = picked.slice(n, n + r.count);
+      n += r.count;
+    }
+    return groups;
   };
 
   const pickTarget = (iid: string) => {
     if (mode.k !== 'targets') return;
     const picked = mode.picked.includes(iid) ? mode.picked.filter((x) => x !== iid) : [...mode.picked, iid];
     const total = mode.reqs.reduce((s, r) => s + r.count, 0);
-    if (picked.length >= total) {
-      const targets: Target[] = picked.map((x) => ({ kind: 'card', iid: x }));
-      send({ ...mode.base, targets } as Action);
-    } else setMode({ ...mode, picked });
+    if (picked.length >= total) send({ type: 'chooseTargets', player: me, targets: groupsOf(mode, picked) });
+    else setMode({ ...mode, picked });
   };
 
   const currentReq = (m: Extract<Mode, { k: 'targets' }>) => {
@@ -383,7 +387,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     }
     if (mode.k === 'attack') return { title: `${nameOf(mode.iid)} attaque`, sub: mode.targets.length ? 'Touche une cible' : 'Aucune cible' };
     if (mode.k === 'hand') return { title: nameOf(mode.iid), sub: 'Touche un socle libre ou « Jouer »' };
-    if (state.pending && state.pending.player !== me) return { title: 'Réaction adverse…', sub: `${names[foe]} réfléchit` };
+    if (state.pending && state.pending.player !== me) return { title: state.pending.kind === 'reaction' ? 'Réaction adverse…' : 'Choix adverse…', sub: `${names[foe]} réfléchit` };
     if (state.active === me) return { title: `Ton tour ${state.players[me].turnNumber}`, sub: 'Pose, attaque, puis termine ton tour' };
     return { title: `Tour de ${names[foe]}`, sub: session.kind === 'bot' ? 'Le Grimoire tourne ses pages…' : 'Patiente…' };
   })();
@@ -494,7 +498,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
               {secondsLeft}s
             </span>
           ) : null}
-          {mode.k !== 'idle' ? (
+          {mode.k === 'targets' ? null : mode.k !== 'idle' ? (
             <button type="button" className="btn small ghost" onClick={() => setMode({ k: 'idle' })}>
               Annuler
             </button>
@@ -540,6 +544,13 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           label={pending.label}
           render={(iid) => catalog.get(state.instances[iid]?.cardId ?? '')}
           onDone={(picks) => send({ type: 'choose', player: me, picks })}
+        />
+      ) : null}
+      {pending && pending.player === me && pending.kind === 'option' && handoffFor === null ? (
+        <OptionModal
+          title={`${triggerPhrase(pending.trigger, nameOf(pending.source))} : « ${pending.label} »`}
+          labels={choiceLabels(catalog.get(state.instances[pending.source]?.cardId ?? '')?.abilities[pending.ability]?.text ?? '').slice(0, pending.choices)}
+          onChoose={(option) => send({ type: 'chooseOption', player: me, option })}
         />
       ) : null}
       {pending && pending.player === me && pending.kind === 'reaction' && handoffFor === null ? (
@@ -699,6 +710,24 @@ function PickModal({ options, count, label, render, onDone }: { options: string[
         <button type="button" className="btn primary" disabled={picked.length !== need} onClick={() => onDone(picked)}>
           Garder
         </button>
+      </div>
+    </div>
+  );
+}
+
+function OptionModal({ title, labels, onChoose }: { title: string; labels: string[]; onChoose: (option: number) => void }) {
+  return (
+    <div className="overlay">
+      <div className="parchment card-panel">
+        <h2>{title}</h2>
+        <p>Choisis un effet.</p>
+        <div className="target-list">
+          {labels.map((l, o) => (
+            <button key={o} type="button" className="btn" onClick={() => onChoose(o)}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

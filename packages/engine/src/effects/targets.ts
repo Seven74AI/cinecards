@@ -16,6 +16,8 @@ export interface EffectCtx {
   attacker?: string;
   defender?: string;
   cancelAttack?: boolean;
+  /** Targets chosen at trigger time, per effect (story 11.4); consumed one list per resolution. */
+  picks?: Map<Eff, string[][]>;
 }
 
 /** Target specs that need the player to choose (used by the UI and by the engine to validate). */
@@ -44,14 +46,14 @@ export function candidates(g: G, spec: string, ctx: Pick<EffectCtx, 'player' | '
 }
 
 /** Resolves a target spec into instance ids, consuming chosen targets from the context. */
-export function resolveTargets(g: G, e: Eff, ctx: EffectCtx): string[] {
+export function resolveTargets(g: G, e: Eff, ctx: EffectCtx, key: Eff = e): string[] {
   if (e.target === 'previous') return (ctx.last ?? []).filter((iid) => g.s.instances[iid]);
-  const out = resolveFresh(g, e, ctx);
+  const out = resolveFresh(g, e, ctx, key);
   ctx.last = out;
   return out;
 }
 
-function resolveFresh(g: G, e: Eff, ctx: EffectCtx): string[] {
+function resolveFresh(g: G, e: Eff, ctx: EffectCtx, key: Eff): string[] {
   const spec: string = e.target ?? 'self';
   const count: number = e.count ?? 1;
   if (spec === 'self') return [ctx.source];
@@ -65,8 +67,11 @@ function resolveFresh(g: G, e: Eff, ctx: EffectCtx): string[] {
     const sorted = [...pool].sort((a, b) => stats(g, b.iid).atk - stats(g, a.iid).atk);
     return sorted[0] ? [sorted[0].iid] : [];
   }
-  // chosen*: take the declared targets that are legal; fill missing ones randomly (bots, tests)
   const legal = new Set(pool.map((b) => b.iid));
+  // chosen at trigger time: one list per request, kept if still legal
+  const group = ctx.picks?.get(key)?.shift();
+  if (group) return [...new Set(group)].filter((iid) => legal.has(iid)).slice(0, count);
+  // chosen*: take the declared targets that are legal; fill missing ones randomly (bots, tests)
   const picked: string[] = [];
   while (picked.length < count && ctx.targets.length > 0) {
     const t = ctx.targets.shift()!;
@@ -79,17 +84,54 @@ function resolveFresh(g: G, e: Eff, ctx: EffectCtx): string[] {
   return picked;
 }
 
-/** All chosen-target requests of an effect list, for the UI. */
-export function targetRequests(g: G, effects: Eff[], ctx: Pick<EffectCtx, 'player' | 'source' | 'fromSpell'>): { spec: string; count: number; options: string[] }[] {
-  const out: { spec: string; count: number; options: string[] }[] = [];
+/** The card a summonFrom effect would bring, or undefined. */
+export function findSummon(g: G, e: Eff, me: PlayerId) {
+  const zones: string[] = e.zones ?? ['hand', 'graveyard'];
+  const foe: PlayerId = me === 0 ? 1 : 0;
+  return Object.values(g.s.instances).find((i) => {
+    if (!(e.ids as string[]).includes(i.cardId)) return false;
+    const where = board(g).find((b) => b.iid === i.iid);
+    if (where) return zones.includes('enemyBoard') && where.player === foe && where.kind === 'characters';
+    return ([0, 1] as PlayerId[]).some((p) => {
+      const pl = g.s.players[p];
+      const mine = p === me;
+      return (pl.hand.includes(i.iid) && (zones.includes('anyHand') || (mine && zones.includes('hand')))) ||
+        (pl.graveyard.includes(i.iid) && (zones.includes('anyGraveyard') || (mine && zones.includes('graveyard'))));
+    });
+  });
+}
+
+export interface ChosenRequest {
+  spec: string;
+  count: number;
+  /** Fewest picks allowed. */
+  min: number;
+  options: string[];
+  /** The effect that consumes this request (internal: matches picks to effects). */
+  eff: Eff;
+}
+
+/**
+ * All chosen-target requests of an effect list, in resolution order (UI prompts, bots). Dice branches are
+ * all listed (the roll happens after the choice); for chooseOne only the chosen option; a summonFrom's
+ * fallback only when nothing can be summoned.
+ */
+export function targetRequests(g: G, effects: Eff[], ctx: Pick<EffectCtx, 'player' | 'source' | 'fromSpell' | 'option'>): ChosenRequest[] {
+  const out: ChosenRequest[] = [];
+  const req = (spec: string, e: Eff, count: number) =>
+    out.push({ spec, count, min: count, options: candidates(g, spec, ctx, e.filter).map((b) => b.iid), eff: e });
   const walk = (list: Eff[]) => {
     for (const e of list) {
-      if (e.target && (CHOSEN_SPECS as readonly string[]).includes(e.target)) {
-        out.push({ spec: e.target, count: e.count ?? 1, options: candidates(g, e.target, ctx, e.filter).map((b) => b.iid) });
+      if (e.op === 'duel') {
+        req('chosenAlly', e, 1);
+        req('chosenEnemy', e, 1);
+        continue;
       }
+      if (e.target && (CHOSEN_SPECS as readonly string[]).includes(e.target)) req(e.target, e, e.count ?? 1);
       if (Array.isArray(e.effects)) walk(e.effects);
       if (Array.isArray(e.branches)) for (const br of e.branches) walk(br.effects ?? []);
-      if (Array.isArray(e.else)) walk(e.else);
+      if (e.op === 'chooseOne' && Array.isArray(e.options) && ctx.option !== undefined) walk(e.options[Math.min(ctx.option, e.options.length - 1)] ?? []);
+      if (Array.isArray(e.else) && (e.op !== 'summonFrom' || !findSummon(g, e, ctx.player))) walk(e.else);
     }
   };
   walk(effects);

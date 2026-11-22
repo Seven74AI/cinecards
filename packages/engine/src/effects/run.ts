@@ -5,7 +5,7 @@ import type { PlayerId, Status } from '../types.ts';
 import { board, cardOf, characters, coinCap, immuneTo, inst, onBoard, stats, type Eff, type G } from '../ctx.ts';
 import { drawCard, pileOf } from '../turn/turn.ts';
 import { damage, destroy, heal, processDeaths, removeFromBoard, toHand } from './core.ts';
-import { resolveTargets, type EffectCtx } from './targets.ts';
+import { findSummon, resolveTargets, type EffectCtx } from './targets.ts';
 
 const NEGATIVE: Status['kind'][] = ['silence', 'poison', 'stunned'];
 const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
@@ -146,20 +146,8 @@ function runOne(g: G, e: Eff, ctx: EffectCtx): void {
       return;
 
     case 'summonFrom': {
-      const zones: string[] = e.zones ?? ['hand', 'graveyard'];
       const me = ctx.player;
-      const foe = other(me);
-      const found = Object.values(g.s.instances).find((i) => {
-        if (!(e.ids as string[]).includes(i.cardId)) return false;
-        const where = onBoard(g, i.iid);
-        if (where) return zones.includes('enemyBoard') && where.player === foe && where.kind === 'characters';
-        return [0, 1].some((p) => {
-          const pl = g.s.players[p as PlayerId];
-          const mine = p === me;
-          return (pl.hand.includes(i.iid) && (zones.includes('anyHand') || (mine && zones.includes('hand')))) ||
-            (pl.graveyard.includes(i.iid) && (zones.includes('anyGraveyard') || (mine && zones.includes('graveyard'))));
-        });
-      });
+      const found = findSummon(g, e, me);
       const slot = g.s.players[me].characters.indexOf(null);
       if (!found || slot < 0) {
         if (Array.isArray(e.else)) runEffects(g, e.else, ctx);
@@ -284,8 +272,8 @@ function runOne(g: G, e: Eff, ctx: EffectCtx): void {
       return;
 
     case 'duel': {
-      const [mine] = resolveTargets(g, { op: 'pick', target: 'chosenAlly' }, ctx);
-      const [theirs] = resolveTargets(g, { op: 'pick', target: 'chosenEnemy' }, ctx);
+      const [mine] = resolveTargets(g, { op: 'pick', target: 'chosenAlly' }, ctx, e);
+      const [theirs] = resolveTargets(g, { op: 'pick', target: 'chosenEnemy' }, ctx, e);
       if (!mine || !theirs) return;
       const a = stats(g, mine).atk;
       const b = stats(g, theirs).atk;

@@ -1,5 +1,6 @@
 import type { Card } from '@cinecards/cards';
 import type { Catalog } from './types.ts';
+import { isKnownKind } from './effects/triggers.ts';
 
 /** Ops the engine knows how to execute or query. Anything else marks a card as unsupported (AR6). */
 export const KNOWN_OPS = new Set([
@@ -15,6 +16,7 @@ export const KNOWN_OPS = new Set([
 /** Why a card cannot be played by the engine yet, or null if fully supported. */
 export function unsupportedReason(card: Card): string | null {
   for (const ab of card.abilities) {
+    if (!isKnownKind(ab.kind)) return `ability "${ab.name}" uses unknown trigger "${ab.kind}"`;
     if (ab.kind === 'flavor') continue;
     if (!ab.effects || ab.effects.length === 0) return `ability "${ab.name}" has no effects`;
     const stack = [...ab.effects] as { op: string; [k: string]: unknown }[];

@@ -1,9 +1,6 @@
-import type { Ability } from '@cinecards/cards';
 import type { ApplyResult, PlayerId, RuleError, SlotKind, Target } from '../types.ts';
-import { cardOf, inst, passives, type Eff, type G } from '../ctx.ts';
-import { checkWinner, processDeaths } from '../effects/core.ts';
-import { runEffects } from '../effects/run.ts';
-import { offerReaction } from './reactions.ts';
+import { cardOf, inst, passives, type G } from '../ctx.ts';
+import { emit, entryEffects, settle } from '../effects/triggers.ts';
 
 const err = (code: RuleError['code'], params?: RuleError['params']): ApplyResult => ({ ok: false, error: params ? { code, params } : { code } });
 
@@ -20,20 +17,7 @@ function slotKindFor(category: string): SlotKind | 'resolved' {
   }
 }
 
-/** Effects to run when a card enters play: onPlay abilities, plus active/choice abilities of spells & equipment. */
-export function entryEffects(abilities: Ability[], category: string, option: number | undefined): { ability: Ability; index: number; effects: Eff[] }[] {
-  const out: { ability: Ability; index: number; effects: Eff[] }[] = [];
-  const isSpell = category === 'spell' || category === 'equipment';
-  const choices = abilities.map((a, i) => ({ a, i })).filter(({ a }) => a.kind === 'choice');
-  abilities.forEach((ability, index) => {
-    if (ability.kind === 'onPlay' || (isSpell && ability.kind === 'active')) out.push({ ability, index, effects: (ability.effects ?? []) as Eff[] });
-  });
-  if (isSpell && choices.length > 0) {
-    const chosen = choices[Math.min(option ?? 0, choices.length - 1)]!;
-    out.push({ ability: chosen.a, index: chosen.i, effects: (chosen.a.effects ?? []) as Eff[] });
-  }
-  return out;
-}
+export { entryEffects };
 
 export function playCard(g: G, player: PlayerId, iid: string, slot: number | undefined, targets: Target[], option: number | undefined): ApplyResult {
   const { s: state, ev: events } = g;
@@ -76,14 +60,9 @@ export function playCard(g: G, player: PlayerId, iid: string, slot: number | und
     for (const e of passives(g, iid, 'spellImmuneAfterPlay')) i.statuses.push({ kind: 'spellImmune', turnsLeft: e.turns ?? 2, source: iid });
   }
 
-  const isSpell = card.category === 'spell' || card.category === 'equipment';
-  for (const { ability, index, effects } of entryEffects(card.abilities, card.category, option)) {
-    events.push({ type: 'abilityUsed', iid, ability: index, name: ability.name, player });
-    runEffects(g, effects, { source: iid, player, targets: [...targets], fromSpell: isSpell, label: ability.name });
-  }
-  if (zone === 'resolved' && !p.graveyard.includes(iid)) p.graveyard.push(iid);
-  processDeaths(g);
-  checkWinner(g);
-  offerReaction(g, player);
+  if (zone === 'resolved') p.graveyard.push(iid);
+  // its own onPlay (or spell effect) and the onAllyPlayed / onEnemyPlayed of the table (story 11.4)
+  emit(g, { type: 'played', iid, player, ...(option !== undefined ? { option } : {}), targets });
+  settle(g, true);
   return { ok: true, state, events };
 }

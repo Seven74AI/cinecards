@@ -9,3 +9,4 @@ export * from './query.ts';
 export { unsupportedReason, playableCardIds, KNOWN_OPS } from './support.ts';
 export { botRandom, botStep, candidateActions } from './bot.ts';
 export { timeoutAction } from './timeout.ts';
+export { TRIGGERS } from './effects/triggers.ts';

@@ -30,6 +30,7 @@ export function createGame(catalog: Catalog, opts: CreateGameOptions): { state: 
     instances: {},
     nextIid: 1,
     pending: null,
+    queue: [],
   };
   const events: GameEvent[] = [];
 

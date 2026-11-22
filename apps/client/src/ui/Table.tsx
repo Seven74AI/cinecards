@@ -21,7 +21,7 @@ import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
-import { modifierLines } from '../game/modifiers.ts';
+import { modifierLines, type ModifierLine } from '../game/modifiers.ts';
 import { SourceLines, type SourceLink } from './SourceLines.tsx';
 import { Icon } from './Icon.tsx';
 import { Dice } from './Dice.tsx';
@@ -86,6 +86,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const roomy = useMedia(ROOMY_QUERY);
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   const [inspect, setInspect] = useState<string | null>(null);
+  /** Story 13.9: lines to a modifier's sources, shown on demand for a moment (`tuck`: the sheet slides away meanwhile). */
+  const [lines, setLines] = useState<{ target: string; links: SourceLink[]; tuck: boolean; key: number } | null>(null);
   const { openRules, previewId } = useRefs();
   /** Story 13.1: the slot of a card cited in an open preview glows. */
   const cited = (iid: string | null) => (iid && previewId && shown.instances[iid]?.cardId === previewId ? ' ref-glow' : '');
@@ -229,6 +231,37 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   // story 12.5: a played card leaves the hand at once (real state); its flight starts from where it was
   useLayoutEffect(() => noteHand());
 
+  // story 13.9: the lines stay ~3 s or until the next tap; a tap that ends them while the sheet is tucked only brings
+  // the sheet back (it does not reach what lies under it)
+  useEffect(() => {
+    if (!lines) return;
+    const swallow = lines.tuck && !wide;
+    let unSwallow: (() => void) | undefined;
+    const end = () => setLines((p) => (p?.key === lines.key ? null : p));
+    const timer = setTimeout(end, 3000);
+    const onDown = () => {
+      end();
+      if (!swallow) return;
+      const eat = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+      };
+      window.addEventListener('click', eat, { capture: true, once: true });
+      const t = setTimeout(() => window.removeEventListener('click', eat, { capture: true }), 600);
+      unSwallow = () => clearTimeout(t);
+    };
+    document.addEventListener('pointerdown', onDown, { capture: true });
+    return () => {
+      clearTimeout(timer);
+      unSwallow?.();
+      document.removeEventListener('pointerdown', onDown, { capture: true });
+    };
+  }, [lines, wide]);
+  // the lines belong to the card they were asked for
+  useEffect(() => {
+    setLines((p) => (p && p.tuck && p.target !== inspect ? null : p));
+  }, [inspect]);
+
   const send = (a: Action) => {
     sfx('click');
     pb.hurry();
@@ -237,6 +270,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     setManualZoom(null);
     setMode({ k: 'idle' });
     setInspect(null);
+    setLines(null);
   };
 
   /** HP counters roll at the playback's pace (story 12.3); instantly when nothing plays. */
@@ -278,7 +312,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   };
 
   // ----- taps -----
-  const tapCard = (iid: string) => {
+  const tapCard = (iid: string, stat?: 'atk' | 'hp') => {
     const inst = state.instances[iid];
     if (!inst) return;
     if (mode.k === 'targets') {
@@ -288,6 +322,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     if (mode.k === 'attack' && mode.targets.some((t) => t.kind === 'card' && t.iid === iid)) {
       return send({ type: 'attack', player: me, attacker: mode.iid, target: { kind: 'card', iid } });
     }
+    // story 13.9: a modified badge shows the lines to that stat's sources (the card opens when there is none to draw)
+    if (stat && showLines(iid, (l) => l[stat] !== 0, stat, false)) return;
     const P = state.players[inst.owner];
     if (inst.owner === me && P.hand.includes(iid)) {
       setMode(myTurn ? { k: 'hand', iid } : { k: 'idle' });
@@ -370,7 +406,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         dying={dying}
         leaving={leaving}
         state={dying || leaving ? null : cardState(iid, owner)}
-        onClick={() => tapCard(iid)}
+        onClick={(e) => tapCard(iid, ((e.target as Element).closest('.badge.has-src') as HTMLElement | null)?.dataset.stat as 'atk' | 'hp' | undefined)}
         count={countMs}
       />
     );
@@ -559,18 +595,25 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     }
   }
 
-  // story 13.3: a selected character on the table is linked to each of its sources in play
-  const sourceLinks: SourceLink[] = (() => {
-    const inst = inspect ? state.instances[inspect] : undefined;
-    if (!inspect || !inst || !state.players[inst.owner].characters.includes(inspect)) return [];
+  /**
+   * Story 13.9: lines from a character's sources in play (those `pick` keeps) to the card, for ~3 s or until the next
+   * tap. `stat`: colour by that stat's sign (a badge), else by the whole modifier. Returns false when nothing is drawn.
+   */
+  function showLines(target: string, pick: (l: ModifierLine) => boolean, stat: 'atk' | 'hp' | undefined, tuck: boolean): boolean {
+    const inst = state.instances[target];
+    if (!inst || !state.players[inst.owner].characters.includes(target)) return false;
+    let links: SourceLink[] = [];
     try {
-      return modifierLines(catalog, state, inspect, computeStats(catalog, state, inspect).sources)
-        .filter((l) => l.inPlay && !l.self)
-        .map((l) => ({ source: l.source, tone: l.tone }));
+      links = modifierLines(catalog, state, target, computeStats(catalog, state, target).sources)
+        .filter((l) => l.inPlay && !l.self && pick(l))
+        .map((l) => ({ source: l.source, tone: stat ? (l[stat] > 0 ? 'buff' : 'malus') : l.tone }));
     } catch {
-      return [];
+      return false;
     }
-  })();
+    if (!links.length) return false;
+    setLines((p) => ({ target, links, tuck, key: (p?.key ?? 0) + 1 }));
+    return true;
+  }
 
   const sheet = inspect ? (
     <CardSheet
@@ -590,6 +633,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         if (mode.k === 'hand') setMode({ k: 'idle' });
       }}
       docked={wide}
+      tucked={!!lines?.tuck && !wide}
+      onShowSource={(source) => showLines(inspect, (l) => l.source === source, undefined, true)}
     />
   ) : null;
 
@@ -734,7 +779,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
       </main>
       {wide ? <div className="col-right">{sheet ?? <div className="inspector-empty parchment-dark">Touche une carte pour voir ses détails.</div>}</div> : sheet}
       {!wide && journalOpen ? <div className="drawer">{journal}</div> : null}
-      {inspect && sourceLinks.length ? <SourceLines target={inspect} links={sourceLinks} /> : null}
+      {lines ? <SourceLines target={lines.target} links={lines.links} /> : null}
 
       {pending && pending.player === me && pending.kind === 'pick' ? (
         <PickModal

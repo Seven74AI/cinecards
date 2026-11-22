@@ -2265,6 +2265,31 @@ body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-scrim {
   text-align: center;
   box-shadow: 0 0 4px rgba(242, 210, 122, 0.8);
 }
+/* story 13.9: a modified badge shows its sources' lines when tapped */
+.badge.has-src {
+  cursor: help;
+  pointer-events: auto; /* the stats row lets taps through to the card, a modified badge catches them */
+}
+.badge.has-src::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+/* the sheet slides away while the lines show, and comes back after */
+.sheet:not(.docked) .sheet-body {
+  transition: transform 0.22s ease-out;
+}
+.sheet.tucked:not(.docked) {
+  pointer-events: none;
+}
+.sheet.tucked:not(.docked) .sheet-scrim {
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+}
+.sheet.tucked:not(.docked) .sheet-body {
+  transform: translateY(calc(100% + 12px));
+  transition: transform 0.22s ease-in;
+}
 .badge.hp .src-n {
   left: auto;
   right: -5px;

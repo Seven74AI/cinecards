@@ -33,6 +33,8 @@ export function CardSheet({
   onUseAbility,
   onClose,
   docked,
+  tucked,
+  onShowSource,
 }: {
   catalog: Catalog;
   state: GameState;
@@ -42,6 +44,10 @@ export function CardSheet({
   onUseAbility: (index: number, option?: number) => void;
   onClose: () => void;
   docked?: boolean;
+  /** Story 13.9: the sheet slides away while the lines to a modifier's sources show. */
+  tucked?: boolean;
+  /** Story 13.9: a row of « Bonus et malus » whose source is on the table shows its line; false = nothing to draw. */
+  onShowSource?: (source: string) => boolean;
 }) {
   const inst = state.instances[iid];
   if (!inst) return null;
@@ -54,7 +60,7 @@ export function CardSheet({
   const myTurn = state.active === viewer && !state.pending && state.phase !== 'finished';
   const mods = stats ? modifierLines(catalog, state, iid, stats.sources) : [];
   return (
-    <aside className={'sheet' + (docked ? ' docked' : '')} role="dialog" aria-label={card.name}>
+    <aside className={'sheet' + (docked ? ' docked' : '') + (tucked ? ' tucked' : '')} role="dialog" aria-label={card.name}>
       {!docked ? <button type="button" className="sheet-scrim" aria-label="Fermer" onClick={onClose} /> : null}
       <div className="sheet-body parchment">
         <button type="button" className="icon-btn sheet-close" onClick={onClose} aria-label="Fermer">
@@ -96,7 +102,7 @@ export function CardSheet({
             ) : null}
           </div>
         </div>
-        {mods.length ? <Modifiers catalog={catalog} lines={mods} /> : null}
+        {mods.length ? <Modifiers catalog={catalog} lines={mods} onShowSource={onShowSource} /> : null}
         <ol className="abilities">
           {card.abilities.map((ab, index) => {
             const usable = mine && onBoard && myTurn && card.category === 'character' && (ab.kind === 'active' || ab.kind === 'attack' || ab.kind === 'choice');
@@ -167,7 +173,7 @@ export function CardSheet({
  * Story 13.3: each bonus or penalty with its source card (thumbnail, name), the ability, the value and how long
  * it lasts. A tap opens the source's preview (story 13.1); a source no longer on the table is "carte partie".
  */
-function Modifiers({ catalog, lines }: { catalog: Catalog; lines: ModifierLine[] }) {
+function Modifiers({ catalog, lines, onShowSource }: { catalog: Catalog; lines: ModifierLine[]; onShowSource?: (source: string) => boolean }) {
   const { previewCard } = useRefs();
   return (
     <section className="mods" aria-label="Bonus et malus">
@@ -199,7 +205,11 @@ function Modifiers({ catalog, lines }: { catalog: Catalog; lines: ModifierLine[]
           return (
             <li key={i}>
               {src ? (
-                <button type="button" className={'mod-src ' + l.tone} onClick={() => previewCard(src.id, l.ability)} aria-label={`${src.name} (${CATEGORY_FR[src.category] ?? src.category}) : ${l.label}`}>
+                <button type="button" className={'mod-src ' + l.tone} onClick={() => {
+                    // story 13.9: a source on the table is shown by its line; a departed one (or the card itself) opens its preview
+                    if (l.inPlay && !l.self && onShowSource?.(l.source)) return;
+                    previewCard(src.id, l.ability);
+                  }} aria-label={`${src.name} (${CATEGORY_FR[src.category] ?? src.category}) : ${l.label}`}>
                   {body}
                 </button>
               ) : (

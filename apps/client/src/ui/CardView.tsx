@@ -123,7 +123,7 @@ export interface CardViewProps {
   cycle?: number | null;
   size?: 'board' | 'hand' | 'big';
   state?: 'selected' | 'target' | 'ready' | 'disabled' | 'attacker' | null;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   iid?: string;
   /** Milliseconds for the HP badge to roll to a new value (story 12.3). */
   count?: number;
@@ -172,12 +172,12 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
       <CostToken card={card} cost={cost ?? card.cost ?? 0} />
       {isChar && stats ? (
         <span className="card-stats">
-          <span className={'badge atk' + statClass(stats.atk, stats.baseAtk)}>
+          <span className={'badge atk' + statClass(stats.atk, stats.baseAtk) + (srcN.atk ? ' has-src' : '')} data-stat={srcN.atk ? 'atk' : undefined}>
             <Icon name="sword" size={10} />
             {multi ? multi.filter((b) => b.alive).map((b) => b.atk).join('·') : stats.atk}
             {srcN.atk ? <i className="src-n" title={`${srcN.atk} source(s)`}>{srcN.atk}</i> : null}
           </span>
-          <span className={'badge hp' + (stats.hp < stats.maxHp ? ' down' : statClass(stats.maxHp, stats.baseHp))}>
+          <span className={'badge hp' + (stats.hp < stats.maxHp ? ' down' : statClass(stats.maxHp, stats.baseHp)) + (srcN.hp ? ' has-src' : '')} data-stat={srcN.hp ? 'hp' : undefined}>
             <Icon name="heart" size={10} />
             {multi ? `${multi.filter((b) => b.alive).length}/${multi.length}` : <Counter value={stats.hp} ms={count} />}
             {srcN.hp ? <i className="src-n" title={`${srcN.hp} source(s)`}>{srcN.hp}</i> : null}

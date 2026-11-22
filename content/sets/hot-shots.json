@@ -19,18 +19,13 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "passive",
+          "kind": "onKill",
           "text": "Gagne +10 ATQ chaque fois qu'il détruit une carte.",
           "effects": [
             {
-              "op": "onKill",
-              "effects": [
-                {
-                  "op": "modify",
-                  "target": "self",
-                  "atk": 10
-                }
-              ]
+              "op": "modify",
+              "target": "self",
+              "atk": 10
             }
           ]
         },
@@ -76,8 +71,8 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "active",
-          "text": "Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour.",
+          "kind": "attack",
+          "text": "Attaque : Topper gagne +40 ATQ et +40 PV jusqu'à la fin du tour.",
           "effects": [
             {
               "op": "modify",
@@ -147,26 +142,22 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "passive",
-          "text": "Au début de votre tour, il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ.",
+          "kind": "startOfTurn",
+          "text": "Début de votre tour : il perd 10 PV et vos cartes Hot Shots! gagnent +20 ATQ jusqu'à la fin du tour.",
           "effects": [
             {
-              "op": "startOfTurn",
-              "effects": [
-                {
-                  "op": "damage",
-                  "target": "self",
-                  "amount": 10
-                },
-                {
-                  "op": "modify",
-                  "target": "allAllies",
-                  "filter": {
-                    "set": "hot-shots"
-                  },
-                  "atk": 20
-                }
-              ]
+              "op": "damage",
+              "target": "self",
+              "amount": 10
+            },
+            {
+              "op": "modify",
+              "target": "allAllies",
+              "filter": {
+                "set": "hot-shots"
+              },
+              "atk": 20,
+              "turns": 1
             }
           ]
         }
@@ -255,7 +246,7 @@
             "count": 1
           },
           "kind": "onPlay",
-          "text": "À son arrivée : un de vos personnages peut attaquer une deuxième fois ce tour.",
+          "text": "À l'arrivée : un de vos personnages peut attaquer une deuxième fois ce tour.",
           "effects": [
             {
               "op": "extraAttack",

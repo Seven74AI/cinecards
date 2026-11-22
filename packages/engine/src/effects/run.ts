@@ -130,12 +130,15 @@ function runOne(g: G, e: Eff, ctx: EffectCtx): void {
     }
 
     case 'lookAndPick': {
-      const pile = pileOf(g.s, ctx.player);
-      const options = pile.slice(0, e.look ?? 3);
-      if (options.length === 0) return;
-      const count = Math.min(e.pick ?? 1, options.length);
-      g.s.pending = { kind: 'pick', player: ctx.player, options, count, min: minOf(e, count), source: ctx.source, label };
-      g.ev.push({ type: 'pickOffered', player: ctx.player, count: Math.min(e.pick ?? 1, options.length) });
+      // from the top of the pile (look N, keep up to `pick`), or any cards of the graveyard (story 11.6, Smith)
+      const fromGraveyard = e.from === 'graveyard';
+      const p = g.s.players[ctx.player];
+      const options = fromGraveyard ? [...p.graveyard] : pileOf(g.s, ctx.player).slice(0, e.look ?? 3);
+      const room = fromGraveyard ? RULES.MAX_HAND - p.hand.length : Infinity;
+      const count = Math.min(e.pick ?? 1, options.length, room);
+      if (count <= 0) return;
+      g.s.pending = { kind: 'pick', player: ctx.player, options, count, min: minOf(e, count), source: ctx.source, label, ...(fromGraveyard ? { from: 'graveyard' as const } : {}) };
+      g.ev.push({ type: 'pickOffered', player: ctx.player, count });
       return;
     }
 

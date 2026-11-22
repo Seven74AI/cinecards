@@ -12,23 +12,67 @@ describe('4.x every MVP card is supported by the engine', () => {
   });
 });
 
-describe('4.1 Matrix', () => {
-  it('Le maître des clés: look at 6, keep 3', () => {
-    const { state, id } = scene({ chars: ['mx-keymaker'] });
-    const top = state.sharedDeck.slice(0, 6);
-    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-keymaker'), ability: 0 });
-    expect(r.state.pending).toMatchObject({ kind: 'pick', count: 3, options: top });
-    r = act(r.state, { type: 'choose', player: 0, picks: top.slice(0, 3) });
-    expect(r.state.players[0].hand).toEqual(top.slice(0, 3));
-    expect(r.state.sharedDeck.slice(0, 3)).toEqual(top.slice(3));
-    expect(() => act(r.state, { type: 'useAbility', player: 0, iid: id('mx-keymaker'), ability: 0 })).toThrow('ABILITY_USED');
+describe('11.6 abilities follow the trigger model', () => {
+  const all = [...MVP.values()].flatMap((c) => c.abilities.map((a, index) => ({ c, a, index })));
+
+  it('characters have no repeatable "active" left: arrival effects or attack abilities instead', () => {
+    const legacy = all.filter(({ c, a }) => c.category === 'character' && (a.kind === 'active' || a.kind === 'choice')).map(({ c, index }) => `${c.id}:${index}`);
+    expect(legacy).toEqual(['hs-topper:1']); // Pilote d'élite: already an attack, every 2 turns (unchanged)
   });
 
-  it('Epok: draw 3, and boost every Matrix card +30/+50', () => {
-    const { state, id } = scene({ chars: ['mx-epok', 'mx-tank'] }, { chars: ['mx-cypher', 'hs-kent'] });
-    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-epok'), ability: 0 });
+  it('texts announce their trigger: « À l’arrivée » and « Attaque »', () => {
+    for (const { c, a } of all) {
+      if (a.kind === 'onPlay' && c.category !== 'spell') expect(a.text, c.id).toMatch(/^À l'arrivée/);
+      if (a.kind === 'attack') expect(a.text, c.id).toMatch(/^Attaque/);
+    }
+  });
+
+  it('Patsy grants haste to Arthur; the Sentinels attack is single use; the new triggers are in place', () => {
+    expect(MVP.get('hg-patsy')!.abilities[0]!.text).toMatch(/^Tant que Patsy est sur votre table, Arthur a la hâte/);
+    const sentinels = MVP.get('mx-sentinels')!.abilities[1]!;
+    expect(sentinels.kind).toBe('attack');
+    expect(sentinels.effects).toContainEqual({ op: 'oncePerGame' });
+    const kinds = Object.fromEntries(all.map(({ c, a, index }) => [`${c.id}:${index}`, a.kind]));
+    expect(kinds).toMatchObject({
+      'mx-keymaker:0': 'onPlay', 'mx-epok:0': 'onPlay', 'mx-epok:1': 'onPlay', 'mx-mouse:0': 'attack', 'mx-mouse:1': 'onPlay',
+      'mx-smith:0': 'onPlay', 'mx-smith:1': 'onPlay', 'mx-tank:0': 'onPlay', 'mx-angel:1': 'onPlay', 'mx-switch:0': 'onPlay',
+      'mx-dozer:1': 'onPlay', 'mx-trinity:1': 'onPlay', 'mx-neo:2': 'onPlay', 'mx-cypher:0': 'onPlay', 'wc-kevin:0': 'attack',
+      'wc-vandergeld:0': 'attack', 'hg-ni:0': 'attack', 'hs-ramada:0': 'attack', 'hs-benson:0': 'startOfTurn', 'mx-sentinels:2': 'startOfTurn',
+      'hs-topper:0': 'onKill', 'hg-bridgekeeper:0': 'onAttacked', 'hg-robin:0': 'onAttacked',
+    });
+  });
+
+  it('Ramada, Vandergeld and Ni use their ability instead of attacking', () => {
+    const { state, id } = scene({ chars: ['hs-ramada', 'hs-topper', 'wc-vandergeld', 'hg-ni'] }, { chars: ['hs-kent'] });
+    let r = act(state, { type: 'useAbility', player: 0, iid: id('hs-ramada'), ability: 0 });
+    r = act(r.state, { type: 'chooseTargets', player: 0, targets: [[id('hs-topper')]] });
+    expect(st(r.state, id('hs-topper')).atk).toBe(190);
+    for (const who of ['hs-ramada'] as const) expect(canAttackQ(MVP, r.state, id(who))?.code).toBe('NO_ATTACK_LEFT');
+    r = act(r.state, { type: 'useAbility', player: 0, iid: id('wc-vandergeld'), ability: 0, targets: [card(id('hs-kent'))] });
+    expect(st(r.state, id('hs-kent')).atk).toBe(60);
+    expect(canAttackQ(MVP, r.state, id('wc-vandergeld'))?.code).toBe('NO_ATTACK_LEFT');
+    r = act(r.state, { type: 'endTurn', player: 0 });
+    expect(st(r.state, id('hs-topper')).atk).toBe(150); // "jusqu'à la fin du tour"
+  });
+});
+
+describe('4.1 Matrix', () => {
+  it('Le maître des clés: on arrival, look at 6 and keep up to 3', () => {
+    const { state, id } = scene({ hand: ['mx-keymaker'] });
+    const top = state.sharedDeck.slice(0, 6);
+    let r = act(state, { type: 'playCard', player: 0, iid: id('mx-keymaker') });
+    expect(r.state.pending).toMatchObject({ kind: 'pick', count: 3, min: 0, options: top });
+    expect(r.events).toContainEqual(expect.objectContaining({ type: 'abilityUsed', iid: id('mx-keymaker'), trigger: 'onPlay' }));
+    r = act(r.state, { type: 'choose', player: 0, picks: top.slice(0, 2) });
+    expect(r.state.players[0].hand).toEqual(top.slice(0, 2));
+    expect(r.state.sharedDeck.slice(0, 4)).toEqual(top.slice(2));
+    expect(() => act(r.state, { type: 'useAbility', player: 0, iid: id('mx-keymaker'), ability: 0 })).toThrow('NO_SUCH_ABILITY');
+  });
+
+  it('Epok: on arrival, draw 3 and boost every Matrix card in play +30/+50', () => {
+    const { state, id } = scene({ chars: ['mx-tank'], hand: ['mx-epok'] }, { chars: ['mx-cypher', 'hs-kent'] });
+    const r = act(state, { type: 'playCard', player: 0, iid: id('mx-epok') });
     expect(r.state.players[0].hand).toHaveLength(3);
-    r = act(r.state, { type: 'useAbility', player: 0, iid: id('mx-epok'), ability: 1 });
     expect(st(r.state, id('mx-tank'))).toMatchObject({ atk: 60, hp: 100 });
     expect(st(r.state, id('mx-cypher'))).toMatchObject({ atk: 100 }); // both sides: "TOUTES les cartes"
     expect(st(r.state, id('hs-kent')).atk).toBe(90);
@@ -44,12 +88,12 @@ describe('4.1 Matrix', () => {
   });
 
   it('Dozer: +20 ATQ aura while on the table; cleanses allies', () => {
-    const { state, id } = scene({ chars: ['mx-dozer', 'mx-tank'] });
-    expect(st(state, id('mx-tank')).atk).toBe(50);
-    expect(st(state, id('mx-tank')).sources[0]).toMatchObject({ source: id('mx-dozer'), atk: 20 });
+    const { state, id } = scene({ chars: ['mx-tank'], hand: ['mx-dozer'] });
     state.instances[id('mx-tank')]!.statuses.push({ kind: 'silence', turnsLeft: 1, source: 'x' });
-    const r = act(state, { type: 'useAbility', player: 0, iid: id('mx-dozer'), ability: 1 });
-    expect(r.state.instances[id('mx-tank')]!.statuses).toEqual([]);
+    const r = act(state, { type: 'playCard', player: 0, iid: id('mx-dozer') });
+    expect(r.state.instances[id('mx-tank')]!.statuses).toEqual([]); // on arrival
+    expect(st(r.state, id('mx-tank')).atk).toBe(50);
+    expect(st(r.state, id('mx-tank')).sources[0]).toMatchObject({ source: id('mx-dozer'), atk: 20 });
   });
 
   it('Unité A.P.U: steals Capitaine Iffune from the enemy table with stats ×2, else +100 ATQ', () => {
@@ -61,6 +105,19 @@ describe('4.1 Matrix', () => {
     const s2 = scene({ chars: ['mx-tank'], hand: ['mx-apu'] });
     const r2 = act(s2.state, { type: 'playCard', player: 0, iid: s2.id('mx-apu'), targets: [card(s2.id('mx-tank'))] });
     expect(st(r2.state, s2.id('mx-tank')).atk).toBe(130);
+  });
+
+  it("Les sentinelles: absorb the allies' ATQ once per game, instead of attacking", () => {
+    const { state, id } = scene({ chars: ['mx-sentinels', 'mx-tank'] }, { chars: ['hs-kent'] });
+    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-sentinels'), ability: 1 });
+    expect(st(r.state, id('mx-tank')).atk).toBe(0);
+    expect(r.state.instances[id('mx-sentinels')]!.attacksUsed).toBe(1);
+    r = act(r.state, { type: 'endTurn', player: 0 });
+    r = act(r.state, { type: 'endTurn', player: 1 });
+    expect(st(r.state, id('mx-tank')).atk).toBe(0); // until the end of the next turn
+    expect(() => act(r.state, { type: 'useAbility', player: 0, iid: id('mx-sentinels'), ability: 1 })).toThrow('ABILITY_USED');
+    r = act(r.state, { type: 'endTurn', player: 0 });
+    expect(st(r.state, id('mx-tank')).atk).toBe(30);
   });
 
   it('Les sentinelles: three bodies, re-attack on kill, heal allies each turn', () => {
@@ -82,8 +139,8 @@ describe('4.1 Matrix', () => {
   });
 
   it('Switch: 40-point shield for allies, and cancels the death of an ally', () => {
-    const { state, id } = scene({ chars: ['mx-switch', 'mx-tank'] }, { chars: ['hg-rabbit'] });
-    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-switch'), ability: 0 });
+    const { state, id } = scene({ chars: ['mx-tank'], hand: ['mx-switch'] }, { chars: ['hg-rabbit'] });
+    let r = act(state, { type: 'playCard', player: 0, iid: id('mx-switch') });
     expect(r.state.instances[id('mx-tank')]!.statuses[0]).toMatchObject({ kind: 'shield', amount: 40 });
     r = act(r.state, { type: 'endTurn', player: 0 });
     r = act(r.state, { type: 'attack', player: 1, attacker: id('hg-rabbit'), target: card(id('mx-tank')) });
@@ -96,8 +153,10 @@ describe('4.1 Matrix', () => {
     forceDice(state, 5);
     let r = act(state, { type: 'playCard', player: 0, iid: id('mx-angel'), targets: [card(id('hs-kent'))] });
     expect(r.state.players[1].graveyard).toContain(id('hs-kent'));
-    const s2 = scene({ chars: ['mx-angel'], hand: ['mx-smith'], coins: 0 });
-    r = act(s2.state, { type: 'useAbility', player: 0, iid: s2.id('mx-angel'), ability: 1, option: 1 });
+    const s2 = scene({ hand: ['mx-angel', 'mx-smith'], coins: MVP.get('mx-angel')!.cost! });
+    r = act(s2.state, { type: 'playCard', player: 0, iid: s2.id('mx-angel') });
+    expect(r.state.pending).toMatchObject({ kind: 'option', choices: 2, trigger: 'onPlay' });
+    r = act(r.state, { type: 'chooseOption', player: 0, option: 1 });
     r = act(r.state, { type: 'playCard', player: 0, iid: s2.id('mx-smith') });
     expect(r.state.players[0].characters).toContain(s2.id('mx-smith'));
   });
@@ -139,20 +198,25 @@ describe('4.1 Matrix', () => {
   });
 
   it('Tank: returns 3 cards on the table to their owners', () => {
-    const { state, id } = scene({ chars: ['mx-tank'] }, { chars: ['hs-kent', 'hg-rabbit'], terrains: ['hs-carrier'] });
-    const r = act(state, { type: 'useAbility', player: 0, iid: id('mx-tank'), ability: 0, targets: [card(id('hs-kent')), card(id('hg-rabbit')), card(id('hs-carrier'))] });
+    const { state, id } = scene({ hand: ['mx-tank'] }, { chars: ['hs-kent', 'hg-rabbit'], terrains: ['hs-carrier'] });
+    let r = act(state, { type: 'playCard', player: 0, iid: id('mx-tank') });
+    expect(r.state.pending).toMatchObject({ kind: 'targets', requests: [{ count: 3, min: 0 }] });
+    r = act(r.state, { type: 'chooseTargets', player: 0, targets: [[id('hs-kent'), id('hg-rabbit'), id('hs-carrier')]] });
     expect(r.state.players[1].hand.sort()).toEqual([id('hs-kent'), id('hg-rabbit'), id('hs-carrier')].sort());
   });
 
   it('Smith: absorbs 50% of every card, recovers his graveyard, attacks 3 times', () => {
-    const { state, id } = scene({ chars: ['mx-smith'], graveyard: ['hg-tim', 'hg-patsy'] }, { chars: ['hs-kent'] });
-    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-smith'), ability: 0 });
+    const { state, id } = scene({ hand: ['mx-smith'], graveyard: ['hg-tim', 'hg-patsy'], coins: 13 }, { chars: ['hs-kent'] });
+    let r = act(state, { type: 'playCard', player: 0, iid: id('mx-smith') });
     const kent = st(r.state, id('hs-kent'));
     expect(kent.hp).toBe(80);
     expect(st(r.state, id('mx-smith')).atk).toBe(150 + (90 - kent.atk));
     const smithAtk = st(r.state, id('mx-smith')).atk;
-    r = act(r.state, { type: 'useAbility', player: 0, iid: id('mx-smith'), ability: 1 });
-    expect(r.state.players[0].hand).toHaveLength(2);
+    expect(r.state.pending).toMatchObject({ kind: 'pick', from: 'graveyard', count: 2, min: 0 });
+    r = act(r.state, { type: 'choose', player: 0, picks: [id('hg-patsy'), id('hg-tim')] });
+    expect(r.state.players[0].hand.sort()).toEqual([id('hg-patsy'), id('hg-tim')].sort());
+    expect(r.state.players[0].graveyard).toEqual([]);
+    r.state.instances[id('mx-smith')]!.playedOnTurn = 1; // as if he had arrived earlier
     r = act(r.state, { type: 'attack', player: 0, attacker: id('mx-smith'), target: card(id('hs-kent')) });
     r = act(r.state, { type: 'attack', player: 0, attacker: id('mx-smith'), target: { kind: 'player', player: 1 } });
     r = act(r.state, { type: 'attack', player: 0, attacker: id('mx-smith'), target: { kind: 'player', player: 1 } });
@@ -164,8 +228,13 @@ describe('4.1 Matrix', () => {
     let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-mouse'), ability: 0 });
     expect(st(r.state, id('hs-kent')).hp).toBe(160 - 60);
     expect(r.state.players[1].graveyard).toContain(id('hs-washout'));
-    r = act(r.state, { type: 'useAbility', player: 0, iid: id('mx-mouse'), ability: 1 });
-    expect(st(r.state, id('mx-mouse'))).toMatchObject({ atk: 100, hp: 160 });
+    // an attack ability: no normal attack this turn, and only every 2 turns
+    expect(() => act(r.state, { type: 'attack', player: 0, attacker: id('mx-mouse'), target: card(id('hs-kent')) })).toThrow('NO_ATTACK_LEFT');
+    r = act(act(r.state, { type: 'endTurn', player: 0 }).state, { type: 'endTurn', player: 1 });
+    expect(() => act(r.state, { type: 'useAbility', player: 0, iid: id('mx-mouse'), ability: 0 })).toThrow('ABILITY_USED');
+    const s2 = scene({ hand: ['mx-mouse'] });
+    r = act(s2.state, { type: 'playCard', player: 0, iid: s2.id('mx-mouse') });
+    expect(st(r.state, s2.id('mx-mouse'))).toMatchObject({ atk: 100, hp: 160 });
   });
 
   it('Trinity: lethal every 2 turns; prophecy gives Matrix cards a second attack', () => {
@@ -174,9 +243,8 @@ describe('4.1 Matrix', () => {
     expect(cycleCountdown(MVP, state, id('mx-trinity'))).toBe(0);
     let r = act(state, { type: 'attack', player: 0, attacker: id('mx-trinity'), target: card(id('mx-smith')) });
     expect(r.state.players[1].graveyard).toContain(id('mx-smith'));
-    const s2 = scene({ chars: ['mx-trinity', 'mx-tank'] }, { chars: ['hg-galahad'] });
-    s2.state.instances[s2.id('mx-trinity')]!.playedOnTurn = 2;
-    r = act(s2.state, { type: 'useAbility', player: 0, iid: s2.id('mx-trinity'), ability: 1 });
+    const s2 = scene({ chars: ['mx-tank'], hand: ['mx-trinity'] }, { chars: ['hg-galahad'] });
+    r = act(s2.state, { type: 'playCard', player: 0, iid: s2.id('mx-trinity') });
     expect(attacksAllowed(MVP, r.state, s2.id('mx-tank'))).toBe(2);
   });
 
@@ -188,9 +256,9 @@ describe('4.1 Matrix', () => {
     expect(() => act(r.state, { type: 'endTurn', player: 0 })).toThrow('PENDING_DECISION');
     r = act(r.state, { type: 'react', player: 1, iid: id('mx-neo'), ability: 0, target: card(id('hs-topper')) });
     expect(st(r.state, id('hs-topper')).hp).toBe(480 - 160 - 160);
-    r = act(r.state, { type: 'endTurn', player: 0 });
-    r = act(r.state, { type: 'useAbility', player: 1, iid: id('mx-neo'), ability: 2 });
-    expect(r.state.players[1].characters).toContain(id('mx-trinity'));
+    const s3 = scene({ hand: ['mx-neo'], graveyard: ['mx-trinity'] });
+    const r3 = act(s3.state, { type: 'playCard', player: 0, iid: s3.id('mx-neo') });
+    expect(r3.state.players[0].characters).toContain(s3.id('mx-trinity')); // on arrival
     const s2 = scene({ chars: ['hs-kent'] }, { chars: ['mx-neo'] });
     s2.state.instances[s2.id('mx-neo')]!.playedOnTurn = 1; // cycle active: insensible
     const r2 = act(s2.state, { type: 'attack', player: 0, attacker: s2.id('hs-kent'), target: card(s2.id('mx-neo')) });
@@ -198,8 +266,8 @@ describe('4.1 Matrix', () => {
   });
 
   it('Cypher: allies copy his stats; your cards take half damage', () => {
-    const { state, id } = scene({ chars: ['mx-cypher', 'mx-tank'] }, { chars: ['hs-kent'] });
-    let r = act(state, { type: 'useAbility', player: 0, iid: id('mx-cypher'), ability: 0 });
+    const { state, id } = scene({ chars: ['mx-tank'], hand: ['mx-cypher'] }, { chars: ['hs-kent'] });
+    let r = act(state, { type: 'playCard', player: 0, iid: id('mx-cypher') });
     expect(st(r.state, id('mx-tank'))).toMatchObject({ atk: 70, hp: 150 });
     r = act(r.state, { type: 'attack', player: 0, attacker: id('mx-tank'), target: card(id('hs-kent')) });
     expect(st(r.state, id('mx-tank')).hp).toBe(150 - 40); // 90 halved → 45 → 40
@@ -320,6 +388,11 @@ describe('4.3 Hot Shots!', () => {
     let r = act(state, { type: 'endTurn', player: 0 });
     r = act(r.state, { type: 'endTurn', player: 1 });
     expect(st(r.state, id('hs-benson'))).toMatchObject({ hp: 130, atk: 60 });
+    expect(st(r.state, id('hs-kent')).atk).toBe(110);
+    // the bonus lasts until the end of the turn: it does not stack (story 11.6)
+    r = act(r.state, { type: 'endTurn', player: 0 });
+    expect(st(r.state, id('hs-kent')).atk).toBe(90);
+    r = act(r.state, { type: 'endTurn', player: 1 });
     expect(st(r.state, id('hs-kent')).atk).toBe(110);
   });
 

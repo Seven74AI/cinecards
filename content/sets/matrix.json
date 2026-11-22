@@ -23,8 +23,8 @@
             "icon": "eye",
             "count": 4
           },
-          "kind": "active",
-          "text": "Vous regardez les 6 prochaines cartes de VOTRE deck et en choisissez 3.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : regardez les 6 prochaines cartes de VOTRE deck et gardez-en jusqu'à 3.",
           "effects": [
             {
               "op": "lookAndPick",
@@ -54,8 +54,8 @@
             "icon": "star",
             "count": 2
           },
-          "kind": "active",
-          "text": "Vous piochez 3 cartes.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : vous piochez 3 cartes.",
           "effects": [
             {
               "op": "draw",
@@ -69,8 +69,8 @@
             "icon": "star",
             "count": 1
           },
-          "kind": "active",
-          "text": "Vous boostez TOUTES les cartes du monde de « Matrix » : +30 ATQ / +50 PV.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : vous boostez TOUTES les cartes du monde de « Matrix » en jeu : +30 ATQ / +50 PV.",
           "effects": [
             {
               "op": "modify",
@@ -170,8 +170,8 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Cocktail de Dozer du Nebuchadnezzar : GUÉRIT TOUTES vos cartes des effets NÉGATIFS.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : cocktail de Dozer du Nebuchadnezzar, GUÉRIT TOUTES vos cartes des effets NÉGATIFS.",
           "effects": [
             {
               "op": "cleanse",
@@ -201,7 +201,7 @@
             "count": 4
           },
           "kind": "onPlay",
-          "text": "Si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Ne fonctionne qu'avec les cartes neutres du monde de « Matrix » : +100 ATQ.",
+          "text": "À l'arrivée : si « Capitaine Iffune » est dans un des cimetières, dans une main ou sur le terrain adverse, il vient sur VOTRE terrain avec STATS ×2. Sinon, une de vos cartes du monde de « Matrix » gagne +100 ATQ.",
           "effects": [
             {
               "op": "summonFrom",
@@ -273,12 +273,15 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Vous absorbez l'ATQ de vos cartes présentes sur le terrain pendant 1 tour (usage unique).",
+          "kind": "attack",
+          "text": "Attaque, usage unique : vous absorbez l'ATQ de vos autres cartes présentes sur le terrain jusqu'à la fin de votre prochain tour.",
           "effects": [
             {
+              "op": "oncePerGame"
+            },
+            {
               "op": "absorbAllyAtk",
-              "turns": 1
+              "turns": 2
             }
           ]
         },
@@ -288,18 +291,13 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "passive",
-          "text": "Tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV.",
+          "kind": "startOfTurn",
+          "text": "Début de votre tour : tant que les Sentinelles sont sur le terrain, TOUTES vos cartes se soignent de 50 PV.",
           "effects": [
             {
-              "op": "startOfTurn",
-              "effects": [
-                {
-                  "op": "heal",
-                  "target": "allAllies",
-                  "amount": 50
-                }
-              ]
+              "op": "heal",
+              "target": "allAllies",
+              "amount": 50
             }
           ]
         }
@@ -365,8 +363,8 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : confère un bouclier pouvant encaisser 40 dégâts à TOUTES vos cartes.",
           "effects": [
             {
               "op": "status",
@@ -413,7 +411,7 @@
             "count": 2
           },
           "kind": "onPlay",
-          "text": "Lors de votre arrivée, vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse.",
+          "text": "À l'arrivée : vous lancez le dé : 1-2 rien ne se passe, 3-6 élimine une carte adverse de votre choix.",
           "effects": [
             {
               "op": "dice",
@@ -438,8 +436,8 @@
             "icon": "fist",
             "count": 2
           },
-          "kind": "choice",
-          "text": "Piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci.",
+          "kind": "onPlay",
+          "text": "À l'arrivée, au choix : piochez les 3 prochaines cartes du deck ADVERSE OU jouez 1 carte gratuitement ce tour-ci.",
           "effects": [
             {
               "op": "chooseOne",
@@ -614,8 +612,8 @@
             "icon": "bolt",
             "count": 3
           },
-          "kind": "active",
-          "text": "Les agents sont à vos trousses : choisissez 3 cartes sur le terrain avant de les renvoyer dans la main de leur propriétaire.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : les agents sont à vos trousses, choisissez jusqu'à 3 cartes sur le terrain et renvoyez-les dans la main de leur propriétaire.",
           "effects": [
             {
               "op": "returnToHand",
@@ -654,8 +652,8 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "active",
-          "text": "Vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : vous ABSORBEZ 50 % des PV/ATQ actuels de TOUTES les cartes sur le terrain.",
           "effects": [
             {
               "op": "absorb",
@@ -670,13 +668,13 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Vous piochez dans votre cimetière jusqu'à 15 cartes max. dans votre main.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : choisissez jusqu'à 15 cartes de votre cimetière et prenez-les en main.",
           "effects": [
             {
-              "op": "draw",
+              "op": "lookAndPick",
               "from": "graveyard",
-              "count": 15
+              "pick": 15
             }
           ]
         },
@@ -716,9 +714,13 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Vos adversaires se battent pour la femme en robe rouge : chaque ennemi attaque ses alliés adjacents.",
+          "kind": "attack",
+          "text": "Attaque, tous les 2 tours : vos adversaires se battent pour la femme en robe rouge, chaque ennemi attaque ses alliés adjacents.",
           "effects": [
+            {
+              "op": "cooldown",
+              "every": 2
+            },
             {
               "op": "enemiesHitAdjacent"
             }
@@ -730,8 +732,8 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "active",
-          "text": "TOUTES les cartes du monde de « MATRIX » gagnent +40 ATQ / +50 PV.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : TOUTES les cartes du monde de « MATRIX » en jeu gagnent +40 ATQ / +50 PV.",
           "effects": [
             {
               "op": "modify",
@@ -780,8 +782,8 @@
             "icon": "bolt",
             "count": 2
           },
-          "kind": "active",
-          "text": "Pendant 2 tours, TOUTES les cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : pendant 2 tours, TOUTES vos cartes du monde de « MATRIX » peuvent attaquer 2 fois ; de plus lancez un dé : 1-3 = dégâts IGNORÉS / 4-6 = dégâts SUBIS.",
           "effects": [
             {
               "op": "extraAttack",
@@ -865,8 +867,8 @@
             "icon": "bolt",
             "count": 1
           },
-          "kind": "active",
-          "text": "Si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : si « Trinity » est dans une main ou un cimetière, elle débarque sur votre terrain.",
           "effects": [
             {
               "op": "summonFrom",
@@ -918,8 +920,8 @@
             "icon": "star",
             "count": 2
           },
-          "kind": "active",
-          "text": "Vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ.",
+          "kind": "onPlay",
+          "text": "À l'arrivée : vos autres cartes envient Cypher et prennent exemple sur lui en copiant ses PV et son ATQ actuels.",
           "effects": [
             {
               "op": "copyStats",

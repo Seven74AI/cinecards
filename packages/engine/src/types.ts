@@ -94,7 +94,7 @@ export interface QueuedAbility {
 
 export type Pending =
   | { kind: 'reaction'; player: PlayerId; options: { iid: string; ability: number }[]; key: string }
-  | { kind: 'pick'; player: PlayerId; options: string[]; count: number; min?: number; source: string; label: string }
+  | { kind: 'pick'; player: PlayerId; options: string[]; count: number; min?: number; source: string; label: string; from?: 'graveyard' }
   | { kind: 'targets'; player: PlayerId; source: string; ability: number; label: string; trigger: TriggerKind; requests: TargetRequest[] }
   | { kind: 'option'; player: PlayerId; source: string; ability: number; label: string; trigger: TriggerKind; choices: number };
 

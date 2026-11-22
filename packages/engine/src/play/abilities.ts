@@ -94,7 +94,7 @@ export function choose(g: G, player: PlayerId, picks: string[]): ApplyResult {
   const unique = [...new Set(picks)];
   const min = pending.min ?? pending.count; // older states: exactly `count`
   if (unique.length < min || unique.length > pending.count || !unique.every((p) => pending.options.includes(p))) return err('INVALID_CHOICE', { count: pending.count });
-  const pile = g.s.mode === 'shared' ? g.s.sharedDeck : g.s.players[player].deck;
+  const pile = pending.from === 'graveyard' ? g.s.players[player].graveyard : g.s.mode === 'shared' ? g.s.sharedDeck : g.s.players[player].deck;
   const hand = g.s.players[player].hand;
   for (const iid of unique) {
     pile.splice(pile.indexOf(iid), 1);

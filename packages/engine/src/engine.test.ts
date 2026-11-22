@@ -218,6 +218,12 @@ describe('2.7 events and replay', () => {
           expect(r.events.length).toBeGreaterThan(0);
           log.push(...r.events);
           state = r.state;
+          // answer arrival prompts with their default
+          while (state.pending) {
+            const d = ok(state, timeoutAction(state)!);
+            log.push(...d.events);
+            state = d.state;
+          }
         }
         const r = ok(state, { type: 'endTurn', player: p });
         log.push(...r.events);

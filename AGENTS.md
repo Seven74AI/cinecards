@@ -21,7 +21,8 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
 - **Card texts (story 11.6):** follow table 4.3 of the change proposal. Keep the movie quotes
   (ability names) unchanged. List every changed text in `a-valider-par-root.md`.
 - **Definition of done:** `pnpm typecheck`, `pnpm test` and `pnpm e2e` green. For e2e here, run
-  `PW_CHANNEL=chromium pnpm e2e -- --trace off`. If the story touches the engine or the cards, the
+  `PW_CHANNEL=chromium pnpm e2e -- --trace off`. When several agents work in parallel worktrees, give each its own ports
+  (`E2E_SERVER_PORT` / `E2E_CLIENT_PORT`, e.g. 2667/5274) so their e2e servers don't collide. If the story touches the engine or the cards, the
   200-game simulation must also pass.
 - **Ship:** commit and push straight to `main`. Pushes don't start GitHub Actions (account-level
   issue), so then start the Pages workflow yourself with the GitHub MCP tool `actions_run_trigger`

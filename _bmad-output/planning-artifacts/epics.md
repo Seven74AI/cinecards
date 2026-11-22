@@ -122,6 +122,7 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | 7 | Animations et son | Oui (partiel) | Ambiance Grimoire et retours sonores |
 | 11 | Corrections du playtest 1 | Oui | Solo, chrono et reconnexion fiables ; capacités déclenchées ; lisibilité des cartes (à faire avant 8, 9, 10) |
 | 12 | Retours visuels de chaque action | Oui | Chaque action se voit : attaques, morts, poses, déclencheurs (après 11, avant 8, 9, 10) |
+| 13 | Retours du playtest 2 | Oui | Aperçu des cartes citées, table sans défilement, origine des bonus et malus (après 12.4) |
 | 8 | Comptes et amis | Non | Connexion, amis, historique, émotes |
 | 9 | Pipeline de contenu | Non | Import des ~500 cartes |
 | 10 | Decks construits | Non | Mode deck personnel construit |
@@ -923,6 +924,42 @@ As a joueur, I want voir quelle carte déclenche quoi, So that les combos soient
 ### Story 12.7: Rythme du tour
 As a joueur, I want des repères de tour et de fin de partie, So that le rythme soit clair.
 **Acceptance Criteria:** **Given** un changement de tour ou une fin de partie **Then** un bandeau « À vous de jouer » (ou « Tour adverse ») se déroule et mes cartes jouables s'illuminent **And** la victoire brise le portrait adverse, la défaite assombrit la table.
+
+## Epic 13: Retours du playtest 2
+
+Retours de Root (2026-11-22, deuxième session de test). À faire après les stories 12.1 à 12.4, avant 12.5.
+
+### Story 13.1: Aperçu des cartes citées
+As a joueur, I want voir un aperçu d'une carte citée dans un texte, So that je comprenne la combinaison sans quitter la partie.
+**Constat :** le texte de Patsy (« Tant que Patsy est sur votre table, Arthur a la hâte… ») ne rend cliquable que « Au galop ! ». « Arthur », cité sans guillemets, n'est pas reconnu. Ouvrir une carte remplace en plus la fiche en cours.
+**Acceptance Criteria:**
+- **Given** un texte de carte qui cite une autre carte, entre guillemets ou par son nom d'usage (« Arthur », « Trinity », « Kevin »…, une table d'alias par carte dans les données)
+- **When** je touche ce nom (ou le survole sur ordinateur)
+- **Then** un aperçu de la carte citée s'affiche en surimpression : la carte en taille lisible et ses capacités, avec « Voir la fiche » et la fermeture d'un geste
+- **And** si la carte citée est en jeu, son socle s'illumine sur la table
+- **And** toutes les cartes du MVP qui citent une autre carte sont couvertes par un test (aucun nom cité non reconnu)
+
+### Story 13.2: Table sans défilement vertical sur mobile
+As a joueur sur téléphone, I want voir toute la table sans faire défiler, So that je garde l'œil sur la partie.
+**Constat :** en portrait (390 × 844), les deux grilles de 10 socles, les rangées terrains et sorts, le bandeau de tour et la main dépassent la hauteur de l'écran.
+**Acceptance Criteria:**
+- **Given** une partie sur un téléphone en portrait (de 360 × 640 à 430 × 932)
+- **When** la table s'affiche, à n'importe quel moment de la partie
+- **Then** tout tient dans la hauteur visible (`100dvh`) sans défilement de la page : les deux camps, le bandeau de tour avec le chrono, les PV et pièces, et la main
+- **And** la disposition suit la maquette validée par Root
+- **And** les cibles tactiles mesurent toujours au moins 44 px, et les cartes restent lisibles (nom, coût, ATQ/PV)
+- **And** les tests e2e vérifient l'absence de défilement vertical à 390 × 844 et 360 × 640
+
+### Story 13.3: Origine des bonus et malus sur la carte
+As a joueur, I want savoir quelle carte donne un bonus ou un malus, So that je sache quoi cibler pour l'enlever.
+**Constat :** la table affiche les valeurs modifiées (badge vert ou rouge), mais pas leur origine. La fiche les liste avec seulement le libellé de l'effet.
+**Acceptance Criteria:**
+- **Given** une carte modifiée (aura, terrain, bonus temporaire ou permanent, malus)
+- **When** je regarde la carte sur la table
+- **Then** un petit marqueur sur l'écusson modifié indique qu'il y a une origine à voir (nombre de sources)
+- **And** quand je touche la carte, chaque source en jeu est reliée à elle par un trait lumineux, vert pour un bonus et rouge pour un malus
+- **And** la fiche liste chaque modificateur avec la miniature et le nom de la carte source, le nom de la capacité, la valeur et la durée restante ; toucher une source ouvre son aperçu (story 13.1)
+- **And** une source qui n'est plus en jeu (bonus permanent) est indiquée « carte partie »
 
 ## Epic 8: Comptes et amis (post-MVP)
 

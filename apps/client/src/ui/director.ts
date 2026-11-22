@@ -5,6 +5,7 @@ import { CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 import { CATALOG, cardArt } from '../game/catalog.ts';
 import { abilityTag } from '../game/labels.ts';
+import { PHONE_SPELL } from '../game/fx.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -683,26 +684,43 @@ function castSpell(cardId: string, from: Pt, ms: number, r: number) {
   const dx = from.x - mid.x;
   const dy = from.y - mid.y;
   const s0 = Math.max(0.3, from.w / w);
-  void animate(
-    g,
-    [
-      { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${s0})`, opacity: 0.9 },
+  const start = { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${s0})`, opacity: 0.9 };
+  // when the burn starts (fraction of the beat)
+  let burn = 0.55;
+  let frames: Keyframe[];
+  if (compactTable()) {
+    // story 13.7: the demo's pace on the portrait phone table (flight, grow, hold, burn: PHONE_SPELL)
+    const t = PHONE_SPELL.fly + PHONE_SPELL.grow + PHONE_SPELL.hold + PHONE_SPELL.burn;
+    const f = PHONE_SPELL.fly / t;
+    const grown = (PHONE_SPELL.fly + PHONE_SPELL.grow) / t;
+    burn = (PHONE_SPELL.fly + PHONE_SPELL.grow + PHONE_SPELL.hold) / t;
+    frames = [
+      start,
+      { transform: `translate(-50%,-50%) translate(${dx * 0.45}px, ${dy * 0.45 - 70}px) scale(1.3)`, opacity: 1, offset: f * 0.55 },
+      { transform: 'translate(-50%,-50%) translate(0px, -18px) scale(1.15)', opacity: 1, offset: f * 0.82 },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1)', opacity: 1, offset: f },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: grown },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: burn },
+      { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.2)', opacity: 0 },
+    ];
+  } else {
+    frames = [
+      start,
       { transform: `translate(-50%,-50%) translate(${dx * 0.4}px, ${dy * 0.4 - 50}px) scale(1.1)`, opacity: 1, offset: 0.3 },
       { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.35)', opacity: 1, offset: 0.55 },
       { transform: 'translate(-50%,-50%) translate(0px, 0px) scale(1.3)', opacity: 1, offset: 0.7 },
       { transform: 'translate(-50%,-50%) translate(0px, -6px) scale(1.2)', opacity: 0 },
-    ],
-    ms,
-    { easing: 'linear' },
-  ).then(() => g.remove());
-  void animate(g.querySelector('.fx-burn'), [{ opacity: 0 }, { opacity: 0, offset: 0.55 }, { opacity: 1 }], ms, { easing: 'linear' });
+    ];
+  }
+  void animate(g, frames, ms, { easing: 'linear' }).then(() => g.remove());
+  void animate(g.querySelector('.fx-burn'), [{ opacity: 0 }, { opacity: 0, offset: burn }, { opacity: 1 }], ms, { easing: 'linear' });
   later(() => {
     const box = overlay('fx-anchor', mid.x - w * 0.65, mid.y - w * 0.9);
     box.style.width = `${w * 1.3}px`;
     box.style.height = `${w * 1.8}px`;
     particles(box, 18, ['#ff8a3d', '#ffd27a', '#c0392b'], r, 90, 700);
     later(() => box.remove(), 1200 * r);
-  }, ms * 0.6);
+  }, ms * Math.max(0.6, burn));
 }
 
 /** Where a card leaves its owner's hand from. */

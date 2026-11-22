@@ -99,6 +99,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const prevState = useRef<GameState>(state);
   // presentation layer (story 12.1): the board shows `shown`, replayed beat by beat; rules and taps use `state`
   const [pb] = useState(() => new Playback(catalog, state, loadSpeed()));
+  // story 13.7: spells take the demo's time on the portrait phone table (set before the next batch is planned)
+  pb.phone = compact;
   const view = useSyncExternalStore(pb.subscribe, pb.get);
   const shown = view.state;
   const [speed, setSpeed] = useState<AnimSpeed>(pb.speed);

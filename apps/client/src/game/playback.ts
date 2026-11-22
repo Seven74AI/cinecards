@@ -69,6 +69,8 @@ export class Playback {
   /** Real-time end of the current beat chain (for `busyFor`). */
   private endsAt = 0;
   speed: AnimSpeed;
+  /** Story 13.7: the portrait phone table plays spells at the demo's pace (set by the table). */
+  phone = false;
   onCue: (c: Cue) => void = () => {};
 
   constructor(
@@ -98,7 +100,7 @@ export class Playback {
   }
 
   push(before: GameState, after: GameState, events: GameEvent[]) {
-    const beats = planBeats(events, this.catalog);
+    const beats = planBeats(events, this.catalog, { phone: this.phone });
     if (!beats.length && !this.playing) {
       this.view = idleView(after);
       this.emit();

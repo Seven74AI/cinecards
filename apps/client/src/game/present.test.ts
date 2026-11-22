@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { computeStats } from '@cinecards/engine';
+import { computeStats, type GameEvent } from '@cinecards/engine';
 import { act, card, MVP, scene } from '../../../../packages/engine/src/scenario.ts';
 import { shownView } from './present.ts';
 import { Playback } from './playback.ts';
@@ -164,5 +164,20 @@ describe('12.5 play and draw', () => {
     const p = act(r.state, { type: 'playCard', player: 1, iid: hand });
     const played = planBeats(p.events, MVP).find((b) => b.event.type === 'cardPlayed')!;
     expect(played.gap === TIMING.play || played.gap === TIMING.legend).toBe(true);
+  });
+
+  it('paces an instant spell like the demo on the portrait phone table only (story 13.7)', async () => {
+    const { planBeats, TIMING, PHONE_SPELL } = await import('./fx.ts');
+    const events: GameEvent[] = [
+      { type: 'cardPlayed', player: 0, iid: 's1', cardId: 'x', zone: 'resolved', cost: 3 },
+      { type: 'abilityUsed', iid: 's1', ability: 0, name: 'Boum', player: 0, trigger: 'onPlay' },
+    ];
+    const desk = planBeats(events, MVP);
+    expect(desk.map((b) => b.gap)).toEqual([TIMING.spellCast, TIMING.ability]);
+    const phone = planBeats(events, MVP, { phone: true });
+    const S = PHONE_SPELL;
+    expect(phone.map((b) => b.gap)).toEqual([S.fly + S.grow + S.hold + S.burn, S.label + S.orb]);
+    // impact about 2.4 s after the cast (demo: ~2.5 s), against ~1 s on the other layouts
+    expect(phone[0]!.gap + phone[1]!.gap).toBeGreaterThan(2300);
   });
 });

@@ -118,4 +118,8 @@ development_status:
   13-4-atq-de-neo-double-tous-les-2-tours-cumulatif: done
   13-5-type-de-la-carte-source-dans-bonus-et-malus: done
   13-6-main-lisible-et-mise-en-scene-a-l-echelle-de-la-demo: done
+  13-7-sorts-plus-lents-sur-telephone: backlog
+  13-8-meme-fiche-pour-table-et-main: backlog
+  13-9-liens-d-origine-a-la-demande: backlog
+  13-10-mise-en-avant-des-cartes-jouees-et-retirees: backlog  # bloquée : maquette à valider par Root
   epic-13-retrospective: optional

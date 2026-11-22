@@ -993,6 +993,24 @@ As a joueur sur téléphone, I want lire ma main et voir les animations comme da
 - **And** pose, sort, mort et déclencheurs gardent aussi l'échelle de la démo : une carte qui meurt ou atterrit est montrée à au moins 90 px
 - **And** **preuve visuelle :** pour une attaque mortelle, une pose de personnage et un sort, une planche côte à côte (démo à gauche, jeu à droite, une image toutes les 100 ms à 390 × 844) est générée par un script du dépôt et jointe au rapport ; les e2e existants (pas de défilement, cibles de 44 px, ordre des temps) restent verts
 
+### Story 13.7: Sorts plus lents sur téléphone
+As a joueur sur téléphone, I want que les sorts prennent le temps de la démo, So that je voie ce qui se passe.
+**Acceptance Criteria:** **Given** un sort joué en disposition téléphone portrait **Then** sa mise en scène (agrandissement, brûlure, projectile, impact) suit la durée de la démo validée (impact vers 2,5 s au lieu de 1,4 s) **And** ordinateur, tablette et paysage ne changent pas **And** le réglage de vitesse (rapide, instantanée) s'applique toujours.
+
+### Story 13.8: Même fiche pour une carte de la table et une carte de la main
+As a joueur, I want qu'appuyer sur une carte de la table ouvre la même fiche qu'une carte de ma main, So that la lecture soit cohérente.
+**Constat :** sur téléphone, une carte de la table ouvre une fiche abaissée qui couvre la zone de la main (stories 13.3 et 13.6). Une carte de la main ouvre la fiche complète.
+**Acceptance Criteria:** **Given** une carte de la table (alliée ou adverse) **When** je l'ouvre **Then** la fiche a la même taille et la même disposition que pour une carte de la main **And** les actions propres à la table (Attaquer, Utiliser, Choisir une cible) restent dans la fiche.
+
+### Story 13.9: Liens d'origine seulement à la demande
+As a joueur, I want voir les traits vers les sources d'un bonus ou d'un malus seulement quand je les demande, So that la table reste lisible.
+**Acceptance Criteria:** **Given** une carte modifiée **When** j'ouvre sa fiche **Then** aucun trait n'est dessiné **And** quand j'appuie sur l'écusson modifié (ATQ ou PV) ou sur une ligne de « Bonus et malus », la fiche se range et les traits vers les sources concernées s'affichent environ 3 s (ou jusqu'au prochain appui) **And** le marqueur de nombre de sources sur l'écusson reste.
+
+### Story 13.10: Mise en avant des cartes jouées et des cartes retirées
+As a joueur, I want voir en grand chaque sort ou effet joué, et être prévenu clairement quand une de mes cartes quitte la table, So that je ne rate aucune action, surtout celles de l'adversaire.
+**Constat (test de Root) :** l'adversaire a retiré une carte de Root de la table par un effet, et Root ne l'a pas vu.
+**Acceptance Criteria :** selon la maquette animée validée par Root (`docs/design/animations/demo.html`, scènes « Mise en avant » et « Carte retirée »). Bloquée jusqu'à la validation de cette maquette.
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 ### Story 8.1: Connexion

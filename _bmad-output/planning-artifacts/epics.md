@@ -1024,7 +1024,8 @@ As a joueur, I want des animations qui accélèrent et ralentissent naturellemen
 **Acceptance Criteria:**
 - **Given** une palette de courbes nommée et partagée (ex. `easeOut` pour les arrivées, `easeIn` pour les départs, `anticipate` avec un léger recul avant un élan, `overshoot` pour un atterrissage qui dépasse un peu puis se pose, `snap` pour les impacts), définie une seule fois
 - **Then** chaque mouvement du directeur utilise une courbe adaptée, par segment de chronologie (easing par image clé) plutôt que du linéaire, sauf pour les fondus et compteurs où le linéaire est voulu
-- **And** la carte qui quitte la main pour la table met environ 850 ms au lieu de 620 ms, avec une anticipation au départ et un léger dépassement à l'atterrissage, sur téléphone comme sur ordinateur
+- **And** la carte qui quitte la main pour la table met environ 850 ms au lieu de 620 ms sur ordinateur, et environ 1 100 ms sur téléphone portrait, avec une anticipation au départ et un léger dépassement à l'atterrissage
+- **And** sur téléphone portrait, un facteur de tempo unique (≈ 1,25, une constante nommée) allonge les mouvements de déplacement : vols de cartes, pioche, retour en main, élan et charge d'attaque, projectiles et traits. Les impacts et les chiffres restent vifs. Raison (Root) : trop court, un mouvement perd des images sur téléphone et ressemble à un saut
 - **And** la démo est mise à jour avec la même palette pour rester la référence
 - **And** « réduire les animations » donne toujours des fondus ; le réglage de vitesse s'applique ; les e2e d'ordre des temps restent verts
 

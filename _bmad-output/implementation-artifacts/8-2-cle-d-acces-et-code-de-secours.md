@@ -1,6 +1,10 @@
+---
+baseline_commit: fff4d48b1d06d13f41c749d58cf9c396b017b714
+---
+
 # Story 8.2: Clé d'accès et code de secours
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -38,78 +42,78 @@ so that je n'aie pas de mot de passe à retenir.
 
 ## Tasks / Subtasks
 
-- [ ] **Base** — migration 2 dans `apps/server/src/db/db.ts` (ne jamais modifier la migration 1) (AC 1-5)
-  - [ ] `ALTER TABLE accounts ADD COLUMN webauthn_user_id TEXT` (identifiant WebAuthn de l'utilisateur, 16 octets
+- [x] **Base** — migration 2 dans `apps/server/src/db/db.ts` (ne jamais modifier la migration 1) (AC 1-5)
+  - [x] `ALTER TABLE accounts ADD COLUMN webauthn_user_id TEXT` (identifiant WebAuthn de l'utilisateur, 16 octets
         aléatoires en base64url, créé au premier ajout de clé ; jamais le pseudo ni l'id SQL) ;
         `CREATE TABLE passkeys (id TEXT PRIMARY KEY /* credential id base64url */, account_id INTEGER NOT NULL
         REFERENCES accounts(id) ON DELETE CASCADE, public_key BLOB NOT NULL, counter INTEGER NOT NULL,
         transports TEXT /* JSON */, rp_id TEXT NOT NULL, name TEXT NOT NULL, created_at INTEGER NOT NULL,
         last_used_at INTEGER)` + index sur `account_id`.
-  - [ ] `apps/server/src/db/passkeys.ts` : insérer, lister par compte, trouver par id, mettre à jour compteur et
+  - [x] `apps/server/src/db/passkeys.ts` : insérer, lister par compte, trouver par id, mettre à jour compteur et
         `last_used_at`, supprimer (en vérifiant le compte), compter par compte.
-  - [ ] Test : une base créée par la migration 1 avec un compte existant passe en version 2 sans perte.
-- [ ] **WebAuthn côté serveur** — `apps/server/src/auth/passkeys.ts` (AC 1, 2, 3, 5)
-  - [ ] Dépendance `@simplewebauthn/server` (v14, Node ≥ 22). Lire les types installés pour la signature exacte
+  - [x] Test : une base créée par la migration 1 avec un compte existant passe en version 2 sans perte.
+- [x] **WebAuthn côté serveur** — `apps/server/src/auth/passkeys.ts` (AC 1, 2, 3, 5)
+  - [x] Dépendance `@simplewebauthn/server` (v14, Node ≥ 22). Lire les types installés pour la signature exacte
         (`generateRegistrationOptions`, `verifyRegistrationResponse`, `generateAuthenticationOptions`,
         `verifyAuthenticationResponse`) : les noms de champs ont changé entre les versions majeures.
-  - [ ] **Partie de confiance** déduite de l'en-tête `Origin` de la requête, **seulement** si l'origine est autorisée
+  - [x] **Partie de confiance** déduite de l'en-tête `Origin` de la requête, **seulement** si l'origine est autorisée
         (`originAllowed` de `api/http.ts`) : `rpID` = nom d'hôte de l'origine (`seven74ai.github.io`, `localhost`),
         `expectedOrigin` = l'origine. Origine absente ou refusée → `403 origin_not_allowed`. `rpName` = « CineCards ».
         `rp_id` est enregistré avec la clé et doit correspondre à la connexion.
-  - [ ] **Défis** en mémoire (`Map`), clé = identifiant de cérémonie aléatoire renvoyé au client, durée de vie
+  - [x] **Défis** en mémoire (`Map`), clé = identifiant de cérémonie aléatoire renvoyé au client, durée de vie
         5 min, usage unique (supprimé à la vérification, réussie ou non), purge périodique ; au plus 1 000 défis en
         attente (les plus vieux sautent).
-  - [ ] Inscription : `residentKey: 'required'` (clé découvrable : connexion sans pseudo), `userVerification:
+  - [x] Inscription : `residentKey: 'required'` (clé découvrable : connexion sans pseudo), `userVerification:
         'preferred'`, `attestationType: 'none'`, `excludeCredentials` = clés déjà liées au compte, `userName` = pseudo,
         `userDisplayName` = pseudo, `userID` = `webauthn_user_id`. Nom de la clé : déduit du `User-Agent`
         (« iPhone », « iPad », « Mac », « Android », « Windows », « Linux », sinon « Appareil ») ; pas de saisie.
-  - [ ] Connexion : `allowCredentials` vide (découvrable), `userVerification: 'preferred'`. Vérifier avec la clé
+  - [x] Connexion : `allowCredentials` vide (découvrable), `userVerification: 'preferred'`. Vérifier avec la clé
         trouvée par `response.id` ; refuser si `rp_id` diffère ; mettre à jour le compteur (un compteur à 0 des clés
         synchronisées est normal : ne pas le traiter comme un clonage).
-- [ ] **API** — `apps/server/src/api/http.ts` et `auth/service.ts` (AC 1-5, 7)
-  - [ ] `GET /api/health` → `{ ok: true, accounts: true, passkeys: true }`.
-  - [ ] Création par clé : `POST /api/passkeys/register/options` `{ nickname }` (sans session) → vérifie le pseudo
+- [x] **API** — `apps/server/src/api/http.ts` et `auth/service.ts` (AC 1-5, 7)
+  - [x] `GET /api/health` → `{ ok: true, accounts: true, passkeys: true }`.
+  - [x] Création par clé : `POST /api/passkeys/register/options` `{ nickname }` (sans session) → vérifie le pseudo
         (validité, libre) → `{ ceremony, options }` ; `POST /api/passkeys/register/verify` `{ ceremony, response }` →
         revérifie que le pseudo est libre, crée le compte (`password_hash` NULL) et la clé dans **une transaction**
         → `201 { token, account, recoveryCode }`.
-  - [ ] Ajout d'une clé (session requise) : les deux mêmes routes avec `Authorization: Bearer` et sans `nickname` →
+  - [x] Ajout d'une clé (session requise) : les deux mêmes routes avec `Authorization: Bearer` et sans `nickname` →
         `verify` renvoie `201 { passkey }`.
-  - [ ] Connexion : `POST /api/passkeys/login/options` → `{ ceremony, options }` ; `POST /api/passkeys/login/verify`
+  - [x] Connexion : `POST /api/passkeys/login/options` → `{ ceremony, options }` ; `POST /api/passkeys/login/verify`
         `{ ceremony, response }` → `{ token, account }` ; clé inconnue → `401 unknown_passkey`.
-  - [ ] Compte : `GET /api/account` (Bearer) → `{ account, hasPassword, passkeys: [{ id, name, createdAt,
+  - [x] Compte : `GET /api/account` (Bearer) → `{ account, hasPassword, passkeys: [{ id, name, createdAt,
         lastUsedAt }] }` ; `DELETE /api/passkeys/:id` (Bearer) → `204`, ou `409 last_login_method` ;
         `POST /api/password` (Bearer) `{ currentPassword?, newPassword }` → `204` (ancien mot de passe exigé s'il en
         existe un, comptant dans la limite d'essais de 8.1 ; un changement ferme les **autres** sessions).
-  - [ ] Code de secours : `POST /api/recover` accepte `newPassword` **facultatif** : absent → seulement la vérification
+  - [x] Code de secours : `POST /api/recover` accepte `newPassword` **facultatif** : absent → seulement la vérification
         du code, la fermeture des sessions, une nouvelle session et un nouveau code (le client enchaîne alors sur
         l'ajout d'une clé, avec cette session). Avec `newPassword` : comportement 8.1 inchangé.
-  - [ ] Erreurs en français dans le format de 8.1 (`{ error, message }`) : `origin_not_allowed`, `ceremony_expired`
+  - [x] Erreurs en français dans le format de 8.1 (`{ error, message }`) : `origin_not_allowed`, `ceremony_expired`
         (« La demande a expiré. Réessaie. »), `passkey_failed` (« La clé d'accès n'a pas pu être vérifiée. »),
         `unknown_passkey`, `last_login_method`, `bad_credentials` (ancien mot de passe faux).
-- [ ] **Client** — `apps/client/src/account/` (AC 1-6)
-  - [ ] Dépendance `@simplewebauthn/browser` (v14 ; même version majeure que le serveur) : `startRegistration({
+- [x] **Client** — `apps/client/src/account/` (AC 1-6)
+  - [x] Dépendance `@simplewebauthn/browser` (v14 ; même version majeure que le serveur) : `startRegistration({
         optionsJSON })`, `startAuthentication({ optionsJSON })`, `browserSupportsWebAuthn()`. **Chargée à la
         demande** (`import()` au premier appui) pour ne pas alourdir l'accueil.
-  - [ ] `api.ts` : fonctions des nouvelles routes ; `accountsAvailable()` devient une lecture de `/api/health` qui
+  - [x] `api.ts` : fonctions des nouvelles routes ; `accountsAvailable()` devient une lecture de `/api/health` qui
         expose aussi `passkeys`.
-  - [ ] `AccountDialog.tsx` : « Se connecter » propose en premier « Se connecter avec une clé d'accès » (si
+  - [x] `AccountDialog.tsx` : « Se connecter » propose en premier « Se connecter avec une clé d'accès » (si
         disponible), puis le formulaire pseudo + mot de passe ; « Créer un compte » propose « Avec une clé d'accès
         (recommandé) » ou « Avec un mot de passe » ; « Mot de passe oublié ? » devient « Mot de passe ou clé perdus ? »
         avec, après le code, le choix « Nouveau mot de passe » / « Nouvelle clé d'accès ». `NotAllowedError` /
         `AbortError` = annulation (AC 6).
-  - [ ] Nouveau panneau « Mon compte » (`AccountPanel.tsx`), ouvert depuis la ligne « Connecté : Pseudo » de
+  - [x] Nouveau panneau « Mon compte » (`AccountPanel.tsx`), ouvert depuis la ligne « Connecté : Pseudo » de
         l'accueil (le pseudo devient un bouton « Mon compte »). Contenu : liste des clés, « Ajouter une clé
         d'accès », « Retirer », « Choisir un mot de passe » ou « Changer le mot de passe », « Se déconnecter ».
         Style existant (`.overlay`, `.card-panel.parchment`, `.btn`, `.field`), rendu par **portail dans `<body>`**
         comme `AccountDialog` (correctif de revue 8.1 : sinon la fenêtre s'ouvre hors de vue sur téléphone).
         Cibles de 44 px, textes en français (tutoiement).
-- [ ] **Tests** (AC 1-7)
-  - [ ] Serveur (`apps/server/src/passkeys.test.ts`) : migration 1 → 2, partie de confiance (origine autorisée,
+- [x] **Tests** (AC 1-7)
+  - [x] Serveur (`apps/server/src/passkeys.test.ts`) : migration 1 → 2, partie de confiance (origine autorisée,
         refusée, absente), défi à usage unique et expiré (horloge injectée), refus de retirer la dernière façon de se
         connecter, `POST /api/recover` sans `newPassword`, `POST /api/password` (avec et sans mot de passe existant),
         `GET /api/account`. Les vérifications cryptographiques elles-mêmes sont couvertes par l'e2e (authentificateur
         virtuel) : ne pas réécrire un authentificateur logiciel.
-  - [ ] e2e `e2e/passkeys.spec.ts` avec l'**authentificateur virtuel de Chromium** via CDP
+  - [x] e2e `e2e/passkeys.spec.ts` avec l'**authentificateur virtuel de Chromium** via CDP
         (`const cdp = await context.newCDPSession(page); await cdp.send('WebAuthn.enable');
         await cdp.send('WebAuthn.addVirtualAuthenticator', { options: { protocol: 'ctap2', transport: 'internal',
         hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true } })`) :
@@ -117,7 +121,7 @@ so that je n'aie pas de mot de passe à retenir.
         un mot de passe dans « Mon compte », retirer la clé, refus de retirer la dernière façon, « Mot de passe ou clé
         perdus ? » → nouvelle clé dans un autre contexte (nouvel authentificateur). L'origine e2e est
         `http://localhost:<port>` (WebAuthn accepte `localhost` sans HTTPS).
-  - [ ] Les e2e de 8.1 (`accounts.spec.ts`) et tous les autres passent sans changement.
+  - [x] Les e2e de 8.1 (`accounts.spec.ts`) et tous les autres passent sans changement.
 
 ## Dev Notes
 
@@ -190,10 +194,55 @@ so that je n'aie pas de mot de passe à retenir.
 
 ### Agent Model Used
 
+Agent de développement Claude Code (gds-dev-story).
+
 ### Debug Log References
+
+- `pnpm e2e` complet : deux passages ont eu chacun un échec de `play-draw.spec.ts` (compte d'images d'animation sous charge, 4 cœurs partagés avec d'autres worktrees ; partie locale, sans lien avec les comptes). Le fichier passe seul, et le troisième passage complet est vert (40/40).
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- **Base** : migration 2 ajoutée à `MIGRATIONS` (colonne `accounts.webauthn_user_id`, table `passkeys`, index `passkeys_account`) ; migration 1 intacte. Test : une base créée par la seule migration 1 avec un compte et une session passe en version 2 sans perte (et une clé part avec son compte).
+- **Serveur** : `auth/passkeys.ts` (`PasskeyService`, `Ceremonies`, `deviceName`) avec `@simplewebauthn/server` 14.1. Partie de confiance tirée de l'en-tête `Origin` autorisé (`relyingParty` dans `api/http.ts`), sinon `403 origin_not_allowed`. Défis en mémoire : 5 min, usage unique (retirés même en cas d'échec), 1 000 au plus, purge des expirés à chaque nouveau défi. Clé découvrable (`residentKey: 'required'`), `userVerification: 'preferred'` (donc `requireUserVerification: false` à la vérification), `attestationType: 'none'`, `excludeCredentials` = clés du compte pour ce site. Identifiant WebAuthn aléatoire (16 octets), créé au premier ajout de clé (ou à la création du compte par clé). Création par clé : compte (`password_hash` NULL) et clé dans une transaction, pseudo revérifié.
+- **API** : `/api/health` → `passkeys: true` ; `POST /api/passkeys/register/options|verify` (sans session = nouveau compte, avec session = ajout), `POST /api/passkeys/login/options|verify`, `GET /api/account`, `DELETE /api/passkeys/:id` (204, 404, 409 `last_login_method`), `POST /api/password` (204 ; ancien mot de passe exigé s'il existe, compté dans la limite de 8.1 ; ferme les autres sessions). `POST /api/recover` : `newPassword` facultatif, comportement 8.1 inchangé quand il est envoyé.
+- **Client** : `@simplewebauthn/browser` 14.0 chargé par `import()` au premier appui (chunk séparé de 13 Ko au build). `serverFeatures()` lit `/api/health` ; les boutons de clé n'apparaissent que si le serveur répond `passkeys: true` **et** que le navigateur gère WebAuthn (`webAuthnSupported()`, même test que `browserSupportsWebAuthn()` sans charger la bibliothèque). `AccountDialog` : bouton de clé en premier puis « ou avec … mot de passe » et le formulaire de 8.1, en connexion, création et récupération (« Mot de passe ou clé perdus ? »). Annulation (`NotAllowedError`, `AbortError`) = note discrète « Demande annulée. ». Nouveau panneau `AccountPanel` (« Mon compte », portail dans `<body>`), ouvert en touchant le pseudo de la ligne « Connecté : … » (texte inchangé) : clés (nom, date d'ajout, dernière utilisation, « Retirer » avec confirmation), « Ajouter une clé d'accès », « Choisir / Changer le mot de passe », « Se déconnecter ».
+- **Tests** : `apps/server/src/passkeys.test.ts` (13 tests : migration 1→2, partie de confiance, défis usage unique / expiré / lié à l'origine, 1 000 défis, options d'inscription, dernière façon de se connecter, mot de passe avec et sans ancien, limite d'essais, recover sans `newPassword`, `GET /api/account`, routes HTTP) ; `apps/client/src/account/passkeys.test.ts` (3 tests) ; e2e `e2e/passkeys.spec.ts` avec l'authentificateur virtuel de Chromium (création par clé, pseudo déjà pris, connexion sans pseudo, refus de retirer la dernière façon, mot de passe choisi, clé retirée puis refusée à la connexion, clé rajoutée, code de secours → nouvelle clé sur un autre appareil, autres sessions fermées, deux clés listées).
+- **Écart avec la tâche « e2e de 8.1 sans changement »** : le lien renommé « Mot de passe ou clé perdus ? » (demandé par la story) casse le sélecteur exact de `accounts.spec.ts` ; une seule ligne y change (regex qui accepte l'ancien et le nouveau libellé). Le reste de 8.1 passe tel quel parce que le formulaire à mot de passe reste sur le même écran que le bouton de clé.
+- `apps/server/src/accounts.test.ts` : l'attendu de `/api/health` inclut `passkeys: true`.
+- Choix notés dans `a-valider-par-root.md` (section « Epics 8 et 10 »).
+- Captures téléphone (390×844) : `_bmad-output/implementation-artifacts/screens/8-2/` (connexion, création, récupération, accueil connecté, « Mon compte » avec une clé, refus de la dernière clé).
+- À vérifier après livraison (non faisable ici) : `GET https://cinecards.sevend.io/api/health` (`passkeys: true`), connexion du compte de test de 8.1, et un essai réel sur iPhone (Face ID) et Android (empreinte) : Safari exige que la demande suive de près l'appui, or le client attend d'abord les options du serveur (aller-retour court).
 
 ### File List
+
+- `apps/server/package.json` (dépendance `@simplewebauthn/server`)
+- `apps/client/package.json` (dépendance `@simplewebauthn/browser`)
+- `pnpm-lock.yaml`
+- `apps/server/src/db/db.ts` (migration 2)
+- `apps/server/src/db/accounts.ts`
+- `apps/server/src/db/sessions.ts`
+- `apps/server/src/db/passkeys.ts` (nouveau)
+- `apps/server/src/auth/passkeys.ts` (nouveau)
+- `apps/server/src/auth/service.ts`
+- `apps/server/src/api/http.ts`
+- `apps/server/src/accounts.test.ts`
+- `apps/server/src/passkeys.test.ts` (nouveau)
+- `apps/client/src/account/api.ts`
+- `apps/client/src/account/session.ts`
+- `apps/client/src/account/passkeys.ts` (nouveau)
+- `apps/client/src/account/passkeys.test.ts` (nouveau)
+- `apps/client/src/account/AccountDialog.tsx`
+- `apps/client/src/account/AccountPanel.tsx` (nouveau)
+- `apps/client/src/ui/Home.tsx`
+- `apps/client/src/styles.css`
+- `e2e/passkeys.spec.ts` (nouveau)
+- `e2e/accounts.spec.ts` (sélecteur du lien de récupération)
+- `_bmad-output/implementation-artifacts/screens/8-2/*.png` (nouveau)
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/8-2-cle-d-acces-et-code-de-secours.md`
+
+### Change Log
+
+- 2026-11-22 — Story 8.2 implémentée : clés d'accès (création de compte, connexion sans pseudo, ajout et retrait dans « Mon compte »), mot de passe depuis « Mon compte », code de secours → nouvelle clé, migration 2. Statut : review.

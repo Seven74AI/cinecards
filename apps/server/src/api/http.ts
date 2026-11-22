@@ -1,4 +1,5 @@
 import type http from 'node:http';
+import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/passkeys.ts';
 import type { AccountService, AuthResult } from '../auth/service.ts';
 
 /** Default client origin (GitHub Pages); override with CLIENT_ORIGINS (comma-separated). */
@@ -15,6 +16,20 @@ export const parseOrigins = (env: string | undefined) =>
     : DEFAULT_CLIENT_ORIGINS;
 
 export const originAllowed = (origin: string | undefined, allowed: string[]) => !!origin && (allowed.includes(origin) || LOCAL_ORIGIN.test(origin));
+
+/**
+ * The WebAuthn relying party of a request (story 8.2), from its `Origin` header and only for an allowed origin:
+ * rpID = the origin's hostname, expected origin = the origin itself. Null when the origin is missing or refused.
+ */
+export function relyingParty(origin: string | undefined, allowed: string[]): RelyingParty | null {
+  if (!originAllowed(origin, allowed)) return null;
+  try {
+    const url = new URL(origin!);
+    return { rpID: url.hostname, origin: url.origin };
+  } catch {
+    return null;
+  }
+}
 
 class HttpError extends Error {
   status: number;
@@ -55,13 +70,21 @@ const readJson = (req: http.IncomingMessage) =>
     req.on('error', reject);
   });
 
+const safeDecode = (s: string) => {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+};
+
 const bearer = (req: http.IncomingMessage) => /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '')?.[1] ?? null;
 
 /**
  * JSON API under `/api/` (story 8.1), served on the game server's port. Returns a request handler that
  * answers `/api/*` and returns true, or returns false so the request goes on to Colyseus.
  */
-export function createApi(service: AccountService, origins: string[]) {
+export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service)) {
   return (req: http.IncomingMessage, res: http.ServerResponse): boolean => {
     const path = (req.url ?? '').split('?')[0]!;
     if (path !== '/api' && !path.startsWith('/api/')) return false;
@@ -76,7 +99,7 @@ export function createApi(service: AccountService, origins: string[]) {
     const reply = <T>(r: AuthResult<T>, okStatus: number) => {
       if (r.ok) {
         const { ok: _ok, ...data } = r;
-        send(okStatus, data);
+        send(okStatus, okStatus === 204 ? undefined : data);
       } else send(r.status, { error: r.error, message: r.message, ...(r.retryAfterSeconds ? { retryAfterSeconds: r.retryAfterSeconds } : {}) });
     };
     if (req.method === 'OPTIONS') {
@@ -86,10 +109,18 @@ export function createApi(service: AccountService, origins: string[]) {
       return true;
     }
     const route = `${req.method} ${path}`;
+    const rp = relyingParty(origin, origins);
+    const needRp = () => {
+      if (!rp) throw new HttpError(403, 'origin_not_allowed', PASSKEY_MESSAGES.origin_not_allowed);
+      return rp;
+    };
     void (async () => {
+      // the only route with a parameter (story 8.2)
+      const keyId = req.method === 'DELETE' && path.startsWith('/api/passkeys/') ? safeDecode(path.slice('/api/passkeys/'.length)) : null;
+      if (keyId) return reply(passkeys.remove(bearer(req), keyId), 204);
       switch (route) {
         case 'GET /api/health':
-          return send(200, { ok: true, accounts: true });
+          return send(200, { ok: true, accounts: true, passkeys: true });
         case 'POST /api/accounts': {
           const b = await readJson(req);
           return reply(await service.create(b.nickname, b.password), 201);
@@ -108,6 +139,30 @@ export function createApi(service: AccountService, origins: string[]) {
         case 'POST /api/recover': {
           const b = await readJson(req);
           return reply(await service.recover(b.nickname, b.recoveryCode, b.newPassword), 200);
+        }
+        case 'POST /api/passkeys/register/options': {
+          const r = needRp();
+          const b = await readJson(req);
+          return reply(await passkeys.registerOptions(r, bearer(req), b.nickname), 200);
+        }
+        case 'POST /api/passkeys/register/verify': {
+          const r = needRp();
+          const b = await readJson(req);
+          return reply(await passkeys.registerVerify(r, bearer(req), b.ceremony, b.response, req.headers['user-agent']), 201);
+        }
+        case 'POST /api/passkeys/login/options':
+          req.resume(); // no body expected
+          return reply(await passkeys.loginOptions(needRp()), 200);
+        case 'POST /api/passkeys/login/verify': {
+          const r = needRp();
+          const b = await readJson(req);
+          return reply(await passkeys.loginVerify(r, b.ceremony, b.response), 200);
+        }
+        case 'GET /api/account':
+          return reply(passkeys.details(bearer(req)), 200);
+        case 'POST /api/password': {
+          const b = await readJson(req);
+          return reply(await service.changePassword(bearer(req), b.currentPassword, b.newPassword), 204);
         }
         default:
           return send(404, { error: 'not_found', message: 'Introuvable.' });

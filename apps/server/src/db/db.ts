@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 
 export type Db = DatabaseSync;
 
-/** Numbered migrations (story 8.1): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
+/** Numbered migrations (stories 8.1, 8.2): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
 export const MIGRATIONS: string[] = [
   `CREATE TABLE accounts (
      id INTEGER PRIMARY KEY,
@@ -21,6 +21,20 @@ export const MIGRATIONS: string[] = [
      last_seen_at INTEGER NOT NULL
    );
    CREATE INDEX sessions_account ON sessions(account_id);`,
+  // story 8.2: passkeys. `webauthn_user_id` is the random WebAuthn user handle (never the nickname or the SQL id)
+  `ALTER TABLE accounts ADD COLUMN webauthn_user_id TEXT;
+   CREATE TABLE passkeys (
+     id TEXT PRIMARY KEY,
+     account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+     public_key BLOB NOT NULL,
+     counter INTEGER NOT NULL,
+     transports TEXT,
+     rp_id TEXT NOT NULL,
+     name TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     last_used_at INTEGER
+   );
+   CREATE INDEX passkeys_account ON passkeys(account_id);`,
 ];
 
 /** The database file inside DATA_DIR, or ':memory:' (tests). */

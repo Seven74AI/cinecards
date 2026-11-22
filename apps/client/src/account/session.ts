@@ -1,6 +1,7 @@
 /** The account session on this device (story 8.1): token in localStorage, checked against `/api/me` once per visit. */
 import { useEffect, useSyncExternalStore } from 'react';
-import { accountsAvailable, logout, me, type Account } from './api.ts';
+import { logout, me, serverFeatures, type Account } from './api.ts';
+import { webAuthnSupported } from './passkeys.ts';
 
 const KEY = 'cinecards.account';
 
@@ -29,9 +30,13 @@ interface Snapshot {
   account: AccountState;
   /** null while `/api/health` has not answered; false = old server or none: account UI hidden. */
   available: boolean | null;
+  /** Story 8.2: the server has passkeys and this browser can use them (otherwise every passkey button is hidden). */
+  passkeys: boolean;
+  /** Story 8.2: the server has "Mon compte" (`GET /api/account`); a story-8.1 server does not. */
+  manage: boolean;
 }
 
-let snap: Snapshot = { account: 'unknown', available: null };
+let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<Snapshot>) => {
   snap = { ...snap, ...patch };
@@ -49,8 +54,8 @@ export function initAccount() {
   started = true;
   const stored = readStored();
   if (!stored) set({ account: 'guest' });
-  void accountsAvailable().then(async (available) => {
-    set({ available });
+  void serverFeatures().then(async ({ accounts: available, passkeys }) => {
+    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys });
     if (!stored) return;
     if (!available) return set({ account: stored });
     const r = await me(stored.token);

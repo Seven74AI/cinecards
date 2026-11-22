@@ -22,6 +22,10 @@ export function readSession(db: Db, tokenHash: string, now: number): number | nu
 
 export const deleteSession = (db: Db, tokenHash: string) => void db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(tokenHash);
 
+/** Closes every session of the account but the given one (password change, story 8.2). */
+export const deleteOtherSessions = (db: Db, accountId: number, keepTokenHash: string) =>
+  void db.prepare('DELETE FROM sessions WHERE account_id = ? AND token_hash <> ?').run(accountId, keepTokenHash);
+
 export const deleteAccountSessions = (db: Db, accountId: number) => void db.prepare('DELETE FROM sessions WHERE account_id = ?').run(accountId);
 
 /** Removes every session unused for more than 90 days; returns how many. */

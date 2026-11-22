@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "@cinecards/cards": "workspace:*",
-    "@cinecards/protocol": "workspace:*",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
     "@cinecards/engine": "workspace:*",
-    "@colyseus/sdk": "^0.18.0"
+    "@cinecards/protocol": "workspace:*",
+    "@colyseus/sdk": "^0.18.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

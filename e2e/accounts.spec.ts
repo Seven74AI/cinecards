@@ -35,7 +35,8 @@ const logIn = async (page: Page, nickname: string, password: string) => {
 const recoverWith = async (page: Page, nickname: string, code: string, password: string) => {
   await page.getByRole('button', { name: 'Se connecter' }).click();
   const d = dialog(page);
-  await d.getByRole('button', { name: 'Mot de passe oublié ?' }).click();
+  // story 8.2: the link reads « Mot de passe ou clé perdus ? » where passkeys are available
+  await d.getByRole('button', { name: /^Mot de passe (oublié|ou clé perdus) \?$/ }).click();
   await d.getByLabel('Pseudo').fill(nickname);
   await d.getByLabel('Code de secours').fill(code);
   await d.getByLabel('Nouveau mot de passe').fill(password);

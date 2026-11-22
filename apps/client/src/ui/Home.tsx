@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { DeckMode } from '@cinecards/engine';
 import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
 import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
+import { AccountPanel } from '../account/AccountPanel.tsx';
 import { signOut, useAccount } from '../account/session.ts';
 import { CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
@@ -27,9 +28,10 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [tab, setTab] = useState<'local' | 'online'>(initialCode ? 'online' : 'local');
   const [showCards, setShowCards] = useState(false);
   const [dialog, setDialog] = useState<AccountMode | null>(null);
+  const [panel, setPanel] = useState(false);
   const { openCard, openRules } = useRefs();
   // signed in (story 8.1): the server takes the nickname from the session token
-  const { available: accountsOn, signedIn } = useAccount();
+  const { available: accountsOn, signedIn, manage } = useAccount();
   const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
   const session = signedIn ? { session: signedIn.token } : {};
   const remember = () => {
@@ -95,7 +97,15 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
             {signedIn ? (
               <p className="account-line">
                 <span>
-                  Connecté : <strong>{signedIn.nickname}</strong>
+                  Connecté :{' '}
+                  {manage ? (
+                    // story 8.2: the nickname opens "Mon compte"
+                    <button type="button" className="link account-nick" aria-label={`Mon compte (${signedIn.nickname})`} onClick={() => setPanel(true)}>
+                      <strong>{signedIn.nickname}</strong>
+                    </button>
+                  ) : (
+                    <strong>{signedIn.nickname}</strong>
+                  )}
                 </span>
                 <button type="button" className="link" onClick={signOut}>
                   Se déconnecter
@@ -149,6 +159,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
         )}
       </section>
       {dialog ? <AccountDialog initial={dialog} onClose={() => setDialog(null)} /> : null}
+      {panel && signedIn ? <AccountPanel me={signedIn} onClose={() => setPanel(false)} /> : null}
       <button type="button" className="link" onClick={() => setShowCards((v) => !v)}>
         {showCards ? 'Masquer les cartes' : `Voir les ${PLAYABLE.length} cartes`}
       </button>

@@ -72,6 +72,21 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
 .tag.pas { background: #5a3d8a; }
 .beam { position: absolute; height: 4px; transform-origin: 0 50%; border-radius: 2px; z-index: 38; pointer-events: none; }
 .dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; pointer-events: none; z-index: 41; }
+.veil { position: absolute; inset: 0; background: rgba(8,4,2,.62); z-index: 70; opacity: 0; pointer-events: none; }
+.spot { position: absolute; left: 0; right: 0; z-index: 72; display: flex; flex-direction: column; align-items: center; pointer-events: none; opacity: 0; }
+.spot .who { font-family: var(--display); font-size: 11px; letter-spacing: .14em; color: var(--gold2); text-transform: uppercase; margin-bottom: 8px; }
+.spot .panel { width: 300px; box-sizing: border-box; padding: 12px 14px 10px; border-radius: 8px; background: radial-gradient(ellipse at 50% 30%, #f3e6c4, var(--parch) 60%, #cdb07a); box-shadow: 0 0 0 2px var(--gold), 0 12px 28px rgba(0,0,0,.7); color: var(--ink); }
+.spot .lab { display: inline-block; font-family: var(--display); font-weight: 700; font-size: 10px; letter-spacing: .06em; padding: 2px 6px; border-radius: 3px; color: #fff; background: #a0621a; margin-bottom: 5px; }
+.spot .lab.arr { background: #2f6d4a; }
+.spot .q { font-family: var(--text); font-style: italic; font-size: 13px; color: #5a3d1c; margin-bottom: 4px; }
+.spot .tx { font-family: var(--text); font-size: 15px; line-height: 1.3; }
+.spot .bar { height: 3px; margin-top: 9px; border-radius: 2px; background: rgba(90,61,12,.25); overflow: hidden; }
+.spot .bar i { display: block; height: 100%; width: 100%; background: var(--gold-dark); transform-origin: 0 50%; }
+.spot .skip { margin-top: 8px; font-family: var(--text); font-size: 12px; color: var(--dim); }
+.toast { position: absolute; left: 12px; right: 12px; top: 96px; z-index: 75; display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(#3a0d0a, #240806); box-shadow: 0 0 0 1.5px #c0392b, 0 10px 24px rgba(0,0,0,.6); color: #ffe3d6; font-family: var(--text); font-size: 13px; line-height: 1.3; opacity: 0; pointer-events: none; }
+.toast b { font-family: var(--display); font-size: 11px; letter-spacing: .08em; color: #ffb59e; display: block; margin-bottom: 2px; }
+.ghost { position: absolute; width: 100px; height: 140px; border-radius: 7px; border: 2px dashed #e0574a; box-shadow: 0 0 18px rgba(224,87,74,.6) inset; z-index: 5; pointer-events: none; opacity: 0; }
+.stamp { position: absolute; z-index: 46; pointer-events: none; font-family: var(--display); font-weight: 900; font-size: 15px; letter-spacing: .1em; color: #fff; background: #c0392b; padding: 3px 8px; border-radius: 3px; box-shadow: 0 0 0 2px #ffd7c2, 0 4px 10px rgba(0,0,0,.6); transform: rotate(-12deg); opacity: 0; }
 .caption { position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 60; text-align: center; font-family: var(--text); font-style: italic; font-size: 13px; color: var(--dim); min-height: 18px; }
 @media (max-width: 720px) { .stagebox { flex-basis: 100%; } .scene b { min-width: 120px; } }
 </style>
@@ -87,6 +102,8 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
       <button type="button" class="scene" id="s3" data-i="3"><b>Attaque spéciale</b>« Ni ! » réduit Lancelot au silence</button>
       <button type="button" class="scene" id="s4" data-i="4"><b>Sort</b>Le missile cherche la plus forte ATQ</button>
       <button type="button" class="scene" id="s5" data-i="5"><b>Mort</b>Topper achève les Chevaliers</button>
+      <button type="button" class="scene" id="s6" data-i="6"><b>Mise en avant (nouveau)</b>Le Grimoire joue un sort : la carte en grand avec son effet pendant 3 s</button>
+      <button type="button" class="scene" id="s7" data-i="7"><b>Carte retirée (nouveau)</b>Tank renvoie votre Lancelot dans votre main : impossible de le rater</button>
     </div>
     <div class="row">
       <button type="button" class="ctl" id="all">Tout jouer</button>
@@ -131,6 +148,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     topper: { name: 'Topper Harley', cost: 9, atk: 150, hp: 480, rc: '#ff9500', art: 'linear-gradient(160deg,#1d3a5a,#081422)' },
     epok: { name: 'Epok', cost: 3, atk: 60, hp: 90, rc: '#b8bcc4', art: 'linear-gradient(160deg,#173a2a,#0b1f14)' },
     missile: { name: 'Missile à tête chercheuse', cost: 7, spell: true, rc: '#b020c0', art: 'radial-gradient(circle,#ff8a3d,#8e1f1f 55%,#2a0606)' },
+    tank: { name: 'Tank', cost: 1, atk: 30, hp: 50, rc: '#b8bcc4', art: 'linear-gradient(160deg,#173a2a,#0b1f14)' },
   };
   let els = {};
 
@@ -425,6 +443,97 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     },
   ];
 
+  /* ---------- new: spotlight and removal notice ---------- */
+  async function spotlight(card, who, label, labCls, quote, text, holdMs) {
+    const veil = document.createElement('div'); veil.className = 'veil'; stage.appendChild(veil);
+    const spot = document.createElement('div'); spot.className = 'spot'; spot.style.top = '330px';
+    spot.innerHTML = '<div class="panel"><span class="lab ' + labCls + '"></span><div class="q"></div><div class="tx"></div><div class="bar"><i></i></div></div><div class="skip">Touchez pour passer</div>';
+    spot.querySelector('.lab').textContent = label; spot.querySelector('.q').textContent = quote; spot.querySelector('.tx').textContent = text;
+    stage.appendChild(spot);
+    const whoEl = document.createElement('div'); whoEl.className = 'spot'; whoEl.style.top = '40px';
+    whoEl.innerHTML = '<div class="who"></div>'; whoEl.querySelector('.who').textContent = who; stage.appendChild(whoEl);
+    const fromL = parseFloat(card.style.left), fromT = parseFloat(card.style.top);
+    const fromTr = card.style.transform || '';
+    card.style.zIndex = 73; card.style.left = '145px'; card.style.top = '140px'; card.style.transform = 'scale(1.6)';
+    anim(veil, [{ opacity: 0 }, { opacity: 1 }], 300, { fill: 'forwards' });
+    await anim(card, [
+      { transform: 'translate(' + (fromL - 145) + 'px,' + (fromT - 140) + 'px) ' + fromTr, easing: 'cubic-bezier(.3,0,.2,1)' },
+      { transform: 'translate(0,-20px) scale(1.75)', offset: .78, easing: 'cubic-bezier(.3,1.6,.5,1)' },
+      { transform: 'scale(1.6)' },
+    ], 850, { easing: 'linear' });
+    anim(whoEl, [{ opacity: 0 }, { opacity: 1 }], 250, { fill: 'forwards' });
+    await anim(spot, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }], 300, { fill: 'forwards' });
+    spot.style.opacity = 1; whoEl.style.opacity = 1; veil.style.opacity = 1;
+    await anim(spot.querySelector('.bar i'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], holdMs, { easing: 'linear', fill: 'forwards' });
+    anim(spot, [{ opacity: 1 }, { opacity: 0 }], 250, { fill: 'forwards' });
+    anim(whoEl, [{ opacity: 1 }, { opacity: 0 }], 250, { fill: 'forwards' });
+    await anim(veil, [{ opacity: 1 }, { opacity: 0 }], 350, { fill: 'forwards' });
+    spot.remove(); whoEl.remove(); veil.remove();
+  }
+  function toast(title, body, ms) {
+    const t = document.createElement('div'); t.className = 'toast';
+    t.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffb59e" stroke-width="2" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18h.01"></path></svg><div><b></b><span></span></div>';
+    t.querySelector('b').textContent = title; t.querySelector('span').textContent = body;
+    stage.appendChild(t);
+    return anim(t, [{ opacity: 0, transform: 'translateY(-12px)' }, { opacity: 1, transform: 'translateY(0)', offset: .08 }, { opacity: 1, transform: 'translateY(0)', offset: .9 }, { opacity: 0, transform: 'translateY(-8px)' }], ms).then(() => t.remove());
+  }
+  function foeHandCard(key) {
+    const c = makeCard(key, 145, -150);
+    c.style.transform = 'rotate(4deg)';
+    return c;
+  }
+
+  scenes.push(
+    async function spotlightSpell() {
+      caption('Le sort adverse s’affiche en grand avec son effet pendant 3 s, puis l’effet part de la carte.');
+      const m = foeHandCard('missile');
+      await spotlight(m, 'Le Grimoire joue un sort', 'Sort · Effet', '', '« Il cherche… il cherche… »', 'Inflige 120 dégâts à la carte adverse qui a le plus d’ATQ.', 3000);
+      const c = center(m);
+      particles(c.x, c.y, 22, ['#ff8a3d', '#ffd27a', '#c0392b'], 160, 110, 700);
+      await anim(m, [{ transform: 'scale(1.6)', opacity: 1, filter: 'none' }, { transform: 'scale(1.3)', opacity: 0, filter: 'sepia(1) brightness(1.8) blur(2px)' }], 450);
+      m.style.display = 'none';
+      const target = els.topper, t = center(target);
+      const orb = document.createElement('div'); orb.className = 'dot';
+      orb.style.width = '16px'; orb.style.height = '16px'; orb.style.margin = '-8px 0 0 -8px';
+      orb.style.left = c.x + 'px'; orb.style.top = c.y + 'px';
+      orb.style.background = 'radial-gradient(circle,#fff,#ff8a3d 50%,#c0392b)'; orb.style.boxShadow = '0 0 16px #ff8a3d';
+      stage.appendChild(orb);
+      await anim(orb, [{ transform: 'translate(0,0)' }, { transform: 'translate(' + ((t.x - c.x) * .4 - 60) + 'px,' + ((t.y - c.y) * .4 - 30) + 'px)', offset: .5 }, { transform: 'translate(' + (t.x - c.x) + 'px,' + (t.y - c.y) + 'px)' }], 520, { easing: 'ease-in' });
+      orb.remove();
+      await damage(target, 120);
+      await wait(500);
+    },
+    async function removed() {
+      caption('Tank arrive chez l’adversaire et renvoie votre Lancelot : mise en avant, tampon « Renvoyée », trace dans le socle et alerte.');
+      const tank = foeHandCard('tank');
+      await spotlight(tank, 'Le Grimoire pose Tank', 'À l’arrivée', 'arr', '« Opérateur ?! Eh, l’magicien, fais-moi sortir maintenant ! »', 'Choisissez jusqu’à 3 cartes sur le terrain et renvoyez-les dans la main de leur propriétaire.', 3000);
+      await flyCard(tank, SLOT_X[2], FOE_Y, 0);
+      runeFlash(els.slots.foe[2]);
+      await wait(250);
+      await tag(tank, 'À l’arrivée · « Opérateur ?! »');
+      await beam(tank, els.lancelot, '#ffb59e', 520);
+      const L = els.lancelot, lc = center(L);
+      const st = document.createElement('div'); st.className = 'stamp'; st.textContent = 'RENVOYÉE';
+      st.style.left = (lc.x - 48) + 'px'; st.style.top = (lc.y - 14) + 'px'; stage.appendChild(st);
+      anim(L, [{ boxShadow: '0 0 0 1px #3a2608' }, { boxShadow: '0 0 0 3px #e0574a, 0 0 24px rgba(224,87,74,.9)' }], 300, { fill: 'forwards' });
+      await anim(st, [{ opacity: 0, transform: 'rotate(-12deg) scale(2)' }, { opacity: 1, transform: 'rotate(-12deg) scale(1)' }], 260, { fill: 'forwards' });
+      st.style.opacity = 1;
+      await wait(700);
+      const g = document.createElement('div'); g.className = 'ghost';
+      g.style.left = L.style.left; g.style.top = L.style.top; stage.appendChild(g);
+      g.style.opacity = 1;
+      st.remove();
+      L.getAnimations().forEach(a => a.cancel());
+      await flyCard(L, 268, 582, 12);
+      L.style.zIndex = 25;
+      anim(L, [{ boxShadow: '0 0 0 3px #e0574a, 0 0 24px rgba(224,87,74,.9)' }, { boxShadow: '0 0 0 1px #3a2608, 0 6px 12px rgba(0,0,0,.6)' }], 2400, { fill: 'forwards' });
+      toast('Votre carte a quitté la table', 'Sire Lancelot le Brave est renvoyé dans votre main par « Opérateur ?! » (Tank, adversaire).', 4200);
+      await anim(g, [{ opacity: 1 }, { opacity: .25 }, { opacity: 1 }, { opacity: .25 }, { opacity: 1 }, { opacity: 0 }], 2400);
+      g.remove();
+      await wait(1600);
+    },
+  );
+
   const btns = [...document.querySelectorAll('.scene')];
   function mark(i) { btns.forEach((b, j) => b.classList.toggle('on', j === i)); }
 
@@ -433,7 +542,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     busy = true;
     build(); rescale();
     instant = true;
-    for (let j = 0; j < i; j++) { await scenes[j](); }
+    for (let j = 0; j < Math.min(i, 6); j++) { if (i < 6) await scenes[j](); }
     instant = false;
     caption('');
     mark(i);
@@ -445,7 +554,7 @@ select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px soli
     if (busy) return;
     busy = true;
     build(); rescale();
-    for (let i = 0; i < scenes.length; i++) { mark(i); await scenes[i](); await wait(500); }
+    for (let i = 0; i < 6; i++) { mark(i); await scenes[i](); await wait(500); }
     caption('Fin de la démo. Choisissez une scène pour la revoir.');
     mark(-1);
     busy = false;

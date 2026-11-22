@@ -1009,7 +1009,24 @@ As a joueur, I want voir les traits vers les sources d'un bonus ou d'un malus se
 ### Story 13.10: Mise en avant des cartes jouées et des cartes retirées
 As a joueur, I want voir en grand chaque sort ou effet joué, et être prévenu clairement quand une de mes cartes quitte la table, So that je ne rate aucune action, surtout celles de l'adversaire.
 **Constat (test de Root) :** l'adversaire a retiré une carte de Root de la table par un effet, et Root ne l'a pas vu.
-**Acceptance Criteria :** selon la maquette animée validée par Root (`docs/design/animations/demo.html`, scènes « Mise en avant » et « Carte retirée »). Bloquée jusqu'à la validation de cette maquette.
+**Acceptance Criteria** (maquette animée validée par Root le 2026-11-22 : `docs/design/animations/demo.html`, scènes « Mise en avant » et « Carte retirée ») :
+- **Given** un sort joué ou un effet « À l'arrivée » déclenché, par moi ou par l'adversaire
+- **Then** la table s'assombrit et la carte vient au centre, environ 1,6× sa taille, avec une entrée de 850 ms (accélération puis léger dépassement). Au-dessus : qui joue (« Le Grimoire joue un sort »). En dessous : un panneau parchemin avec l'étiquette (« Sort · Effet », « À l'arrivée »), la réplique, le texte de l'effet et une barre qui se vide en 3 s.
+- **And** un appui passe la mise en avant ; la vitesse « rapide » la raccourcit, « instantanée » la supprime ; ensuite l'effet part de la carte comme aujourd'hui
+- **And** quand une de MES cartes quitte la table à cause d'un effet adverse (renvoyée, détruite par un effet, volée ou invoquée ailleurs), elle s'illumine en rouge avec un tampon (« RENVOYÉE », « DÉTRUITE », « VOLÉE »), puis part vers sa destination
+- **And** son socle garde un contour rouge pointillé qui clignote environ 2 s, et une alerte rouge reste environ 4 s en haut : « Votre carte a quitté la table », avec la carte, la destination, la capacité et la carte source
+- **And** l'événement est mis en évidence dans le journal
+- **And** cela fonctionne en solo, hot seat et en ligne, sur téléphone et ordinateur ; test e2e de l'ordre (mise en avant → effet → alerte)
+
+### Story 13.11: Courbes d'accélération et entrée de carte plus lente
+As a joueur, I want des animations qui accélèrent et ralentissent naturellement, So that elles aient du poids au lieu d'avancer de façon mécanique.
+**Constat :** plusieurs mouvements du jeu (`apps/client/src/ui/director.ts`) avancent à vitesse constante (`easing: 'linear'`) sur toute leur chronologie : vol d'une carte de la main vers la table, cartes de zone, sorts, pioche, mort. Seuls l'élan d'attaque et quelques fondus ont une courbe. Root trouve aussi que la carte qui sort de la main arrive trop vite.
+**Acceptance Criteria:**
+- **Given** une palette de courbes nommée et partagée (ex. `easeOut` pour les arrivées, `easeIn` pour les départs, `anticipate` avec un léger recul avant un élan, `overshoot` pour un atterrissage qui dépasse un peu puis se pose, `snap` pour les impacts), définie une seule fois
+- **Then** chaque mouvement du directeur utilise une courbe adaptée, par segment de chronologie (easing par image clé) plutôt que du linéaire, sauf pour les fondus et compteurs où le linéaire est voulu
+- **And** la carte qui quitte la main pour la table met environ 850 ms au lieu de 620 ms, avec une anticipation au départ et un léger dépassement à l'atterrissage, sur téléphone comme sur ordinateur
+- **And** la démo est mise à jour avec la même palette pour rester la référence
+- **And** « réduire les animations » donne toujours des fondus ; le réglage de vitesse s'applique ; les e2e d'ordre des temps restent verts
 
 ## Epic 8: Comptes et amis (post-MVP)
 

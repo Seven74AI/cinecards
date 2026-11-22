@@ -22,3 +22,4 @@
 - 2026-11-22 — Root : l'ATQ de Néo double tous les 2 tours et le bonus se cumule (story 13.4) ; type de la carte source dans « Bonus et malus » (13.5).
 - 2026-11-22 — Root : main illisible et animations éloignées de la démo après 13.2 / 12.5-12.7 → story 13.6 (main entièrement visible, attaques mises en scène à l'échelle de la démo, planches comparatives démo/jeu).
 - 2026-11-22 — Root : sorts plus lents sur téléphone (13.7), même fiche table/main (13.8), liens d'origine seulement à la demande (13.9), mise en avant des cartes jouées et retirées (13.10, maquette d'abord).
+- 2026-11-22 — Root valide les scènes « Mise en avant » et « Carte retirée » (13.10) ; demande des courbes d'accélération partout et une entrée de carte depuis la main plus lente (13.11).

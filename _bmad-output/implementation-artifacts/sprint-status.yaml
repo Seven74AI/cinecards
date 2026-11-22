@@ -121,5 +121,6 @@ development_status:
   13-7-sorts-plus-lents-sur-telephone: done
   13-8-meme-fiche-pour-table-et-main: done
   13-9-liens-d-origine-a-la-demande: done
-  13-10-mise-en-avant-des-cartes-jouees-et-retirees: backlog  # bloquée : maquette à valider par Root
+  13-10-mise-en-avant-des-cartes-jouees-et-retirees: backlog  # maquette validée le 2026-11-22
+  13-11-courbes-d-acceleration-et-entree-de-carte-plus-lente: backlog
   epic-13-retrospective: optional

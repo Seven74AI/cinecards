@@ -100,3 +100,13 @@ development_status:
   10-2-ecran-de-construction: backlog
   10-3-choisir-son-deck-en-salle: backlog
   epic-10-retrospective: optional
+  # epic-12 (retours visuels de chaque action) : approuvé par Root le 2026-11-22, à faire juste après l'epic 11, avant 8, 9, 10
+  epic-12: backlog
+  12-1-couche-de-presentation: backlog
+  12-2-attaques-et-impacts: backlog
+  12-3-degats-soins-statuts: backlog
+  12-4-mort-et-departs: backlog
+  12-5-poser-et-piocher: backlog
+  12-6-declencheurs-et-sorts: backlog
+  12-7-rythme-du-tour: backlog
+  epic-12-retrospective: optional

@@ -121,6 +121,7 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | 6 | Duel en ligne | Oui | Deux amis jouent à distance |
 | 7 | Animations et son | Oui (partiel) | Ambiance Grimoire et retours sonores |
 | 11 | Corrections du playtest 1 | Oui | Solo, chrono et reconnexion fiables ; capacités déclenchées ; lisibilité des cartes (à faire avant 8, 9, 10) |
+| 12 | Retours visuels de chaque action | Oui | Chaque action se voit : attaques, morts, poses, déclencheurs (après 11, avant 8, 9, 10) |
 | 8 | Comptes et amis | Non | Connexion, amis, historique, émotes |
 | 9 | Pipeline de contenu | Non | Import des ~500 cartes |
 | 10 | Decks construits | Non | Mode deck personnel construit |
@@ -882,6 +883,46 @@ So that je n'aie rien à retenir de tête.
 **Then** sa définition s'affiche, ou la carte citée s'ouvre
 **And** les textes viennent de `_bmad-output/planning-artifacts/glossaire-mots-cles.md` (validé par Root) ; « Attaque : … » devient « Attaque spéciale : … » dans les cartes, et « Barrage » est un mot-clé
 **And** un écran « Règles et mots-clés » est accessible depuis le menu, généré depuis une seule source dans le code
+
+## Epic 12: Retours visuels de chaque action
+
+Demande de Root (2026-11-22, approuvée) : chaque action doit se voir, sur le modèle des principes de mise en scène du genre (référence Hearthstone, sans reprendre ses images ni sa direction artistique). Spécification complète et catalogue action → retour visuel : `retours-visuels-actions.md`. Démo animée validée par Root : `docs/design/animations/demo.html`. À faire juste après l'epic 11, avant les epics 8, 9 et 10.
+
+**Critères communs :**
+- 60 images/s sur un téléphone milieu de gamme (transformations CSS et opacité uniquement).
+- Une action simple dure moins de 0,8 s.
+- Réglage de vitesse (normale, rapide, instantanée).
+- Avec « réduire les animations », il ne reste que des fondus.
+- Les actions adverses ont la même mise en scène.
+- Un test e2e vérifie l'ordre des temps.
+
+### Story 12.1: Couche de présentation
+As a joueur, I want que la table rejoue les événements un par un, So that je voie chaque action avant son résultat.
+**Acceptance Criteria:** **Given** un lot d'événements **When** il arrive **Then** l'état affiché avance au rythme des temps d'animation (le moteur reste l'arbitre) **And** une carte détruite reste visible pendant son animation de mort **And** je peux agir pendant la lecture (la suite accélère) **And** le réglage de vitesse et « réduire les animations » sont respectés.
+
+### Story 12.2: Attaques et impacts
+As a joueur, I want voir l'attaquant foncer sur sa cible, So that une attaque se voie et se sente.
+**Acceptance Criteria:** **Given** une attaque **When** elle se joue **Then** l'attaquant se soulève, fonce, percute (éclair, tremblement proportionnel aux dégâts) et revient **And** la riposte est visible **And** l'attaque sur les PV du joueur vise son portrait **And** une attaque spéciale lance un trait vers la cible, sans contact.
+
+### Story 12.3: Dégâts, soins, statuts
+As a joueur, I want des chiffres et des effets lisibles sur chaque carte touchée, So that je comprenne ce qui a changé.
+**Acceptance Criteria:** **Given** des dégâts, un soin, un bonus, un malus, un bouclier ou un statut **When** ils s'appliquent **Then** chiffre à taille variable, compteur de PV qui défile, flèche de stat, bouclier qui se fissure, effet propre à chaque statut (chaînes pour le silence, bulles pour le poison).
+
+### Story 12.4: Mort et départs
+As a joueur, I want voir une carte mourir, So that sa disparition ne passe pas inaperçue.
+**Acceptance Criteria:** **Given** une carte détruite **When** elle meurt **Then** elle se fige, se fissure, se consume et ses cendres rejoignent le cimetière **And** « mort évitée » montre une fissure qui se recolle **And** un renvoi en main montre la carte repartir en arc.
+
+### Story 12.5: Poser et piocher
+As a joueur, I want voir les cartes voyager, So that je sache qui joue quoi.
+**Acceptance Criteria:** **Given** une pose ou une pioche, à moi ou à l'adversaire **When** elle se joue **Then** la carte suit une trajectoire main → socle ou deck → main **And** l'atterrissage est propre à la catégorie : éclat de runes pour un personnage, brûlure et effet pour un sort, onde de famille pour un terrain, éclat métallique pour un équipement **And** l'adversaire voit un dos de carte quand il pioche.
+
+### Story 12.6: Déclencheurs et sorts
+As a joueur, I want voir quelle carte déclenche quoi, So that les combos soient lisibles.
+**Acceptance Criteria:** **Given** un déclencheur ou un sort **When** il se résout **Then** la source pulse, une étiquette (déclencheur + nom de la capacité) apparaît, puis un trait ou un projectile rejoint la cible **And** les effets d'une chaîne se jouent dans l'ordre.
+
+### Story 12.7: Rythme du tour
+As a joueur, I want des repères de tour et de fin de partie, So that le rythme soit clair.
+**Acceptance Criteria:** **Given** un changement de tour ou une fin de partie **Then** un bandeau « À vous de jouer » (ou « Tour adverse ») se déroule et mes cartes jouables s'illuminent **And** la victoire brise le portrait adverse, la défaite assombrit la table.
 
 ## Epic 8: Comptes et amis (post-MVP)
 

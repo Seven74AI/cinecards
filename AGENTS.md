@@ -7,8 +7,9 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
 ## Source of truth
 - Rules: `_bmad-output/planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md` (Root's paper rules win).
 - Architecture: `_bmad-output/game-architecture.md`. Stories: `_bmad-output/planning-artifacts/epics.md`.
-- Progress: `_bmad-output/implementation-artifacts/sprint-status.yaml`. Current work: **epic 11**
-  (playtest-1 fixes, see `planning-artifacts/sprint-change-proposal-2026-11-22.md`), before epics 8-10.
+- Progress: `_bmad-output/implementation-artifacts/sprint-status.yaml`. Current work: **epic 12**
+  (per-action visual feedback, spec `planning-artifacts/retours-visuels-actions.md`, approved animated demo
+  `docs/design/animations/demo.html`), before epics 8-10. Epic 11 (playtest-1 fixes) is done.
 
 ## Working autonomously (decided by Root, 2026-11-22)
 - **One story at a time, in order.** Create the story file with `gds-create-story`, implement it

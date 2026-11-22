@@ -3,7 +3,7 @@ title: "Retours visuels de chaque action — spécification"
 project: cinecards
 date: 2026-11-22
 epic: 12
-status: brouillon à valider par Root
+status: approuvé par Root (2026-11-22) ; démo : docs/design/animations/demo.html
 ---
 
 # Retours visuels de chaque action

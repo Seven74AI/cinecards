@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Card } from '@cinecards/cards';
 import type { ComputedStats, Status } from '@cinecards/engine';
 import { cardArt } from '../game/catalog.ts';
@@ -145,6 +145,8 @@ export interface CardViewProps {
   style?: CSSProperties;
   /** Accessible name when the button does more than show the card (story 10.2: "Ajouter Tank"); default: the card name. */
   label?: string;
+  /** Story 14.3: the text box of a full card, drawn under the picture (`Abilities.tsx`, `FullCard`). */
+  text?: ReactNode;
 }
 
 function statClass(cur: number, base: number) {
@@ -164,7 +166,7 @@ export function cycleTitle(card: Card, cycle: number): string {
   return cycle === 0 ? 'Cycle actif ce tour' : `Cycle dans ${cycle} tour(s)`;
 }
 
-export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving, style, label }: CardViewProps) {
+export function CardView({ card, stats, statuses = [], sick, cycle, size = 'board', state, onClick, iid, count = 0, cost, dying, leaving, style, label, text }: CardViewProps) {
   const art = cardArt(card);
   const isChar = card.category === 'character';
   const multi = stats?.bodies;
@@ -173,7 +175,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
   // a stable tag (not a component made here), so React keeps the card's DOM between renders
   const Root = onClick ? 'button' : 'span';
   const rootProps = onClick ? { type: 'button' as const, onClick } : { role: 'img' };
-  const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
+  const cls = ['card', `card-${size}`, text ? 'card-full' : '', CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
     // a card without an action is not a button: on the table it sits inside the slot's own button, and a button may not
     // contain another one (invalid HTML, taps could land on the wrong element)
@@ -181,6 +183,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
       <span className="card-frame">
         <span className="card-name">{card.name}</span>
         <span className="card-art">{art ? <img src={art} alt="" draggable={false} /> : null}</span>
+        {text}
         <span className="card-foot">
           <span className="gem" />
         </span>

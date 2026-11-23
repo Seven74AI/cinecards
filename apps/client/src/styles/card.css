@@ -439,3 +439,59 @@
 .card.is-target {
   box-shadow: 0 0 0 2px #ff5a4a, 0 0 18px 4px rgba(255, 90, 74, 0.75);
 }
+
+/*
+ * Story 14.3: a full card (`FullCard`, the detailed open hand): the big card with its height set by its content; under
+ * the picture, a parchment box with each ability's energy icon, type tag and effect text (no movie quote).
+ */
+.card-full {
+  aspect-ratio: auto;
+  height: auto;
+}
+.card-full .card-frame {
+  height: auto;
+}
+.card-full .card-name {
+  min-height: 15cqw;
+}
+.card-full .card-art {
+  flex: none;
+  height: 55cqw;
+}
+.card-full .card-foot {
+  flex: none;
+  height: 14px;
+}
+.card-text {
+  display: block;
+  position: relative;
+  z-index: 1;
+  margin: 4px 6px 16px;
+  padding: 6px 7px 8px;
+  border-radius: 4px;
+  background: linear-gradient(#f3e6c4, #e6d3a5);
+  box-shadow: inset 0 0 0 1px rgba(138, 100, 22, 0.6);
+  font-family: var(--text);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink);
+  text-align: left;
+}
+.card-text .abilities {
+  margin: 0;
+  gap: 6px;
+}
+.card-text .ability {
+  display: block;
+  padding: 2px 0 2px 7px;
+}
+.card-text .power {
+  display: inline-flex;
+  vertical-align: middle;
+  margin: -2px 4px 0 0;
+  transform: scale(0.85);
+}
+.card-text .tg {
+  vertical-align: 1px;
+}

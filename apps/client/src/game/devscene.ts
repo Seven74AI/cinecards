@@ -35,10 +35,11 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // story 13.10: Le Grimoire holds only Tank; on its turn it plays it and sends my cards back to my hand
   retrait: [['hg-lancelot', 'hs-topper'], []],
   // story 14.1: a full table (mockup F): 4 characters of mine, 7 of the foe, terrains and spells on both sides, and a
-  // hand of 10 cards (see EXTRA)
+  // hand of 10 cards (see EXTRA); story 14.3: Néo first, the card with the longest texts (the tallest full card)
   pleine: [
     ['hg-patsy', 'mx-cypher', 'hs-topper', 'wc-gomez'],
     ['hg-galahad', 'hg-bridgekeeper', 'hs-kent', 'hg-black-knight', 'hg-robin', 'hg-tim', 'mx-keymaker'],
+    ['mx-neo'],
   ],
 };
 

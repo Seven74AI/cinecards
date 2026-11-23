@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Card } from '@cinecards/cards';
 import {
   attackTargets,
@@ -20,6 +20,8 @@ import { describeEvent, triggerPhrase } from '../game/describe.ts';
 import { fr } from '../i18n/fr.ts';
 import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
+import { FullCard } from './Abilities.tsx';
+import { getHandView, subscribeHandView } from '../game/handView.ts';
 import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
 import { modifierLines, type ModifierLine } from '../game/modifiers.ts';
@@ -106,6 +108,47 @@ function useWide() {
   return wide;
 }
 
+/**
+ * Story 14.3: the open hand of the compact table. In the detailed view it is as tall as the tallest full card it holds
+ * plus its padding (measured again when the hand changes, a card's size changes or the window is resized), so no card
+ * scrolls vertically; it grows upward over my side, the turn banner and the foe's side, never over the foe's banner.
+ */
+function HandPanel({ detailed, handKey, children }: { detailed: boolean; handKey: string; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const panel = ref.current;
+    const row = panel?.firstElementChild as HTMLElement | null;
+    if (!panel || !row) return;
+    if (!detailed) {
+      panel.style.removeProperty('height');
+      return;
+    }
+    const fit = () => {
+      const cards = [...row.children].filter((c): c is HTMLElement => c instanceof HTMLElement && c.classList.contains('card'));
+      const tallest = Math.max(0, ...cards.map((c) => c.offsetHeight));
+      const cs = getComputedStyle(row);
+      const want = (tallest || 60) + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      // the room above the bottom of my side, up to the foe's banner (a small gap keeps its glow in view)
+      const foe = panel.closest('.table')?.querySelector<HTMLElement>('.hero');
+      const room = foe ? panel.getBoundingClientRect().bottom - foe.getBoundingClientRect().bottom - 4 : want;
+      panel.style.height = `${Math.round(Math.min(want, room))}px`;
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    for (const c of row.children) ro.observe(c);
+    addEventListener('resize', fit);
+    return () => {
+      ro.disconnect();
+      removeEventListener('resize', fit);
+    };
+  }, [detailed, handKey]);
+  return (
+    <div ref={ref} className={'hand hand-panel' + (detailed ? ' detailed' : '')} id="cc-hand" role="region" aria-label="Ta main">
+      <div className="hand-row">{children}</div>
+    </div>
+  );
+}
+
 const reducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function Table({ session, onLeave }: { session: Session; onLeave: () => void }) {
@@ -117,6 +160,9 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
   /** Story 14.2: on the compact table my hand is folded behind the fan button of my banner; this opens it. */
   const [handOpen, setHandOpen] = useState(false);
+  /** Story 14.3: compact (14.2, default) or detailed open hand; story 14.4 sets it from "Réglages". */
+  const handView = useSyncExternalStore(subscribeHandView, getHandView);
+  const detailedHand = compact && handView === 'detailed';
   const [inspect, setInspect] = useState<string | null>(null);
   /** Story 13.9: lines to a modifier's sources, shown on demand for a moment (`tuck`: the sheet slides away meanwhile). */
   const [lines, setLines] = useState<{ target: string; links: SourceLink[]; tuck: boolean; key: number } | null>(null);
@@ -640,9 +686,10 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         {mine ? ZoneRows({ player }) : null}
         {mine && handOpen ? (
           // story 14.2: the open hand, an opaque panel laid over the bottom of my side (the side does not move)
-          <div className="hand hand-panel" id="cc-hand" role="region" aria-label="Ta main">
-            <div className="hand-row">{handCards}</div>
-          </div>
+          // story 14.3: or, in the detailed view, the full cards in a panel as tall as the tallest of them
+          <HandPanel detailed={detailedHand} handKey={state.players[me].hand.join(',')}>
+            {handCards}
+          </HandPanel>
         ) : null}
       </div>
     );
@@ -752,18 +799,16 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         if (!inst) return null;
         const card = catalog.get(inst.cardId)!;
         const afford = (card.cost ?? 0) <= state.players[me].coins || state.players[me].freePlay;
-        return (
-          <CardView
-            key={iid}
-            iid={iid}
-            card={card}
-            size="hand"
-            cost={state.players[me].freePlay ? 0 : undefined}
-            state={mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null}
-            onClick={() => tapCard(iid)}
-            style={{ '--k': i - (hand.length - 1) / 2, ...(view.incoming.has(iid) ? { opacity: 0 } : {}) } as CSSProperties}
-          />
-        );
+        const props = {
+          iid,
+          card,
+          cost: state.players[me].freePlay ? 0 : undefined,
+          state: mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null,
+          onClick: () => tapCard(iid),
+          style: { '--k': i - (hand.length - 1) / 2, ...(view.incoming.has(iid) ? { opacity: 0 } : {}) } as CSSProperties,
+        } as const;
+        // story 14.3: the detailed open hand shows full cards (with their ability texts)
+        return detailedHand && handOpen ? <FullCard key={iid} {...props} /> : <CardView key={iid} {...props} size="hand" />;
       })}
       {hand.length === 0 ? <span className="muted">Main vide</span> : null}
     </>

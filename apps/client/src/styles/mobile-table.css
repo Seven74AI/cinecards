@@ -430,3 +430,24 @@
 .compact .hand-row .muted {
   margin: auto;
 }
+
+/*
+ * Story 14.3: the detailed open hand (mockup F-detaillee). Full cards (`.card-full`, card.css) 70 % of the screen wide,
+ * 280 px at most, in one row that scrolls sideways. The panel's height is set by `HandPanel` (Table.tsx): the tallest
+ * card plus this padding, so it grows upward over my side, the turn banner and the foe's side.
+ */
+.compact .hand-panel.detailed .hand-row {
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 40px 10px 18px;
+  scroll-padding-left: 18px;
+}
+.compact .hand-panel.detailed .hand-row .card {
+  width: min(70vw, 280px);
+}
+.compact .hand-panel.detailed .hand-row .card-name {
+  font-size: 15px;
+}
+.compact .hand-panel.detailed .hand-row .badge {
+  font-size: 12px;
+}

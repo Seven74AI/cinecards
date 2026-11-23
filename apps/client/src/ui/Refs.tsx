@@ -76,8 +76,12 @@ export function RefProvider({ children }: { children: ReactNode }) {
 
 const HOVER_DELAY_MS = 250;
 
-/** Ability text with its trigger label: keywords show their definition, cited cards and abilities open a preview. */
-export function AbilityText({ card, ability }: { card: Card; ability: Ability }) {
+/**
+ * Ability text with its trigger label: keywords show their definition, cited cards and abilities open a preview.
+ * Story 14.3: `still` draws the same text with the same classes but nothing to tap (the full cards of the detailed
+ * hand are buttons themselves: a tap anywhere opens the sheet, where the keywords and links work).
+ */
+export function AbilityText({ card, ability, still }: { card: Card; ability: Ability; still?: boolean }) {
   const { previewCard, hoverCard } = useRefs();
   const [open, setOpen] = useState<string | null>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -91,6 +95,17 @@ export function AbilityText({ card, ability }: { card: Card; ability: Ability })
     hoverTimer.current = null;
   };
   useEffect(() => stopHover, []);
+  if (still)
+    return (
+      <>
+        <span className={'tg t-' + tag.tone + (definition(tag.label) ? ' kw-tag' : '')}>{tag.label}</span>
+        {segments.map((s, i) => (
+          <span key={i} className={s.kind === 'text' ? undefined : s.kind === 'keyword' ? 'kw' : 'ref'}>
+            {s.text}
+          </span>
+        ))}
+      </>
+    );
   return (
     <>
       {definition(tag.label) ? (

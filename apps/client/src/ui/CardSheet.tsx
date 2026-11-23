@@ -4,6 +4,7 @@ import { cardArt, SET_TITLES } from '../game/catalog.ts';
 import { modifierLines, signed, type ModifierLine } from '../game/modifiers.ts';
 import { atkDoublingEvery, CardView, CATEGORY_FR, CategoryTag, cycleTitle, RARITY_FR } from './CardView.tsx';
 import { AbilityText, useRefs } from './Refs.tsx';
+import { PowerIcon } from './Abilities.tsx';
 import { Icon, STATUS_ICON } from './Icon.tsx';
 
 export interface SheetAction {
@@ -112,12 +113,7 @@ export function CardSheet({
             return (
               <li key={index} className={'ability k-' + ab.kind}>
                 <div className="ability-head">
-                  {ab.power ? (
-                    <span className={'power p-' + ab.power.icon}>
-                      <Icon name={ab.power.icon} size={11} />
-                      {ab.power.count > 1 ? <small>×{ab.power.count}</small> : null}
-                    </span>
-                  ) : null}
+                  <PowerIcon power={ab.power} />
                   <strong>{ab.name}</strong>
                 </div>
                 <p>

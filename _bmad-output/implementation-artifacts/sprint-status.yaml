@@ -85,7 +85,7 @@ development_status:
   epic-11-retrospective: optional
   # epic-11 (corrections du playtest 1) passe avant les epics 8, 9 et 10 — voir sprint-change-proposal-2026-11-22.md
   # epic-8 révisé le 2026-11-22 (sprint-change-proposal-2026-11-22-epics-8-10.md) : à faire maintenant, puis 10, puis 9
-  epic-8: in-progress
+  epic-8: done
   8-1-compte-avec-pseudo-et-mot-de-passe: done
   8-2-cle-d-acces-et-code-de-secours: done
   8-6-heberger-le-jeu-sur-cinecards-sevend-io: done  # ajoutée le 2026-11-22, à faire avant 8.3 (clés d'accès liées au domaine)

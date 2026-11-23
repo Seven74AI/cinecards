@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 test('two friends play an online duel from an invitation link', async ({ browser }) => {
   const alice = await (await browser.newContext()).newPage();
@@ -33,6 +34,9 @@ test('two friends play an online duel from an invitation link', async ({ browser
   // the opponent's hand is hidden: only card backs
   // (on the phone table, story 13.2, the foe's hand is a counter on their hero)
   await expect(first.locator('.table .hero').first().locator('[title="Main"]')).toBeVisible();
+  // story 14.2: my own hand is folded behind the fan button of my banner
+  await expect(first.locator('.table .hand-btn')).toHaveCount(1);
+  await openHand(first);
   await expect(first.locator('.hand')).toHaveCount(1);
 
   // conceding (after confirmation) makes the other player win

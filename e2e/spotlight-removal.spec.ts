@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /**
  * Story 13.10 (demo scenes « Mise en avant » and « Carte retirée »). Dev scene `?scene=retrait`: Le Grimoire holds
@@ -54,6 +55,7 @@ test('a tap skips the spotlight', async ({ page }) => {
   await page.goto('/?scene=pose');
   await page.waitForSelector('.table');
   await page.waitForTimeout(1500);
+  await openHand(page);
   await page.locator('.hand .card[aria-label^="Missile"]').press('Enter');
   await page.getByRole('button', { name: /^Jouer/ }).first().click();
   const spot = page.locator('.fx-spot');

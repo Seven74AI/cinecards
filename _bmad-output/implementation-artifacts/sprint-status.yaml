@@ -136,7 +136,7 @@ development_status:
   # epic-14 (table téléphone v2, maquette F validée par Root le 2026-11-23) : maintenant, avant l'epic 9
   epic-14: in-progress
   14-1-table-sans-zoom-rangees-terrains-et-sorts: done
-  14-2-main-repliee-bouton-eventail-vue-compacte: backlog
+  14-2-main-repliee-bouton-eventail-vue-compacte: done
   14-3-carte-complete-et-vue-detaillee: backlog
   14-4-reglage-main-ouverte: backlog
   epic-14-retrospective: optional

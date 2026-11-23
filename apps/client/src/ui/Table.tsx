@@ -115,6 +115,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const wide = useWide();
   const compact = useMedia(COMPACT_QUERY) && !wide;
   const [mode, setMode] = useState<Mode>({ k: 'idle' });
+  /** Story 14.2: on the compact table my hand is folded behind the fan button of my banner; this opens it. */
+  const [handOpen, setHandOpen] = useState(false);
   const [inspect, setInspect] = useState<string | null>(null);
   /** Story 13.9: lines to a modifier's sources, shown on demand for a moment (`tuck`: the sheet slides away meanwhile). */
   const [lines, setLines] = useState<{ target: string; links: SourceLink[]; tuck: boolean; key: number } | null>(null);
@@ -233,6 +235,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   const foe = other(me);
   const myTurn = state.active === me && !state.pending && state.phase === 'main';
 
+  // story 14.2: the hand folds when the device changes hands (hot seat) and when a choice needs the table
+  useEffect(() => setHandOpen(false), [viewer]);
+  useEffect(() => {
+    if (mode.k === 'targets') setHandOpen(false);
+  }, [mode.k]);
+
   // story 12.5: a played card leaves the hand at once (real state); its flight starts from where it was
   useLayoutEffect(() => noteHand());
 
@@ -283,6 +291,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
 
   // ----- starting actions (targets and options are asked by the engine when the ability fires, story 11.4) -----
   const playFromHand = (iid: string, slot?: number, option?: number) => {
+    // story 14.2: "Jouer" folds the hand, so the table is in view while the card is placed
+    setHandOpen(false);
     send({ type: 'playCard', player: me, iid, ...(slot !== undefined ? { slot } : {}), ...(option !== undefined ? { option } : {}) });
   };
 
@@ -573,9 +583,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           <small>/{P.coinCap}</small>
         </span>
         <span className="hero-counts">
-          <span title="Main" aria-label={`Main : ${P.hand.length}`}>
-            <Icon name="hand" size={12} /> {P.hand.length}
-          </span>
+          {/* story 14.2: on the compact table my hand count is the badge of the fan button */}
+          {compact && player === me ? null : (
+            <span title="Main" aria-label={`Main : ${P.hand.length}`}>
+              <Icon name="hand" size={12} /> {P.hand.length}
+            </span>
+          )}
           <span title="Pioche" aria-label={`Pioche : ${pileCount(player)}`}>
             <Icon name="deck" size={12} /> {pileCount(player)}
           </span>
@@ -583,9 +596,39 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
             <Icon name="grave" size={12} /> {P.graveyard.length}
           </span>
         </span>
+        {compact && player === me ? handButton(P.hand.length) : null}
       </div>
     );
   };
+
+  /**
+   * Story 14.2 (mockup `Bouton-main.dc.html`, option 1): a gold square with three fanned cards and a red badge with
+   * the number of cards in my hand; open, the fan spreads and the colours invert. 40 px, 46 px touchable.
+   */
+  const handButton = (n: number) => (
+    <button
+      type="button"
+      className={'hand-btn' + (handOpen ? ' on' : '')}
+      aria-expanded={handOpen}
+      aria-controls="cc-hand"
+      aria-label={handOpen ? 'Fermer la main' : `Ouvrir la main, ${n} carte${n > 1 ? 's' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        sfx('click');
+        setHandOpen((o) => !o);
+      }}
+    >
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <g className="fan">
+          <rect className="f1" x="10.5" y="6" width="11" height="16" rx="2" />
+          <rect x="10.5" y="6" width="11" height="16" rx="2" />
+          <rect className="f3" x="10.5" y="6" width="11" height="16" rx="2" />
+        </g>
+      </svg>
+      {/* the director pops it when a drawn or returned card reaches the folded hand */}
+      <span className="hand-badge">{n}</span>
+    </button>
+  );
 
   /** Story 14.1: one side of the compact table, always whole: its terrain and spell rows, then the 2 × 5 characters. */
   const Side = ({ player }: { player: PlayerId }) => {
@@ -595,6 +638,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         {mine ? null : ZoneRows({ player })}
         {Board({ player })}
         {mine ? ZoneRows({ player }) : null}
+        {mine && handOpen ? (
+          // story 14.2: the open hand, an opaque panel laid over the bottom of my side (the side does not move)
+          <div className="hand hand-panel" id="cc-hand" role="region" aria-label="Ta main">
+            <div className="hand-row">{handCards}</div>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -696,6 +745,29 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
 
   const hand = state.players[me].hand;
   const foeHand = state.players[foe].hand.length;
+  const handCards = (
+    <>
+      {hand.map((iid, i) => {
+        const inst = state.instances[iid];
+        if (!inst) return null;
+        const card = catalog.get(inst.cardId)!;
+        const afford = (card.cost ?? 0) <= state.players[me].coins || state.players[me].freePlay;
+        return (
+          <CardView
+            key={iid}
+            iid={iid}
+            card={card}
+            size="hand"
+            cost={state.players[me].freePlay ? 0 : undefined}
+            state={mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null}
+            onClick={() => tapCard(iid)}
+            style={{ '--k': i - (hand.length - 1) / 2, ...(view.incoming.has(iid) ? { opacity: 0 } : {}) } as CSSProperties}
+          />
+        );
+      })}
+      {hand.length === 0 ? <span className="muted">Main vide</span> : null}
+    </>
+  );
   const pending = state.pending;
 
   return (
@@ -803,29 +875,13 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           </>
         )}
         {Hero({ player: me })}
-        <div className="hand" aria-label="Ta main">
-          <div className={'hand-fan' + (hand.length > 7 ? ' many' : '')} style={{ '--n': hand.length } as CSSProperties}>
-          {hand.map((iid, i) => {
-            const inst = state.instances[iid];
-            if (!inst) return null;
-            const card = catalog.get(inst.cardId)!;
-            const afford = (card.cost ?? 0) <= state.players[me].coins || state.players[me].freePlay;
-            return (
-              <CardView
-                key={iid}
-                iid={iid}
-                card={card}
-                size="hand"
-                cost={state.players[me].freePlay ? 0 : undefined}
-                state={mode.k === 'hand' && mode.iid === iid ? 'selected' : myTurn && afford ? 'ready' : myTurn ? 'disabled' : null}
-                onClick={() => tapCard(iid)}
-                style={{ '--k': i - (hand.length - 1) / 2, ...(view.incoming.has(iid) ? { opacity: 0 } : {}) } as CSSProperties}
-              />
-            );
-          })}
-          {hand.length === 0 ? <span className="muted">Main vide</span> : null}
+        {compact ? null : (
+          <div className="hand" aria-label="Ta main">
+            <div className={'hand-fan' + (hand.length > 7 ? ' many' : '')} style={{ '--n': hand.length } as CSSProperties}>
+              {handCards}
+            </div>
           </div>
-        </div>
+        )}
       </main>
       {wide ? <div className="col-right">{sheet ?? <div className="inspector-empty parchment-dark">Touche une carte pour voir ses détails.</div>}</div> : sheet}
       {!wide && journalOpen ? <div className="drawer">{journal}</div> : null}

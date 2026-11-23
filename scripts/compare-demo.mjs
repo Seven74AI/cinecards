@@ -16,6 +16,12 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+/** Story 14.2: the phone table folds my hand behind the fan button of my banner; opens it. */
+async function openHand(p) {
+  const btn = p.locator('.table .hand-btn');
+  if ((await btn.count()) && (await btn.getAttribute('aria-expanded')) !== 'true') await btn.click();
+}
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (name, def) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -91,6 +97,7 @@ const SCENES = [
     game: {
       scene: 'mort',
       prepare: async (p) => {
+        await openHand(p);
         await p.locator('.hand .card').first().press('Enter');
         await p.waitForTimeout(500);
       },
@@ -104,7 +111,9 @@ const SCENES = [
     game: {
       scene: 'pose',
       prepare: async (p) => {
-        await p.locator('.hand .card[aria-label^="Missile"]').press('Enter');
+        await openHand(p);
+        await openHand(p);
+      await p.locator('.hand .card[aria-label^="Missile"]').press('Enter');
         await p.waitForTimeout(500);
       },
       start: (p) => p.getByRole('button', { name: /^Jouer/ }).first().click(),
@@ -120,7 +129,9 @@ const SCENES = [
     game: {
       scene: 'pose',
       prepare: async (p) => {
-        await p.locator('.hand .card[aria-label^="Missile"]').press('Enter');
+        await openHand(p);
+        await openHand(p);
+      await p.locator('.hand .card[aria-label^="Missile"]').press('Enter');
         await p.waitForTimeout(500);
       },
       start: (p) => p.getByRole('button', { name: /^Jouer/ }).first().click(),

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /**
  * Story 12.5: cards travel. Dev scene `?scene=mort` (my turn, four characters in hand, Le Grimoire plays next).
@@ -6,6 +7,7 @@ import { expect, test } from '@playwright/test';
 
 test('a played card flies from the hand and lands in its slot with a ring of runes', async ({ page }) => {
   await page.goto('/?scene=mort');
+  await openHand(page);
   const card = page.locator('.hand .card').first();
   const name = (await card.getAttribute('aria-label'))!;
   await card.press('Enter');
@@ -63,6 +65,8 @@ test('draws: the foe gets a card back, my drawn card stays hidden until it turns
       }
     }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
   });
+  // story 14.2: with my hand open, the drawn card turns over in it (folded, it flies to the fan button: mobile-table)
+  await openHand(page);
   const before = await page.locator('.hand .card').count();
   const endTurn = page.getByRole('button', { name: 'Fin du tour' });
   // under load the first press can land before the table takes input: press until the turn has really passed

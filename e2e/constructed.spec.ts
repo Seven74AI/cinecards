@@ -81,7 +81,8 @@ test('two accounts play their own decks online; the guest picks theirs in the wa
   // each player's own pile on the table: 50 cards minus the opening hand
   for (const page of [alice, bob]) {
     const me = page.locator('.table .hero').last();
-    const hand = Number((await me.locator('[title="Main"]').textContent())!.trim());
+    // story 14.2: on the phone table my hand count is the badge of the fan button
+    const hand = Number((await me.locator('[title="Main"], .hand-badge').textContent())!.trim());
     await expect(me.locator('[title="Pioche"]')).toHaveText(String(50 - hand));
   }
   await alice.getByRole('button', { name: 'Journal' }).click();
@@ -128,7 +129,8 @@ test('without a valid deck the option is greyed with a link to "Mes decks"; solo
   await expect(page.locator('.banner')).toBeVisible();
   // my own pile: 50 cards minus my hand (the Grimoire has its own 50)
   const me = page.locator('.table .hero').last();
-  const hand = Number((await me.locator('[title="Main"]').textContent())!.trim());
+  // story 14.2: on the phone table my hand count is the badge of the fan button
+  const hand = Number((await me.locator('[title="Main"], .hand-badge').textContent())!.trim());
   await expect(me.locator('[title="Pioche"]')).toHaveText(String(50 - hand));
   await page.getByRole('button', { name: 'Journal' }).click();
   await expect(page.locator('.journal')).toContainText('La partie commence (decks construits).');

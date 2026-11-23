@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /** Story 11.2: leaving an online duel, by button or by closing the tab, keeps the seat for 90 s. */
 
@@ -42,6 +43,7 @@ test('host and guest leave and come back by code, link and new tab', async ({ br
   await (hostStarts ? host : guest).getByRole('button', { name: 'Fin du tour' }).click();
   await expect((hostStarts ? guest : host).locator('.banner')).toContainText('Ton tour');
   const hostBanner = (await host.locator('.banner-text strong').textContent())!;
+  await openHand(host);
   const hostHand = await host.locator('.hand .card').count();
 
   // host quits (no forfeit) and comes back by typing the code
@@ -49,6 +51,7 @@ test('host and guest leave and come back by code, link and new tab', async ({ br
   await expect(guest.locator('.toast.info')).toContainText('Alice');
   await joinByCode(host, code, 'Alice');
   await expect(host.locator('.banner-text strong')).toHaveText(hostBanner);
+  await openHand(host);
   await expect(host.locator('.hand .card')).toHaveCount(hostHand);
   await expect(guest.locator('.toast.info')).toHaveCount(0);
 

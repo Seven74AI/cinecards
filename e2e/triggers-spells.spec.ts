@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /**
  * Story 12.6: who triggers what. Dev scene `?scene=pose`: the homing missile, Camelot and the A.P.U unit in hand,
@@ -20,6 +21,7 @@ async function watchFx(page: Page) {
 const fx = (page: Page) => page.evaluate(() => (window as unknown as { __ccFx: { cls: string; text: string; t: number }[] }).__ccFx);
 
 async function play(page: Page, name: string) {
+  await openHand(page);
   await page.locator(`.hand .card[aria-label^="${name}"]`).press('Enter');
   await page.getByRole('button', { name: /^Jouer/ }).first().click();
 }

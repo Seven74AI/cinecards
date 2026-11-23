@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /** Stories 11.4 / 11.5: targets are asked when the card arrives, with a "k / N" counter, "Valider" and "Aucune cible". */
 
@@ -37,6 +38,7 @@ test('hot seat: an arrival effect asks for up to N targets, and "Aucune cible" s
     for (let tries = 0; tries < 8; tries++) {
       await clearPopups(page);
       if (await banner.getByRole('button', { name: 'Valider' }).isVisible()) break;
+      await openHand(page); // story 14.2: "Jouer" folds the hand again
       const card = page.locator('.hand .card.is-ready').first();
       if (!(await card.isVisible())) break;
       await card.press('Enter'); // fanned hand cards overlap (story 13.2): their centre is covered

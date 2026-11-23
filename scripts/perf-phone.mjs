@@ -17,6 +17,12 @@
 import { chromium, devices, webkit } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 
+/** Story 14.2: the phone table folds my hand behind the fan button of my banner; opens it. */
+async function openHand(p) {
+  const btn = p.locator('.table .hand-btn');
+  if ((await btn.count()) && (await btn.getAttribute('aria-expanded')) !== 'true') await btn.click();
+}
+
 const arg = (name, def) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : def;
@@ -51,6 +57,7 @@ const SCENES = [
     title: 'Pose (sort, mise en avant)',
     ms: 6000,
     prepare: async (p) => {
+      await openHand(p);
       await p.locator('.hand .card[aria-label^="Missile"]').press('Enter');
       await p.waitForTimeout(600);
     },

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openHand } from './hand.ts';
 
 /** Story 11.8: keyword bubbles, references between cards, and the "Règles et mots-clés" screen. */
 
@@ -60,6 +61,7 @@ test('in a game, the ability label explains its trigger', async ({ page }) => {
   if (await ready.isVisible()) await ready.click();
   await expect(page.getByRole('button', { name: 'Règles et mots-clés' })).toBeVisible();
   // hand cards overlap in a fan on the phone table (story 13.2): the covered centre can't take a click
+  await openHand(page);
   await page.locator('.hand .card').first().press('Enter');
   const tag = page.locator('.sheet .kw-tag').first();
   if (await tag.isVisible()) {

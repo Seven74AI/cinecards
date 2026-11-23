@@ -542,8 +542,9 @@ function saved(iid: string, ms: number, r: number) {
 function backToHand(iid: string, owner: PlayerId, ms: number, retime?: Retime) {
   const card = cardEl(iid);
   const mine = !!card?.closest('.board.mine');
-  // the compact table (story 13.2) has no row of card backs: the foe's cards fly to the hand counter of their hero
-  const hand = document.querySelector<HTMLElement>(mine ? '.table .hand' : '.table .foe-hand') ?? heroEl(owner)?.querySelector<HTMLElement>('[title="Main"]') ?? null;
+  // the compact table (story 13.2) has no row of card backs: the foe's cards fly to the hand counter of their hero;
+  // story 14.2: mine fly to my open hand, or to the fan button while my hand is folded
+  const hand = (mine ? myHand() : document.querySelector<HTMLElement>('.table .foe-hand')) ?? heroEl(owner)?.querySelector<HTMLElement>('[title="Main"]') ?? null;
   if (!card || !hand) return;
   const a = center(card);
   const b = center(hand);
@@ -565,6 +566,7 @@ function backToHand(iid: string, owner: PlayerId, ms: number, retime?: Retime) {
     ms,
     { fill: 'forwards', easing: 'linear' },
   );
+  if (mine) later(() => popBadge(1), ms);
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -595,9 +597,17 @@ const myId = (): PlayerId => {
   return Number(heroes[heroes.length - 1]?.dataset.hero ?? 0) as PlayerId;
 };
 const counterEl = (p: PlayerId, title: 'Pioche' | 'Cimetière' | 'Main') => heroEl(p)?.querySelector<HTMLElement>(`[title="${title}"]`) ?? heroEl(p);
+/** My hand: its row, or on the compact table (story 14.2) the open hand panel, else the fan button of my banner. */
+const myHand = () => document.querySelector<HTMLElement>('.table .hand') ?? document.querySelector<HTMLElement>('.table .hand-btn');
 /** A player's hand on the table: mine, or the foe's row of card backs (on the compact table, their hand counter). */
 const handZone = (p: PlayerId): HTMLElement | null =>
-  p === myId() ? document.querySelector<HTMLElement>('.table .hand') : (document.querySelector<HTMLElement>('.table .foe-hand') ?? counterEl(p, 'Main'));
+  p === myId() ? myHand() : (document.querySelector<HTMLElement>('.table .foe-hand') ?? counterEl(p, 'Main'));
+/** Story 14.2: the badge of the folded hand's button pops when a card reaches it. */
+function popBadge(r: number) {
+  const badge = document.querySelector<HTMLElement>('.table .hand-btn:not(.on) .hand-badge');
+  if (!badge) return;
+  void animate(badge, [{ transform: 'scale(1)' }, { transform: 'scale(1.5)', offset: 0.35 }, { transform: 'scale(1)' }], 380 * Math.max(r, 0.5), { easing: EASING.easeOut });
+}
 
 /** Any card on the table: a character, or a terrain / equipment in its strip. */
 const boardEl = (iid: string) => cardEl(iid) ?? document.querySelector<HTMLElement>(`.table .zones [data-iid="${CSS.escape(iid)}"]`);
@@ -843,6 +853,8 @@ function drawn(iid: string, player: PlayerId, ms: number, r: number, retime?: Re
   ).then(() => {
     if (!real) {
       void animate(b, [{ transform: `${end} scale(.5)`, opacity: 1 }, { transform: `${end} scale(.3)`, opacity: 0 }], 160 * r, { fill: 'forwards', easing: EASING.easeIn }).then(() => b.remove());
+      // story 14.2: my card went into my folded hand (the fan button)
+      if (player === myId()) popBadge(r);
       return;
     }
     // the back turns to its edge while the real card turns from its edge

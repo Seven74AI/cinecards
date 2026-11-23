@@ -62,3 +62,14 @@ export function fxScale(width: number): number {
   if (!(width > 0)) return 1;
   return Math.min(FX_SCALE.max, Math.max(FX_SCALE.min, width / FX_SCALE.ref));
 }
+
+/**
+ * Story 13.15 (mockup approved by Root, 2026-11-23): the table shakes in proportion to the screen. The approved demo's
+ * shake is kept on a 390 px phone; the factor is the short side of the screen over that, bounded.
+ */
+export const SHAKE_SCALE = { ref: 390, min: 0.4, max: 2 } as const;
+export function shakeScale(width: number, height: number): number {
+  const side = Math.min(width, height);
+  if (!(side > 0)) return 1;
+  return Math.min(SHAKE_SCALE.max, Math.max(SHAKE_SCALE.min, side / SHAKE_SCALE.ref));
+}

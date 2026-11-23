@@ -10,7 +10,7 @@ import { abilityBody, abilityTag } from '../game/labels.ts';
 import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
 import { removalText, STAMP } from '../game/removal.ts';
 import { PHONE_FX, particleBudget } from '../game/perf.ts';
-import { FX_MIN_FONT, fxScale, TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
+import { FX_MIN_FONT, fxScale, shakeScale, TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -154,9 +154,9 @@ function splat(el: HTMLElement, amount: number, r: number, small = false) {
   ).then(() => s.remove());
 }
 
-/** The table shakes in proportion to the damage. */
+/** The table shakes in proportion to the damage, and (story 13.15) to the size of the screen. */
 export function shake(amount: number, r: number) {
-  const p = Math.min(10, 2 + amount / 25);
+  const p = Math.min(10, 2 + amount / 25) * shakeScale(innerWidth, innerHeight);
   void animateSteps(
     document.querySelector('.table'),
     [{ translate: '0 0' }, { translate: `${p}px ${-p / 2}px` }, { translate: `${-p}px ${p / 2}px` }, { translate: `${p / 2}px 0` }, { translate: '0 0' }],

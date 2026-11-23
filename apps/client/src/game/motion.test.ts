@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FX_MIN_FONT, fxScale, TRAVEL_BOUNDS, TRAVEL_REF, travelFactor } from './motion.ts';
+import { FX_MIN_FONT, fxScale, shakeScale, TRAVEL_BOUNDS, TRAVEL_REF, travelFactor } from './motion.ts';
 
 describe('story 13.13: travel time follows the distance', () => {
   it('keeps the usual time at the reference distance and scales in proportion around it', () => {
@@ -31,5 +31,16 @@ describe('story 13.14: effects at the scale of the card', () => {
     expect(fxScale(400)).toBe(1.3);
     expect(fxScale(0)).toBe(1);
     expect(FX_MIN_FONT).toBe(11);
+  });
+});
+
+describe('story 13.15: the shake follows the screen', () => {
+  it('keeps the demo on a 390 px phone and goes up to twice on a desktop', () => {
+    expect(shakeScale(390, 844)).toBe(1);
+    expect(shakeScale(360, 640)).toBeCloseTo(360 / 390);
+    expect(shakeScale(1440, 900)).toBe(2);
+    expect(shakeScale(1280, 720)).toBe(720 / 390 > 2 ? 2 : 720 / 390);
+    expect(shakeScale(100, 100)).toBe(0.4);
+    expect(shakeScale(0, 800)).toBe(1);
   });
 });

@@ -116,7 +116,7 @@ development_status:
   12-7-rythme-du-tour: done
   epic-12-retrospective: optional
   # epic-13 (retours du playtest 2) : après les stories 12.1 à 12.4, avant 12.5
-  epic-13: in-progress  # rouvert le 2026-11-23 : stories 13.13 à 13.15 (idées d animation en attente)
+  epic-13: done  # rouvert le 2026-11-23 pour les stories 13.13 à 13.15, refermé le même jour
   13-1-apercu-des-cartes-citees: done
   13-2-table-sans-defilement-vertical-sur-mobile: done
   13-3-origine-des-bonus-et-malus-sur-la-carte: done
@@ -131,7 +131,7 @@ development_status:
   13-12-fluidite-des-animations-sur-telephone: done
   13-13-duree-des-deplacements-selon-la-distance: done  # maquette validée le 2026-11-23
   13-14-taille-des-effets-a-l-echelle-de-la-carte: done  # maquette validée le 2026-11-23
-  13-15-tremblement-a-l-echelle-de-l-ecran: backlog
+  13-15-tremblement-a-l-echelle-de-l-ecran: done  # maquette validée le 2026-11-23
   epic-13-retrospective: optional
 action_items:
   - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"
@@ -163,4 +163,4 @@ action_items:
     owner: "orchestrateur"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
-last_updated: 11-23-2026 10:29
+last_updated: 11-23-2026 12:00

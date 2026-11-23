@@ -53,11 +53,11 @@ export function travelFactor(distance: number, ref: number): number {
 }
 
 /**
- * Story 13.14 (mockup approved by Root, 2026-11-23): effects on a card (numbers, impact star, particles, stat arrows)
- * are drawn at the scale of the card: its width ÷ the demo's 100 px card, bounded. Numbers keep a legible size.
+ * Story 13.14 (mockup approved by Root, 2026-11-23): the graphics of an effect on a card (impact star, particles, ashes,
+ * stat arrow icon) are drawn at the scale of the card: its width ÷ the demo's 100 px card, bounded. Text (numbers,
+ * labels) keeps its earlier size so it stays readable (Root, 2026-11-23).
  */
 export const FX_SCALE = { ref: 100, min: 0.45, max: 1.3 } as const;
-export const FX_MIN_FONT = 11;
 export function fxScale(width: number): number {
   if (!(width > 0)) return 1;
   return Math.min(FX_SCALE.max, Math.max(FX_SCALE.min, width / FX_SCALE.ref));

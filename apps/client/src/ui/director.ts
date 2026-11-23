@@ -10,7 +10,7 @@ import { abilityBody, abilityTag } from '../game/labels.ts';
 import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
 import { removalText, STAMP } from '../game/removal.ts';
 import { PHONE_FX, particleBudget } from '../game/perf.ts';
-import { FX_MIN_FONT, fxScale, shakeScale, TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
+import { fxScale, shakeScale, TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -289,8 +289,11 @@ function fxScaleOf(el: Element): number {
   const ref = document.querySelector('.table .board .card') ?? document.querySelector('.table .board .slot');
   return fxScale(ref ? ref.getBoundingClientRect().width : rectOf(el).width);
 }
-/** Story 13.14: a number's size in px, at the scale of its card, never under `FX_MIN_FONT`. */
-const numPx = (base: number, el: Element) => Math.max(FX_MIN_FONT, base * fxScaleOf(el));
+/**
+ * Text drawn over a card (numbers, labels) keeps its earlier size so it stays readable (Root, 2026-11-23: story 13.14
+ * scales the graphics only): the card's width over 90 px, between 0.6 and 1.2.
+ */
+const fitOf = (el: Element) => Math.min(1.2, Math.max(0.6, rectOf(el).width / 90));
 
 /** Story 12.3: a number that splashes up from the target; its size follows the value. */
 function floatText(x: number, y: number, text: string, color: string, size: number, r: number, cls = '') {
@@ -364,11 +367,10 @@ function statArrow(card: HTMLElement, which: 'atk' | 'hp', delta: number, r: num
   const up = delta > 0;
   const color = up ? '#f2d27a' : '#b98cff';
   const path = up ? 'M12 3l8 10h-5v8H9v-8H4z' : 'M12 21l8-10h-5V3H9v8H4z';
-  // story 13.14: at the scale of the card, still legible
+  // story 13.14: the arrow at the scale of the card; its value keeps its size (readable)
   const s = fxScaleOf(card);
   const icon = Math.round(Math.max(12, 22 * s));
   const a = overlay('fx-arrow', c.x, c.y - 16 * s, `<svg viewBox="0 0 24 24" width="${icon}" height="${icon}" aria-hidden="true"><path d="${path}" fill="${color}" stroke="#2a1a0e" stroke-width="1.2"/></svg><b style="color:${color}">${up ? '+' : '−'}${Math.abs(delta)}</b>`);
-  a.style.fontSize = `${Math.round(Math.max(10, 15 * s))}px`;
   void animateSteps(
     a,
     [
@@ -421,7 +423,7 @@ function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: numb
     EASING.linear,
   ).then(() => crack.remove());
   if (broken) particles(card, 10, ['#f2d27a', '#fff3d6'], r, 30, 600, 'fx-shard');
-  floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', numPx(12, card), r, 'small');
+  floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', 12 * fitOf(card), r, 'small');
 }
 
 /** Each status lands with its own effect: chains for silence, bubbles for poison, a shield, or its icon. */
@@ -451,7 +453,7 @@ function statusFx(card: HTMLElement, kind: string, r: number) {
     }
     void animateSteps(ic, land, 650 * r).then(() => ic.remove());
   }
-  if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, numPx(13, card), r, 'small');
+  if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, 13 * fitOf(card), r, 'small');
 }
 
 const later = (fn: () => void, ms: number) => setTimeout(fn, ms);
@@ -532,7 +534,7 @@ function saved(iid: string, ms: number, r: number) {
     tint(card, 'saved', r, 450);
     particles(card, 10, ['#f2d27a', '#fff4c4'], r, 40, 600);
     const c = center(card);
-    floatText(c.x, c.y - 10, 'Sauvé !', '#f2d27a', numPx(16, card), r, 'small');
+    floatText(c.x, c.y - 10, 'Sauvé !', '#f2d27a', 16 * fitOf(card), r, 'small');
   }, ms * 0.5);
 }
 
@@ -1265,10 +1267,10 @@ export function direct(cue: Cue) {
       const c = center(tgt);
       if (e.absorbed > 0) shieldHit(tgt, e.absorbed, !cue.after.instances[e.target]?.statuses.some((st) => st.kind === 'shield'), r);
       if (e.amount <= 0) {
-        if (!e.absorbed) floatText(c.x, c.y, '0', '#c9c2b4', numPx(16, tgt), r);
+        if (!e.absorbed) floatText(c.x, c.y, '0', '#c9c2b4', 16 * fitOf(tgt), r);
         break;
       }
-      floatText(c.x, c.y - 6, `−${e.amount}`, '#ffd7c2', numPx(Math.min(30, 15 + e.amount / 10) * 1.1, tgt), r, 'dmg');
+      floatText(c.x, c.y - 6, `−${e.amount}`, '#ffd7c2', Math.min(30, 15 + e.amount / 10) * fitOf(tgt) * 1.1, r, 'dmg');
       tint(tgt, 'hurt', r);
       const riposte = !!current && e.target === current.attacker && current.target.kind === 'card' && e.source === current.target.iid;
       splat(tgt, e.amount, r, riposte);
@@ -1282,7 +1284,7 @@ export function direct(cue: Cue) {
       if (!hero || !face) break;
       splat(face, e.amount, r);
       const c = center(face);
-      floatText(c.x + 30 * fxScaleOf(face), c.y, `−${e.amount}`, '#ff6a5a', numPx(Math.min(40, 20 + e.amount / 8), face), r, 'dmg');
+      floatText(c.x + 30, c.y, `−${e.amount}`, '#ff6a5a', Math.min(40, 20 + e.amount / 8), r, 'dmg');
       recoil(hero, current ? cardEl(current.attacker) : null, r, 0.8);
       shake(e.amount, r);
       break;
@@ -1328,7 +1330,7 @@ export function direct(cue: Cue) {
       const c = center(tgt);
       tint(tgt, 'heal', r, 500);
       particles(tgt, 8, ['#6fdc8c', '#c6f5a8'], r, 45, 650);
-      floatText(c.x, c.y - 6, `+${e.amount}`, '#7fe0a8', numPx(Math.min(28, 15 + e.amount / 10), tgt), r, 'heal');
+      floatText(c.x, c.y - 6, `+${e.amount}`, '#7fe0a8', Math.min(28, 15 + e.amount / 10) * fitOf(tgt), r, 'heal');
       break;
     }
     case 'modified': {

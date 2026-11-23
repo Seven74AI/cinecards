@@ -64,4 +64,6 @@ Maquette validée par Root le 2026-11-23 (`docs/design/animations/maquette-13-13
 
 ### Change Log
 
+- 2026-11-23 (retour de Root) : les textes reprennent leur taille d'avant (`fitOf`, 0,6 – 1,2 de largeur ÷ 90) pour rester lisibles ; seuls l'étoile, les particules, les cendres et l'icône de la flèche suivent la carte. `FX_MIN_FONT` retiré.
+
 - 2026-11-23 : taille des effets à l'échelle de la carte (story 13.14).

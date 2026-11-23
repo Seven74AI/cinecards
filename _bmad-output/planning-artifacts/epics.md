@@ -1057,9 +1057,9 @@ As a joueur, I want qu'une carte mette plus de temps à traverser toute la table
 As a joueur, I want que les chiffres, particules et étoiles d'impact aient la taille de la carte touchée, So that un effet ne déborde pas d'une petite carte et ne disparaisse pas sur une grande.
 **Constat :** particules (5 à 8 px, montée de 30 à 70 px), flèches de stat (22 px), étoile d'impact (64 px au plus) et chiffres des héros sont en pixels fixes ; le coefficient `fitOf` (borné à 0,6 – 1,2) ne touche que certains chiffres. Sur ordinateur, une carte de la table fait 45 à 72 px de large.
 **Acceptance Criteria** (valeurs fixées par la maquette) :
-- **Given** un effet sur une carte ou un portrait (chiffre de dégâts ou de soin, étoile d'impact, particules, flèche de stat, étiquette d'état, éclats de bouclier)
+- **Given** un effet sur une carte ou un portrait (étoile d'impact, particules, cendres, icône de la flèche de stat)
 - **Then** sa taille, et la distance que parcourent ses particules, suivent un seul facteur d'échelle tiré de la largeur affichée de la cible (référence : les cartes de 100 px de la démo), borné par un minimum et un maximum
-- **And** un chiffre reste lisible (taille de police minimale) ; une carte mise en scène sur téléphone (104 px) garde l'échelle de la démo
+- **And** les textes (chiffres de dégâts et de soin, étiquettes d'état, « absorbé », « Sauvé ! », valeur de la flèche) gardent leur taille d'avant, pour rester lisibles (Root, 2026-11-23) ; une carte mise en scène sur téléphone (104 px) garde l'échelle de la démo
 - **And** ordinateur, tablette et paysage ne changent que si Root le choisit sur la maquette ; « réduire les animations » et le plafond de particules du téléphone restent respectés
 
 ### Story 13.15: Tremblement de la table à l'échelle de l'écran

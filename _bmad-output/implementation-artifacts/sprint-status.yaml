@@ -134,11 +134,12 @@ development_status:
   13-15-tremblement-a-l-echelle-de-l-ecran: done  # maquette validée le 2026-11-23
   epic-13-retrospective: done
   # epic-14 (table téléphone v2, maquette F validée par Root le 2026-11-23) : maintenant, avant l'epic 9
-  epic-14: done
+  epic-14: done  # rouvert le 2026-11-23 pour la story 14.5, refermé le même jour
   14-1-table-sans-zoom-rangees-terrains-et-sorts: done
   14-2-main-repliee-bouton-eventail-vue-compacte: done
   14-3-carte-complete-et-vue-detaillee: done
   14-4-reglage-main-ouverte: done
+  14-5-main-triee-et-zones-de-securite: done  # retour de Root (iPhone), 2026-11-23
   epic-14-retrospective: optional
 action_items:
   - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"

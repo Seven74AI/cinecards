@@ -23,6 +23,7 @@ import { CardBack, CardView } from './CardView.tsx';
 import { FullCard } from './Abilities.tsx';
 import { getHandView, subscribeHandView } from '../game/handView.ts';
 import { SettingsButton } from './Settings.tsx';
+import { sortHand } from '../game/handOrder.ts';
 import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
 import { modifierLines, type ModifierLine } from '../game/modifiers.ts';
@@ -793,7 +794,13 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     </div>
   );
 
-  const hand = state.players[me].hand;
+  // story 14.5 (Root): playable cards first, then the others, each group in draw order (same rule as the "ready" glow)
+  const affordable = (iid: string) => {
+    const inst = state.instances[iid];
+    const card = inst ? catalog.get(inst.cardId) : undefined;
+    return !!card && ((card.cost ?? 0) <= state.players[me].coins || state.players[me].freePlay);
+  };
+  const hand = sortHand(state.players[me].hand, affordable);
   const foeHand = state.players[foe].hand.length;
   const handCards = (
     <>
@@ -801,7 +808,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         const inst = state.instances[iid];
         if (!inst) return null;
         const card = catalog.get(inst.cardId)!;
-        const afford = (card.cost ?? 0) <= state.players[me].coins || state.players[me].freePlay;
+        const afford = affordable(iid);
         const props = {
           iid,
           card,

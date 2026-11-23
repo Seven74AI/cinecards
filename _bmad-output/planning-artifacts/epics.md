@@ -1116,6 +1116,14 @@ As a joueur, I want choisir la vue de ma main, So that je garde celle qui me con
 - **And** le choix est retenu sur l'appareil (comme la vitesse et le son) ; par défaut : Compacte
 - **And** sur ordinateur, tablette et paysage, le réglage existe mais ne change rien tant que la main n'est pas repliée
 
+### Story 14.5: Main triée (jouables d'abord) et zones de sécurité de l'iPhone
+As a joueur, I want voir d'abord les cartes que je peux jouer, et toute la table sur mon iPhone, So that je choisisse vite sans rien perdre en bas de l'écran.
+**Constat (test de Root sur iPhone, 2026-11-23) :** la main mélange cartes jouables et injouables ; l'initiale du joueur et le bouton de la main ne sont visibles qu'à moitié en bas de l'écran (la table occupe tout l'écran avec `viewport-fit=cover` sans réserver la zone de l'indicateur d'accueil et de la barre de Safari).
+**Acceptance Criteria:**
+- **Given** ma main, sur toutes les dispositions (téléphone, tablette, ordinateur — choix de Root)
+- **Then** les cartes que je peux jouer (même règle que la lueur « jouable » : coût ≤ pièces, ou pose gratuite) viennent d'abord, puis les autres ; chaque groupe garde l'ordre de pioche ; une carte change de groupe dès que c'est le cas
+- **And** la table téléphone laisse libres les zones de sécurité du haut et du bas (`env(safe-area-inset-*)`) : bandeaux, initiale et bouton de la main entièrement visibles, toujours sans défilement vertical
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 Révisé le 2026-11-22 (`sprint-change-proposal-2026-11-22-epics-8-10.md`, approuvé) : clé d'accès avec code de secours, et pseudo + mot de passe ; pas d'e-mail ni de Google pour l'instant. À faire avant les epics 10 puis 9.

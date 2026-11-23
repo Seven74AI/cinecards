@@ -11,7 +11,10 @@
   --g: 5px;
   --hero-h: 44px;
   --banner-h: 50px;
-  --fixed: calc(44px + 2 * var(--hero-h) + var(--banner-h) + 5 * var(--g));
+  /* story 14.5 (Root's iPhone): keep clear of the notch and of the home indicator / Safari bottom bar (viewport-fit=cover) */
+  --sa-t: env(safe-area-inset-top, 0px);
+  --sa-b: env(safe-area-inset-bottom, 0px);
+  --fixed: calc(44px + 2 * var(--hero-h) + var(--banner-h) + 5 * var(--g) + var(--sa-t) + var(--sa-b));
   /* height of a terrain / spell plate: 27 px at 360 × 640, 30 px on taller phones (story 14.1: 18 to 26 px) */
   --zh: clamp(24px, calc(8dvh - 24px), 30px);
   /* a side around its 2 rows of slots: padding 2 × 4, two plate rows and their gap 3, gap 4 to the slots, slot gap 3 */
@@ -24,7 +27,8 @@
   min-height: 0;
   overflow: hidden;
   gap: var(--g);
-  padding: 0 6px;
+  box-sizing: border-box;
+  padding: var(--sa-t) 6px var(--sa-b);
 }
 @media (max-height: 700px) {
   .table.compact {

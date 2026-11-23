@@ -36,6 +36,8 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   retrait: [['hg-lancelot', 'hs-topper'], []],
   // story 14.1: a full table (mockup F): 4 characters of mine, 7 of the foe, terrains and spells on both sides, and a
   // hand of 10 cards (see EXTRA); story 14.3: Néo first, the card with the longest texts (the tallest full card)
+  // story 14.5: 5 coins, so Smith (13) and Néo (10) cannot be played; the hand shows Patsy and Camelot first
+  tri: [['hs-topper'], ['hg-ni'], ['mx-smith', 'hg-patsy', 'mx-neo', 'hg-camelot']],
   pleine: [
     ['hg-patsy', 'mx-cypher', 'hs-topper', 'wc-gomez'],
     ['hg-galahad', 'hg-bridgekeeper', 'hs-kent', 'hg-black-knight', 'hg-robin', 'hg-tim', 'mx-keymaker'],
@@ -46,6 +48,9 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
 type Take = (cardId: string, player: PlayerId) => string | null;
 /** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
+  tri: (state) => {
+    state.players[0].coins = 5;
+  },
   pleine: (state, take) => {
     const put = (cardId: string, player: PlayerId, zone: 'terrains' | 'spells', slot: number) => {
       const iid = take(cardId, player);

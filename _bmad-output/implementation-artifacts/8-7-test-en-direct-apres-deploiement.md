@@ -4,7 +4,7 @@ baseline_commit: d69c65d6bd3dd8b3c6c8ef98e103a2c4becd8346
 
 # Story 8.7: Test en direct après chaque déploiement
 
-Status: review
+Status: done
 
 ## Story
 
@@ -129,3 +129,4 @@ Cloud partagées et variables). Solution : le test tourne **sur le VPS**, dans l
 
 - 2026-11-23 : test en direct après chaque déploiement (script de fumée, `GET /api/smoke`, autodeploy, test vitest de
   bout en bout) ; statut → review.
+- 2026-11-23 — Revue : script et autodeploy relus (échec signalé sans retour arrière, `main()` gardé), typecheck, 278 tests, e2e 49/49 (agent). Non vérifié dans l'image Docker (pas de démon ici) : le premier passage sur le VPS fait foi via `/api/smoke`. Story terminée.

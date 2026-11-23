@@ -171,7 +171,7 @@ action_items:
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
   - id: "epic-13-retro-item-2-règle-de-lisibilité-un-texte-ne-rapetisse-jamais"
     epic: 13
-    action: "Règle de lisibilité dans AGENTS.md et la démo : un texte ne rapetisse jamais pour suivre une échelle, seuls les graphismes suivent ; la maquette montre le plus petit cas réel"
+    action: "Règle de lisibilité dans AGENTS.md et la démo (reformulée par Root) : un texte peut changer de taille entre ordinateur et téléphone, mais une information utile au joueur n est jamais cachée ni sous un seuil de lisibilité ; la maquette montre le plus petit cas réel"
     owner: "orchestrateur"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"

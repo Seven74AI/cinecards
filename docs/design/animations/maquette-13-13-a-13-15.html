@@ -1,0 +1,511 @@
+<title>Distance, taille, tremblement</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: one column of three scenes; each scene = question + two stages (Avant | Après) side by side, stacked on phones.
+   Single dark Grimoire look, same tokens as docs/design/animations/demo.html. */
+:root {
+  --wood: #2b1b10; --wood-deep: #120a05; --parch: #ead9b0; --ink: #2a1a0e;
+  --gold: #d4a74a; --gold2: #f2d27a; --gold-dark: #8a6416; --dim: #b9a27a;
+  --crimson: #8e1f1f; --arcane: #4fd1c5; --panel: rgba(31,20,12,.75); --line: rgba(212,167,74,.35);
+  --display: 'Cinzel', 'Times New Roman', serif; --deco: 'Cinzel Decorative', 'Cinzel', serif; --text: 'Alegreya', Georgia, serif;
+  color-scheme: dark;
+}
+html, body { min-height: 100%; }
+body { background: radial-gradient(ellipse at 50% 0%, #3a2414 0%, var(--wood) 40%, var(--wood-deep) 100%); background-color: var(--wood-deep); color: var(--parch); font-family: var(--text); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 36px; }
+header { display: flex; flex-direction: column; gap: 12px; }
+h1 { margin: 0; font-family: var(--deco); font-size: clamp(24px, 4vw, 32px); color: var(--gold2); text-wrap: balance; }
+h2 { margin: 0; font-family: var(--display); font-size: 19px; letter-spacing: .04em; color: var(--gold2); text-wrap: balance; }
+.lead, .note { margin: 0; line-height: 1.45; color: var(--dim); max-width: 70ch; }
+.lead { font-size: 17px; }
+.note { font-size: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+label { font-family: var(--display); font-size: 12px; letter-spacing: .1em; color: var(--dim); }
+select { min-height: 40px; padding: 0 10px; border-radius: 6px; border: 1px solid rgba(212,167,74,.5); background: #1f140c; color: var(--parch); font-family: var(--text); font-size: 15px; max-width: 100%; }
+.ctl { min-height: 44px; padding: 0 18px; border-radius: 22px; border: 0; cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .1em; color: #fff3d6; background: radial-gradient(circle at 40% 35%, #c0392b, #7a1414 70%); box-shadow: 0 0 0 2px #4d0c0a, 0 3px 6px rgba(0,0,0,.5); }
+.ctl:focus-visible, select:focus-visible { outline: 2px solid var(--arcane); outline-offset: 2px; }
+section.scene { display: flex; flex-direction: column; gap: 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+.tagline { font-family: var(--display); font-size: 11px; letter-spacing: .14em; color: var(--arcane); text-transform: uppercase; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+.pane { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.pane h3 { margin: 0; font-family: var(--display); font-size: 13px; letter-spacing: .12em; color: var(--gold2); display: flex; justify-content: space-between; gap: 8px; }
+.pane h3 span { font-family: var(--text); letter-spacing: 0; font-size: 14px; color: var(--dim); font-weight: 400; font-variant-numeric: tabular-nums; text-align: right; }
+.fit { position: relative; width: 100%; max-width: 100%; }
+.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; border-radius: 12px; background: radial-gradient(ellipse at 50% 45%, #3d2616, #24170d 60%, #140c06); box-shadow: 0 0 0 2px #5a3d0c, 0 14px 30px rgba(0,0,0,.55); }
+.stage::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,220,160,.025) 0 2px, transparent 2px 18px); pointer-events: none; }
+.slot { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(212,167,74,.3); box-sizing: border-box; }
+.midline { position: absolute; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,167,74,.5), transparent); }
+.card { position: absolute; left: 0; top: 0; width: 100px; height: 140px; padding: 3px; box-sizing: border-box; border-radius: 7px; background: linear-gradient(145deg, var(--gold2), var(--gold) 40%, var(--gold-dark) 75%, var(--gold2)); box-shadow: 0 0 0 1px #3a2608, 0 6px 12px rgba(0,0,0,.6); transform-origin: 0 0; will-change: transform; }
+.card .in { position: relative; height: 100%; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; background: radial-gradient(ellipse at 50% 40%, #f3e6c4, var(--parch) 60%, #cdb07a); border: 1.5px solid var(--rc, #b8bcc4); }
+.card .nm { font-family: var(--display); font-weight: 900; font-size: 9px; line-height: 1.05; color: var(--ink); text-align: center; padding: 6px 4px 3px; min-height: 12px; }
+.card .art { height: 64px; margin: 0 4px; border-radius: 2px; border: 1px solid var(--gold-dark); background: var(--artbg, linear-gradient(160deg, #173a2a, #0b1f14)); }
+.card .stats { position: absolute; left: 4px; right: 4px; bottom: 4px; display: flex; justify-content: space-between; }
+.card .stats b { min-width: 22px; text-align: center; font-family: var(--display); font-weight: 900; font-size: 11px; color: #fff; padding: 2px 5px; border-radius: 3px 3px 8px 8px; box-shadow: 0 0 0 1px var(--gold2); }
+.card .stats .a { background: linear-gradient(#b8322a, #7a1414); }
+.card .stats .h { background: linear-gradient(#8a3cb0, #4e1670); }
+.mover { position: absolute; left: 0; top: 0; will-change: transform; }
+.fx { position: absolute; pointer-events: none; z-index: 40; font-family: var(--display); font-weight: 900; color: #fff; text-shadow: 0 0 6px rgba(0,0,0,.9), 0 2px 0 #4d0c0a; white-space: nowrap; }
+.splat { position: absolute; pointer-events: none; z-index: 39; }
+.dot { position: absolute; border-radius: 50%; pointer-events: none; z-index: 41; }
+.arrow { position: absolute; z-index: 42; display: flex; align-items: center; gap: 2px; font-family: var(--display); font-weight: 900; text-shadow: 0 0 4px rgba(0,0,0,.9); pointer-events: none; }
+.cap { position: absolute; font-family: var(--text); font-size: 13px; line-height: 1.25; color: var(--dim); text-align: center; }
+.cap b { font-family: var(--display); font-size: 11px; letter-spacing: .06em; color: var(--gold2); display: block; }
+.screen { position: absolute; border-radius: 8px; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, #4a2e18, #24170d 70%); box-shadow: 0 0 0 2px #5a3d0c; }
+.screen i { position: absolute; border-radius: 3px; background: linear-gradient(145deg, var(--gold2), var(--gold-dark)); }
+.readout { font-variant-numeric: tabular-nums; }
+.choices { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--parch); line-height: 1.4; max-width: 75ch; }
+.choices b { color: var(--gold2); font-family: var(--display); font-size: 13px; letter-spacing: .05em; }
+@media (prefers-reduced-motion: reduce) { .card, .mover { will-change: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Distance, taille, tremblement</h1>
+    <p class="lead">Maquette des stories 13.13 à 13.15. Chaque scène joue la même action deux fois : à gauche le jeu d'aujourd'hui, à droite la proposition. Les positions et tailles des cartes sont celles mesurées dans le jeu (scène de test « pose »).</p>
+    <div class="row">
+      <label for="speed">Vitesse</label>
+      <select id="speed">
+        <option value="1">Normale</option>
+        <option value="2">Ralentie ×2 (pour regarder)</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- ===================================================================================== 13.13 -->
+  <section class="scene" aria-labelledby="h1x">
+    <span class="tagline">Story 13.13</span>
+    <h2 id="h1x">Durée des déplacements selon la distance</h2>
+    <p class="note">Quatre actions de suite : attaque sur la carte d'en face, attaque sur la case la plus lointaine, carte posée tout près, carte posée loin. Aujourd'hui la charge dure toujours 170 ms et la pose 850 ms (1 100 ms sur téléphone). Proposé : durée proportionnelle à la distance, bornée entre 0,7 et 1,4 fois la durée actuelle. L'élan avant la charge (220 ms) et les impacts ne changent pas.</p>
+    <div class="row">
+      <label for="screen1">Écran</label>
+      <select id="screen1">
+        <option value="desk">Ordinateur 1440 × 900</option>
+        <option value="phone">Téléphone 390 × 844</option>
+      </select>
+      <label for="ref1">Distance de référence</label>
+      <select id="ref1">
+        <option value="typ">Distance typique de cet écran (durée moyenne inchangée)</option>
+        <option value="demo">Distances de la démo validée (même vitesse que la démo)</option>
+      </select>
+      <button type="button" class="ctl" id="play1">Rejouer</button>
+    </div>
+    <div class="pair">
+      <div class="pane"><h3>Avant <span class="readout" id="ro1a">durée fixe</span></h3><div class="fit" id="fit1a"><div class="stage" id="st1a" role="img" aria-label="Table, durées fixes"></div></div></div>
+      <div class="pane"><h3>Après <span class="readout" id="ro1b">selon la distance</span></h3><div class="fit" id="fit1b"><div class="stage" id="st1b" role="img" aria-label="Table, durées selon la distance"></div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================================== 13.14 -->
+  <section class="scene" aria-labelledby="h2x">
+    <span class="tagline">Story 13.14</span>
+    <h2 id="h2x">Taille des effets à l'échelle de la carte</h2>
+    <p class="note">Le même coup de 150 sur quatre cartes à leur vraie taille à l'écran, puis du poison et un bonus d'ATQ. Aujourd'hui l'étoile, les bulles et la flèche ont une taille presque fixe, donc elles débordent des petites cartes de l'ordinateur. Proposé : un seul facteur, largeur de la carte ÷ 100 px (la carte de la démo), borné entre 0,45 et 1,3, avec des chiffres d'au moins 11 px.</p>
+    <div class="row"><button type="button" class="ctl" id="play2">Rejouer</button></div>
+    <div class="pair">
+      <div class="pane"><h3>Avant <span>tailles fixes</span></h3><div class="fit" id="fit2a"><div class="stage" id="st2a" role="img" aria-label="Effets en tailles fixes"></div></div></div>
+      <div class="pane"><h3>Après <span>à l'échelle de la carte</span></h3><div class="fit" id="fit2b"><div class="stage" id="st2b" role="img" aria-label="Effets à l'échelle de la carte"></div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================================== 13.15 -->
+  <section class="scene" aria-labelledby="h3x">
+    <span class="tagline">Story 13.15</span>
+    <h2 id="h3x">Tremblement à l'échelle de l'écran</h2>
+    <p class="note">Trois coups (30, 100 et 200 de dégâts). Les deux écrans sont dessinés à la même largeur, pour voir quelle part de l'écran bouge. Aujourd'hui la table tremble de 10 px au plus partout : beaucoup sur un téléphone de 390 px, à peine sur un écran de 1 440 px. Proposé : amplitude × (petit côté de l'écran ÷ taille de référence), entre 0,4 et 2 fois.</p>
+    <div class="row">
+      <label for="ref3">Référence</label>
+      <select id="ref3">
+        <option value="390">Le téléphone (390 px) : téléphone inchangé, ordinateur plus fort (20 px au plus)</option>
+        <option value="600">Entre les deux (600 px) : téléphone un peu plus doux, ordinateur un peu plus fort</option>
+        <option value="900">L'ordinateur (900 px) : ordinateur inchangé, téléphone plus doux</option>
+      </select>
+      <button type="button" class="ctl" id="play3">Rejouer</button>
+    </div>
+    <div class="pair">
+      <div class="pane"><h3>Avant <span class="readout" id="ro3a">10 px au plus partout</span></h3><div class="fit" id="fit3a"><div class="stage" id="st3a" role="img" aria-label="Tremblement fixe"></div></div></div>
+      <div class="pane"><h3>Après <span class="readout" id="ro3b"></span></h3><div class="fit" id="fit3b"><div class="stage" id="st3b" role="img" aria-label="Tremblement à l'échelle de l'écran"></div></div></div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="h4x">
+    <h2 id="h4x">À choisir</h2>
+    <ol class="choices">
+      <li><b>13.13</b> : distance de référence (typique de l'écran, ou démo), bornes 0,7 – 1,4, et ordinateur aussi ou téléphone seulement.</li>
+      <li><b>13.14</b> : bornes 0,45 – 1,3, et ordinateur aussi ou téléphone seulement.</li>
+      <li><b>13.15</b> : référence 390, 600 ou 900 px.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(() => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EASING = { easeOut: 'cubic-bezier(.2,.7,.2,1)', easeIn: 'cubic-bezier(.6,0,.9,.5)', easeInOut: 'cubic-bezier(.3,0,.2,1)', overshoot: 'cubic-bezier(.3,1.6,.5,1)', snap: 'cubic-bezier(.1,.9,.15,1)' };
+  const $ = (id) => document.getElementById(id);
+  let slow = 1;
+  $('speed').addEventListener('change', (e) => { slow = Number(e.target.value); });
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  function anim(el, frames, ms, opts) {
+    const f = reduced ? frames.map((k) => ({ opacity: k.opacity !== undefined ? k.opacity : 1, offset: k.offset })) : frames;
+    return el.animate(f, Object.assign({ duration: ms * slow, easing: EASING.easeOut }, opts || {})).finished.catch(() => {});
+  }
+  function steps(el, frames, ms, ease, opts) {
+    const f = frames.map((k, i) => (i < frames.length - 1 && k.easing === undefined ? Object.assign({}, k, { easing: ease || EASING.easeOut }) : k));
+    return anim(el, f, ms, Object.assign({}, opts || {}, { easing: 'linear' }));
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms * slow));
+
+  /* A stage of logical size w × h, scaled to the width of its box. */
+  function setupStage(fitId, stId, w, h) {
+    const fit = $(fitId), st = $(stId);
+    st.style.width = w + 'px'; st.style.height = h + 'px';
+    fit.style.aspectRatio = w + ' / ' + h;
+    const rescale = () => { st.style.transform = 'scale(' + fit.clientWidth / w + ')'; };
+    new ResizeObserver(rescale).observe(fit);
+    rescale();
+    return st;
+  }
+  const CARDS = [
+    { name: 'Sire Lancelot', atk: 90, hp: 160, rc: '#2f7bf6', art: 'linear-gradient(160deg,#3a2a10,#120a02)' },
+    { name: 'Topper Harley', atk: 150, hp: 480, rc: '#ff9500', art: 'linear-gradient(160deg,#1d3a5a,#081422)' },
+    { name: 'Chevaliers « Ni ! »', atk: 70, hp: 150, rc: '#2f7bf6', art: 'linear-gradient(160deg,#2a3d1a,#0f1a08)' },
+    { name: 'Le Chevalier noir', atk: 110, hp: 350, rc: '#b020c0', art: 'linear-gradient(160deg,#1a1a22,#05050a)' },
+    { name: 'Epok', atk: 60, hp: 90, rc: '#b8bcc4', art: 'linear-gradient(160deg,#173a2a,#0b1f14)' },
+    { name: 'Patsy', atk: 10, hp: 40, rc: '#b8bcc4', art: 'linear-gradient(160deg,#173a2a,#0b1f14)' },
+  ];
+  /* A card centred at (cx, cy), w px wide: a positioned mover (moves) holding a 100 × 140 card scaled to w. */
+  function card(stage, i, cx, cy, w) {
+    const c = CARDS[i % CARDS.length];
+    const m = document.createElement('div'); m.className = 'mover';
+    const h = w * 1.4;
+    m.style.left = (cx - w / 2) + 'px'; m.style.top = (cy - h / 2) + 'px'; m.style.width = w + 'px'; m.style.height = h + 'px';
+    const el = document.createElement('div'); el.className = 'card';
+    el.style.setProperty('--rc', c.rc); el.style.setProperty('--artbg', c.art);
+    el.style.transform = 'scale(' + w / 100 + ')';
+    el.innerHTML = '<div class="in"><div class="nm"></div><div class="art"></div></div><div class="stats"><b class="a"></b><b class="h"></b></div>';
+    el.querySelector('.nm').textContent = c.name;
+    el.querySelector('.a').textContent = c.atk; el.querySelector('.h').textContent = c.hp;
+    m.appendChild(el); stage.appendChild(m);
+    m._c = { x: cx, y: cy, w, h };
+    return m;
+  }
+  function slot(stage, cx, cy, w) {
+    const s = document.createElement('div'); s.className = 'slot';
+    const d = w * 0.82;
+    s.style.left = (cx - d / 2) + 'px'; s.style.top = (cy - d / 2) + 'px'; s.style.width = d + 'px'; s.style.height = d + 'px';
+    stage.appendChild(s);
+  }
+  const STAR = '<path d="M32 2l6 18 18-8-10 16 18 6-18 6 10 16-18-8-6 18-6-18-18 8 10-16-18-6 18-6-10-16 18 8z" fill="#c0392b" stroke="#fff3d6" stroke-width="1.5"></path>';
+  function splat(stage, x, y, size) {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 64 64'); s.setAttribute('class', 'splat'); s.setAttribute('aria-hidden', 'true');
+    s.setAttribute('width', 64); s.setAttribute('height', 64);
+    s.innerHTML = STAR; s.style.left = (x - 32) + 'px'; s.style.top = (y - 32) + 'px';
+    stage.appendChild(s);
+    return steps(s, [
+      { transform: 'scale(' + 0.2 * size + ') rotate(-20deg)', opacity: 0, easing: EASING.snap },
+      { transform: 'scale(' + 1.15 * size + ') rotate(5deg)', opacity: 1, offset: .25, easing: EASING.easeOut },
+      { transform: 'scale(' + size + ') rotate(0)', opacity: .9, offset: .6, easing: EASING.easeIn },
+      { transform: 'scale(' + 1.1 * size + ')', opacity: 0 },
+    ], 700).then(() => s.remove());
+  }
+  function floatText(stage, x, y, text, color, size) {
+    const t = document.createElement('div'); t.className = 'fx';
+    t.textContent = text; t.style.color = color; t.style.fontSize = Math.round(size) + 'px';
+    t.style.left = x + 'px'; t.style.top = y + 'px'; t.style.transform = 'translate(-50%,-50%)';
+    stage.appendChild(t);
+    return steps(t, [
+      { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-70%) scale(1.25)', opacity: 1, offset: .2, easing: EASING.easeOut },
+      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: .7, easing: EASING.easeIn },
+      { transform: 'translate(-50%,-140%) scale(.95)', opacity: 0 },
+    ], 1100).then(() => t.remove());
+  }
+  /* The game's particles: spread over the card, rising `rise` px, drifting ±dx px, `dot` px wide. */
+  function particles(stage, c, n, colors, rise, dot, drift, ms) {
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div'); d.className = 'dot';
+      const x = c.x - c.w / 2 + c.w * (0.2 + (0.6 * ((i * 37) % 100)) / 100);
+      const y = c.y - c.h / 2 + c.h * (0.55 + (0.35 * ((i * 53) % 100)) / 100);
+      d.style.left = (x - dot / 2) + 'px'; d.style.top = (y - dot / 2) + 'px'; d.style.width = dot + 'px'; d.style.height = dot + 'px';
+      const col = colors[i % colors.length];
+      d.style.background = col; d.style.boxShadow = '0 0 ' + Math.round(dot) + 'px ' + col;
+      stage.appendChild(d);
+      const dx = ((((i * 29) % 21) - 10) / 10) * drift;
+      const up = rise * (0.6 + ((i * 41) % 40) / 100);
+      steps(d, [
+        { transform: 'scale(.4)', opacity: 0, easing: EASING.snap },
+        { transform: 'scale(1)', opacity: 1, offset: .2, easing: EASING.easeOut },
+        { transform: 'translate(' + dx + 'px,' + -up + 'px) scale(.6)', opacity: 0 },
+      ], ms * (0.8 + ((i * 17) % 40) / 100), EASING.easeOut, { delay: i * 25 * slow }).then(() => d.remove());
+    }
+  }
+  function arrow(stage, x, y, delta, icon, font) {
+    const a = document.createElement('div'); a.className = 'arrow';
+    a.innerHTML = '<svg viewBox="0 0 24 24" width="' + icon + '" height="' + icon + '" aria-hidden="true"><path d="M12 3l8 10h-5v8H9v-8H4z" fill="#f2d27a" stroke="#2a1a0e" stroke-width="1.2"/></svg><span></span>';
+    a.querySelector('span').textContent = '+' + delta;
+    a.style.color = '#f2d27a'; a.style.fontSize = Math.round(font) + 'px';
+    a.style.left = x + 'px'; a.style.top = y + 'px';
+    stage.appendChild(a);
+    return steps(a, [
+      { transform: 'translate(-50%,-10%)', opacity: 0, easing: EASING.overshoot },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: .3, easing: 'linear' },
+      { transform: 'translate(-50%,-50%)', opacity: 1, offset: .7, easing: EASING.easeIn },
+      { transform: 'translate(-50%,-140%)', opacity: 0 },
+    ], 900).then(() => a.remove());
+  }
+
+  /* ============================================================================ 13.13: travel time */
+  /* Geometry measured in the game (scene "pose"): card centres, widths. Phone slots: 2 rows of 5 per side. */
+  const LAYOUTS = {
+    desk: {
+      crop: { x: 300, y: 140, w: 760, h: 750 }, cardW: 59, handW: 100, compact: false, entrance: 850,
+      foe: (i) => ({ x: 343 + 74 * i, y: 204 }), me: (i) => ({ x: 343 + 74 * i, y: 352 }), hand: (i) => ({ x: 376 + 106 * i, y: 806 }),
+      far: 9, near: 1, typ: { dash: 300, fly: 550 },
+    },
+    phone: {
+      crop: { x: 0, y: 112, w: 390, h: 732 }, cardW: 70, handW: 95, compact: true, entrance: 1100,
+      foe: (i) => ({ x: 46 + 74.5 * (i % 5), y: i < 5 ? 177 : 285 }), me: (i) => ({ x: 46 + 74.5 * (i % 5), y: i < 5 ? 443 : 545 }), hand: (i) => ({ x: 51 + 96 * i, y: 760 }),
+      far: 9, near: 0, typ: { dash: 210, fly: 320 },
+    },
+  };
+  /* Demo distances (docs/design/animations/demo.html): face-to-face dash 190 × 0.78, hand → slot ≈ 300. */
+  const DEMO_REF = { dash: 148, fly: 300 };
+  const K = { min: 0.7, max: 1.4 };
+  let run1 = 0;
+  function travelK(d, ref) { return clamp(d / ref, K.min, K.max); }
+
+  function build1(st, L) {
+    st.innerHTML = '';
+    const ox = L.crop.x, oy = L.crop.y;
+    const P = (p) => ({ x: p.x - ox, y: p.y - oy });
+    for (let i = 0; i < 10; i++) { const a = P(L.foe(i)), b = P(L.me(i)); slot(st, a.x, a.y, L.cardW); slot(st, b.x, b.y, L.cardW); }
+    const ml = document.createElement('div'); ml.className = 'midline';
+    const yMid = (P(L.foe(L.compact ? 5 : 0)).y + P(L.me(0)).y) / 2;
+    ml.style.left = '10px'; ml.style.right = '10px'; ml.style.top = yMid + 'px'; st.appendChild(ml);
+    const els = { P };
+    els.att = card(st, 0, P(L.me(0)).x, P(L.me(0)).y, L.cardW);
+    els.foeNear = card(st, 2, P(L.foe(0)).x, P(L.foe(0)).y, L.cardW);
+    els.foeFar = card(st, 3, P(L.foe(L.far)).x, P(L.foe(L.far)).y, L.cardW);
+    els.hand = [0, 1, 2, 3].map((i) => card(st, 4 + (i % 2), P(L.hand(i)).x, P(L.hand(i)).y, L.handW));
+    return els;
+  }
+  async function lunge(st, L, att, tgt, after, ref, ro, label) {
+    const a = att._c, b = tgt._c;
+    let dx, dy;
+    if (L.compact) { dx = b.x - a.x; dy = (b.y - a.y) * 0.78; }
+    else {
+      const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const k = Math.max(0, len - Math.min(len * 0.22, b.h * 0.45)) / len;
+      dx = (b.x - a.x) * k; dy = (b.y - a.y) * k;
+    }
+    const d = Math.hypot(dx, dy);
+    const k = after ? travelK(d, ref.dash) : 1;
+    const lift = 220, dash = Math.round(170 * k), back = Math.round(380 * k);
+    ro.textContent = label + ' · ' + Math.round(d) + ' px · charge ' + dash + ' ms';
+    att.style.zIndex = 30;
+    await steps(att, [
+      { transform: 'translate(0,0) scale(1)', offset: 0, easing: EASING.easeOut },
+      { transform: 'translate(0,6px) scale(1.12)', offset: lift / (lift + dash), easing: EASING.easeIn },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)', offset: 1 },
+    ], lift + dash, null, { fill: 'forwards' });
+    splat(st, b.x, b.y, clamp(b.w / 90, .6, 1));
+    floatText(st, b.x, b.y - 6, '−90', '#ffd7c2', 15);
+    anim(tgt, [{ transform: 'translate(0,0)' }, { transform: 'translate(' + (dx / d) * 6 + 'px,' + (dy / d) * 6 + 'px) rotate(3deg)' }, { transform: 'translate(0,0)' }], 260);
+    const out = att.getAnimations();
+    await steps(att, [
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1.05)', easing: EASING.snap },
+      { transform: 'translate(' + dx * 0.8 + 'px,' + dy * 0.8 + 'px) scale(1.06)', offset: .2, easing: EASING.easeInOut },
+      { transform: 'translate(0,0) scale(1)' },
+    ], back);
+    out.forEach((x) => x.cancel());
+    att.style.zIndex = '';
+  }
+  /* The game's entrance (apps/client/src/ui/anim.ts entranceFrames): step back, arc, overshooting landing. */
+  async function entrance(st, L, handCard, to, after, ref, ro, label) {
+    const from = handCard._c;
+    const dx0 = from.x - to.x, dy0 = from.y - to.y;
+    const d = Math.hypot(dx0, dy0);
+    const k = after ? travelK(d, ref.fly) : 1;
+    const ms = Math.round(L.entrance * k);
+    ro.textContent = label + ' · ' + Math.round(d) + ' px · ' + ms + ' ms';
+    const c = card(st, 4, to.x, to.y, L.cardW);
+    c.style.zIndex = 30;
+    handCard.style.visibility = 'hidden';
+    const s0 = clamp(from.w / L.cardW, .3, 2);
+    const len = d || 1;
+    const bx = dx0 + (dx0 / len) * 10, by = dy0 + (dy0 / len) * 10;
+    await steps(c, [
+      { transform: 'translate(' + dx0 + 'px,' + dy0 + 'px) scale(' + s0 + ')', opacity: .9, offset: 0, easing: EASING.easeOut },
+      { transform: 'translate(' + bx + 'px,' + by + 'px) scale(' + s0 * .94 + ')', opacity: .95, offset: .12, easing: EASING.easeInOut },
+      { transform: 'translate(' + dx0 * .45 + 'px,' + (dy0 * .45 - 70) + 'px) scale(1.3)', opacity: 1, offset: .58, easing: EASING.easeInOut },
+      { transform: 'translate(0px,-18px) scale(1.15)', opacity: 1, offset: .8, easing: EASING.overshoot },
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+    ], ms);
+    c.style.zIndex = '';
+  }
+  async function scene1(st, L, after, ro, me) {
+    const ref = $('ref1').value === 'demo' ? DEMO_REF : L.typ;
+    const els = build1(st, L);
+    await wait(500);
+    if (me !== run1) return;
+    await lunge(st, L, els.att, els.foeNear, after, ref, ro, 'Attaque en face');
+    await wait(600); if (me !== run1) return;
+    await lunge(st, L, els.att, els.foeFar, after, ref, ro, 'Attaque au loin');
+    await wait(600); if (me !== run1) return;
+    const near = els.P(L.me(L.near + 1));
+    await entrance(st, L, els.hand[0], near, after, ref, ro, 'Pose près');
+    await wait(600); if (me !== run1) return;
+    const far = els.P(L.me(L.compact ? 4 : 9));
+    await entrance(st, L, els.hand[1], far, after, ref, ro, 'Pose loin');
+  }
+  let L1 = null;
+  function play1() {
+    const L = LAYOUTS[$('screen1').value];
+    const me = ++run1;
+    const sa = setupStage('fit1a', 'st1a', L.crop.w, L.crop.h);
+    const sb = setupStage('fit1b', 'st1b', L.crop.w, L.crop.h);
+    sa.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+    sb.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+    scene1(sa, L, false, $('ro1a'), me);
+    scene1(sb, L, true, $('ro1b'), me);
+  }
+  $('play1').addEventListener('click', play1);
+  $('screen1').addEventListener('change', play1);
+  $('ref1').addEventListener('change', play1);
+
+  /* ============================================================================ 13.14: effect size */
+  const SIZES = [
+    { w: 45, t: 'Ordinateur', s: '1280 × 720 · 45 px' },
+    { w: 59, t: 'Ordinateur', s: '1440 × 900 · 59 px' },
+    { w: 72, t: 'Ordinateur', s: '1920 × 1080 · 72 px' },
+    { w: 104, t: 'Téléphone', s: 'carte mise en scène · 104 px' },
+  ];
+  const W2 = 620, H2 = 300, BASE = 215;
+  const xs = [80, 210, 350, 520];
+  let run2 = 0;
+  function build2(st) {
+    st.innerHTML = '';
+    return SIZES.map((sz, i) => {
+      const h = sz.w * 1.4;
+      const c = card(st, i, xs[i], BASE - h / 2, sz.w);
+      const cap = document.createElement('div'); cap.className = 'cap';
+      cap.style.left = (xs[i] - 70) + 'px'; cap.style.width = '140px'; cap.style.top = (BASE + 14) + 'px';
+      cap.innerHTML = '<b></b><span></span>';
+      cap.querySelector('b').textContent = sz.t; cap.querySelector('span').textContent = sz.s;
+      st.appendChild(cap);
+      return c;
+    });
+  }
+  /* Before: today's formulas (apps/client/src/ui/director.ts). After: one factor s = width / 100, bounded. */
+  function hit(st, c, after) {
+    const w = c._c.w, amt = 150;
+    const s = clamp(w / 100, 0.45, 1.3);
+    const fitOf = clamp(w / 90, .6, 1.2);
+    const starBase = Math.min(1.5, 0.8 + amt / 200);
+    const star = after ? s * starBase : clamp(w / 90, .6, 1) * starBase;
+    const font = after ? Math.max(11, Math.min(30, 15 + amt / 10) * 1.1 * s) : Math.min(30, 15 + amt / 10) * fitOf * 1.1;
+    splat(st, c._c.x, c._c.y, star);
+    floatText(st, c._c.x, c._c.y - 6, '−' + amt, '#ffd7c2', font);
+    anim(c, [{ transform: 'translate(0,0)' }, { transform: 'translate(0,-' + (after ? 8 * s : 8) + 'px) rotate(3deg)' }, { transform: 'translate(0,0)' }], 260);
+  }
+  function poison(st, c, after) {
+    const s = clamp(c._c.w / 100, 0.45, 1.3);
+    if (after) particles(st, c._c, 12, ['#8fe36a', '#4fbf3a', '#c6f5a8'], 60 * s, Math.max(3, 8 * s), 10 * s, 800);
+    else particles(st, c._c, 12, ['#8fe36a', '#4fbf3a', '#c6f5a8'], 60, 8, 10, 800);
+  }
+  function buff(st, c, after) {
+    const s = clamp(c._c.w / 100, 0.45, 1.3);
+    const bx = c._c.x - c._c.w * 0.32, by = c._c.y + c._c.h * 0.42;
+    if (after) arrow(st, bx, by - 16 * s, 40, Math.max(12, 22 * s), Math.max(10, 15 * s));
+    else arrow(st, bx, by - 16, 40, 22, 15);
+  }
+  async function scene2(st, after, me) {
+    const cards = build2(st);
+    await wait(400); if (me !== run2) return;
+    cards.forEach((c) => hit(st, c, after));
+    await wait(1300); if (me !== run2) return;
+    cards.forEach((c) => poison(st, c, after));
+    await wait(1300); if (me !== run2) return;
+    cards.forEach((c) => buff(st, c, after));
+  }
+  function play2() {
+    const me = ++run2;
+    const sa = setupStage('fit2a', 'st2a', W2, H2), sb = setupStage('fit2b', 'st2b', W2, H2);
+    scene2(sa, false, me); scene2(sb, true, me);
+  }
+  $('play2').addEventListener('click', play2);
+
+  /* ============================================================================ 13.15: shake */
+  /* Both screens drawn at the same width (DW): what moves on screen is p × DW / real width. */
+  const SCREENS = [
+    { name: 'Téléphone 390 × 844', w: 390, h: 844, side: 390, crop: 390 / 0.9 },
+    { name: 'Ordinateur 1440 × 900', w: 1440, h: 900, side: 900, crop: 1440 * 0.625 },
+  ];
+  const DW = 250, W3 = 580, H3 = 250;
+  let run3 = 0;
+  function build3(st) {
+    st.innerHTML = '';
+    return SCREENS.map((sc, i) => {
+      const ratio = sc === SCREENS[0] ? 0.9 : 0.625; /* the screen drawn = the table area, same width for both */
+      const scr = document.createElement('div'); scr.className = 'screen';
+      const x = 30 + i * (DW + 30), y = 24, h = 170;
+      scr.style.left = x + 'px'; scr.style.top = y + 'px'; scr.style.width = DW + 'px'; scr.style.height = h + 'px';
+      /* cards of the real size, at the screen's scale */
+      const k = DW / sc.w;
+      const cw = (sc.w === 390 ? 70 : 59) * k, chh = cw * 1.4;
+      const n = sc.w === 390 ? 5 : 10;
+      for (let r = 0; r < 2; r++) for (let j = 0; j < n; j++) {
+        if ((j + r) % 3 === 2) continue;
+        const ci = document.createElement('i');
+        const gap = sc.w === 390 ? 74.5 * k : 74 * k;
+        const x0 = sc.w === 390 ? 46 * k - cw / 2 : DW / 2 - (gap * 9) / 2 - cw / 2;
+        ci.style.left = (x0 + j * gap) + 'px'; ci.style.top = (h / 2 + (r ? 10 : -10 - chh)) + 'px';
+        ci.style.width = cw + 'px'; ci.style.height = chh + 'px';
+        scr.appendChild(ci);
+      }
+      st.appendChild(scr);
+      const cap = document.createElement('div'); cap.className = 'cap';
+      cap.style.left = x + 'px'; cap.style.width = DW + 'px'; cap.style.top = (y + h + 10) + 'px';
+      cap.innerHTML = '<b></b><span></span>';
+      cap.querySelector('b').textContent = sc.name;
+      st.appendChild(cap);
+      scr._sc = sc; scr._cap = cap.querySelector('span'); scr._k = k;
+      return scr;
+    });
+  }
+  function shake(scr, amount, after, ref) {
+    const base = Math.min(10, 2 + amount / 25);
+    const f = after ? clamp(scr._sc.side / ref, 0.4, 2) : 1;
+    const p = base * f;
+    scr._cap.textContent = 'coup de ' + amount + ' : ' + p.toFixed(1) + ' px réels';
+    const q = p * scr._k; /* what it looks like at this drawing size */
+    return anim(scr, [{ translate: '0 0' }, { translate: q + 'px ' + (-q / 2) + 'px' }, { translate: -q + 'px ' + q / 2 + 'px' }, { translate: q / 2 + 'px 0' }, { translate: '0 0' }], 320, { easing: EASING.easeInOut });
+  }
+  async function scene3(st, after, me) {
+    const ref = Number($('ref3').value);
+    const scrs = build3(st);
+    for (const amt of [30, 100, 200]) {
+      await wait(600); if (me !== run3) return;
+      scrs.forEach((s) => shake(s, amt, after, ref));
+    }
+  }
+  function label3() {
+    const ref = Number($('ref3').value);
+    const f = SCREENS.map((s) => clamp(s.side / ref, 0.4, 2));
+    $('ro3b').textContent = 'téléphone ' + (10 * f[0]).toFixed(1) + ' px, ordinateur ' + (10 * f[1]).toFixed(1) + ' px au plus';
+  }
+  function play3() {
+    const me = ++run3;
+    label3();
+    const sa = setupStage('fit3a', 'st3a', W3, H3), sb = setupStage('fit3b', 'st3b', W3, H3);
+    scene3(sa, false, me); scene3(sb, true, me);
+  }
+  $('play3').addEventListener('click', play3);
+  $('ref3').addEventListener('change', play3);
+
+  play1(); play2(); play3();
+})();
+</script>

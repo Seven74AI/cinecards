@@ -116,7 +116,7 @@ development_status:
   12-7-rythme-du-tour: done
   epic-12-retrospective: optional
   # epic-13 (retours du playtest 2) : après les stories 12.1 à 12.4, avant 12.5
-  epic-13: done
+  epic-13: in-progress  # rouvert le 2026-11-23 : stories 13.13 à 13.15 (idées d animation en attente)
   13-1-apercu-des-cartes-citees: done
   13-2-table-sans-defilement-vertical-sur-mobile: done
   13-3-origine-des-bonus-et-malus-sur-la-carte: done
@@ -129,6 +129,9 @@ development_status:
   13-10-mise-en-avant-des-cartes-jouees-et-retirees: done  # maquette validée le 2026-11-22
   13-11-courbes-d-acceleration-et-entree-de-carte-plus-lente: done
   13-12-fluidite-des-animations-sur-telephone: done
+  13-13-duree-des-deplacements-selon-la-distance: backlog  # maquette avant/après d abord
+  13-14-taille-des-effets-a-l-echelle-de-la-carte: backlog
+  13-15-tremblement-a-l-echelle-de-l-ecran: backlog
   epic-13-retrospective: optional
 action_items:
   - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"

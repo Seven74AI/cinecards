@@ -1043,10 +1043,33 @@ Le mode Économie d'énergie d'iOS plafonne en plus Safari à 30 images/s.
 - **And** une mesure enregistrée (script du dépôt, Playwright en émulation iPhone, processeur ralenti ×4 via CDP sur Chromium et un passage WebKit) montre au moins 55 images/s de moyenne pendant une attaque mortelle et une pose, sans image de plus de 50 ms ; le rapport avant/après est joint
 - **And** rien ne change visuellement sur ordinateur (comparaison de captures) ; « réduire les animations » reste respecté
 
-### Idées en attente (à revoir avec Root après les stories 13.10 à 13.12, pas encore des stories)
-- Durée des déplacements proportionnelle à la distance parcourue, bornée entre un minimum et un maximum, au lieu d'une durée fixe.
-- Taille des effets (chiffres, particules, étoiles d'impact) relative à la carte concernée plutôt qu'en pixels fixes.
-- Amplitude du tremblement de la table proportionnelle à la taille de l'écran.
+### Story 13.13: Durée des déplacements selon la distance
+As a joueur, I want qu'une carte mette plus de temps à traverser toute la table qu'à frapper la carte d'en face, So that les mouvements aient une vitesse naturelle au lieu de ralentir sur les courtes distances et de sauter sur les longues.
+**Constat (mesures du 2026-11-23, `sprint-change-proposal-2026-11-23.md`) :** l'attaque dure 390 ms qu'elle vise la carte d'en face (148 px sur un écran de 1440 px) ou la case X (~680 px). Même durée fixe pour la pose, la pioche, le retour en main, les projectiles et les traits.
+**Acceptance Criteria** (valeurs fixées par la maquette avant/après validée par Root) :
+- **Given** un déplacement (charge d'attaque, carte posée depuis la main, pioche, retour en main, projectile, trait, cendres vers le cimetière)
+- **Then** sa durée est proportionnelle à la distance parcourue à l'écran, bornée par un minimum et un maximum, autour d'une distance de référence où elle garde sa durée actuelle
+- **And** le temps suivant (impact, effet) commence quand le déplacement arrive : la lecture des actions demande au directeur la durée mesurée, sans rendre `planBeats` dépendant de l'écran
+- **And** les impacts, chiffres et fondus gardent leur durée ; le tempo téléphone (`PHONE_TEMPO`), le réglage de vitesse et « réduire les animations » s'appliquent toujours
+- **And** ordinateur, tablette et paysage ne changent que si Root le choisit sur la maquette ; les e2e d'ordre des temps restent verts
+
+### Story 13.14: Taille des effets à l'échelle de la carte
+As a joueur, I want que les chiffres, particules et étoiles d'impact aient la taille de la carte touchée, So that un effet ne déborde pas d'une petite carte et ne disparaisse pas sur une grande.
+**Constat :** particules (5 à 8 px, montée de 30 à 70 px), flèches de stat (22 px), étoile d'impact (64 px au plus) et chiffres des héros sont en pixels fixes ; le coefficient `fitOf` (borné à 0,6 – 1,2) ne touche que certains chiffres. Sur ordinateur, une carte de la table fait 45 à 72 px de large.
+**Acceptance Criteria** (valeurs fixées par la maquette) :
+- **Given** un effet sur une carte ou un portrait (chiffre de dégâts ou de soin, étoile d'impact, particules, flèche de stat, étiquette d'état, éclats de bouclier)
+- **Then** sa taille, et la distance que parcourent ses particules, suivent un seul facteur d'échelle tiré de la largeur affichée de la cible (référence : les cartes de 100 px de la démo), borné par un minimum et un maximum
+- **And** un chiffre reste lisible (taille de police minimale) ; une carte mise en scène sur téléphone (104 px) garde l'échelle de la démo
+- **And** ordinateur, tablette et paysage ne changent que si Root le choisit sur la maquette ; « réduire les animations » et le plafond de particules du téléphone restent respectés
+
+### Story 13.15: Tremblement de la table à l'échelle de l'écran
+As a joueur, I want que la table tremble avec la même force apparente sur téléphone et sur ordinateur, So that un gros coup se sente sans secouer un petit écran.
+**Constat :** le tremblement va jusqu'à 10 px partout : 2,6 % de la largeur d'un téléphone de 390 px, 0,7 % d'un écran de 1440 px.
+**Acceptance Criteria** (valeurs fixées par la maquette) :
+- **Given** un coup, une pose ou une fin de partie qui fait trembler la table
+- **Then** l'amplitude reste proportionnelle aux dégâts et devient proportionnelle à la taille de la table (son petit côté), avec une taille de référence et des bornes choisies sur la maquette
+- **And** la durée ne change pas ; « réduire les animations » supprime toujours le tremblement
+- **And** ordinateur, tablette et paysage ne changent que si Root le choisit sur la maquette
 
 ## Epic 8: Comptes et amis (post-MVP)
 

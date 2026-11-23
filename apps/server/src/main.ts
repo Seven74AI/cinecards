@@ -9,6 +9,7 @@ import { createApi, parseOrigins } from './api/http.ts';
 import { AccountService } from './auth/service.ts';
 import { startMaintenance } from './db/backup.ts';
 import { dbPath, openDb } from './db/db.ts';
+import { HistoryService } from './history.ts';
 import { HubRoom, hubConfig } from './hub.ts';
 import { DuelRoom, findDuelRoom, roomConfig } from './room.ts';
 import { Social } from './social/social.ts';
@@ -42,8 +43,11 @@ export async function startServer(
   roomConfig.presence = social.presence;
   roomConfig.invites = social.invites;
   hubConfig.social = social;
+  // story 8.4: the duel rooms record finished games; the API reads them
+  const history = new HistoryService(db, (t) => accounts.accountOf(t));
+  roomConfig.history = history;
   const stopMaintenance = startMaintenance(db, dataDir, accounts.purge);
-  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends);
+  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history);
   const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
   // answer the health check, the JSON API and the game's files (GET/HEAD only) before Colyseus' own HTTP routes see the request
@@ -66,6 +70,7 @@ export async function startServer(
   server.onShutdown(() => {
     stopMaintenance();
     if (roomConfig.accounts === accounts) roomConfig.accounts = null;
+    if (roomConfig.history === history) roomConfig.history = null;
     if (hubConfig.social === social) {
       hubConfig.social = null;
       roomConfig.presence = null;

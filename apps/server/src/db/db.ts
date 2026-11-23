@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 
 export type Db = DatabaseSync;
 
-/** Numbered migrations (stories 8.1, 8.2, 8.3): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
+/** Numbered migrations (stories 8.1, 8.2, 8.3, 8.4): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
 export const MIGRATIONS: string[] = [
   `CREATE TABLE accounts (
      id INTEGER PRIMARY KEY,
@@ -47,6 +47,23 @@ export const MIGRATIONS: string[] = [
      CHECK (a < b)
    );
    CREATE INDEX friendships_b ON friendships(b);`,
+  // story 8.4: history of the online games where at least one seat had an account; one row per seat
+  `CREATE TABLE games (
+     id INTEGER PRIMARY KEY,
+     mode TEXT NOT NULL,
+     turns INTEGER NOT NULL,
+     started_at INTEGER NOT NULL,
+     ended_at INTEGER NOT NULL
+   );
+   CREATE TABLE game_players (
+     game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+     seat INTEGER NOT NULL,
+     account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+     nickname TEXT NOT NULL,
+     result TEXT NOT NULL CHECK (result IN ('win', 'loss', 'draw', 'conceded', 'opponent_conceded')),
+     PRIMARY KEY (game_id, seat)
+   );
+   CREATE INDEX game_players_account ON game_players(account_id, game_id DESC);`,
 ];
 
 /** The database file inside DATA_DIR, or ':memory:' (tests). */

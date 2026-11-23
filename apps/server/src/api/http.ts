@@ -1,6 +1,7 @@
 import type http from 'node:http';
 import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/passkeys.ts';
 import type { AccountService, AuthResult } from '../auth/service.ts';
+import type { HistoryService } from '../history.ts';
 import type { FriendService } from '../social/friends.ts';
 
 /**
@@ -88,7 +89,7 @@ const bearer = (req: http.IncomingMessage) => /^Bearer\s+(\S+)$/i.exec(req.heade
  * JSON API under `/api/` (story 8.1), served on the game server's port. Returns a request handler that
  * answers `/api/*` and returns true, or returns false so the request goes on to Colyseus.
  */
-export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService) {
+export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService, history?: HistoryService) {
   return (req: http.IncomingMessage, res: http.ServerResponse): boolean => {
     const path = (req.url ?? '').split('?')[0]!;
     if (path !== '/api' && !path.startsWith('/api/')) return false;
@@ -130,7 +131,10 @@ export function createApi(service: AccountService, origins: string[], passkeys =
       if (friend && req.method === 'DELETE' && !friend[2]) return reply(friends!.remove(bearer(req), Number(friend[1])), 204);
       switch (route) {
         case 'GET /api/health':
-          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}) });
+          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}) });
+        case 'GET /api/history':
+          if (!history) break;
+          return reply(history.list(bearer(req)), 200);
         case 'GET /api/friends':
           if (!friends) break;
           return reply(friends.list(bearer(req)), 200);

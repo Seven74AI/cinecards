@@ -1,6 +1,9 @@
+---
+baseline_commit: 45f6c030581110b7c511d39d2330c02a7f5e9e9e
+---
 # Story 8.4: Historique
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -27,37 +30,37 @@ so that je suive mes résultats.
 
 ## Tasks / Subtasks
 
-- [ ] **Base** — prochaine migration ajoutée à `MIGRATIONS` (`apps/server/src/db/db.ts`) après celles de 8.1, 8.2 et
+- [x] **Base** — prochaine migration ajoutée à `MIGRATIONS` (`apps/server/src/db/db.ts`) après celles de 8.1, 8.2 et
       8.3 ; ne jamais modifier une migration livrée (AC 1)
-  - [ ] `games(id INTEGER PRIMARY KEY, mode TEXT NOT NULL, turns INTEGER NOT NULL, started_at INTEGER NOT NULL,
+  - [x] `games(id INTEGER PRIMARY KEY, mode TEXT NOT NULL, turns INTEGER NOT NULL, started_at INTEGER NOT NULL,
         ended_at INTEGER NOT NULL)` et `game_players(game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
         seat INTEGER NOT NULL, account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL, nickname TEXT NOT NULL,
         result TEXT NOT NULL CHECK(result IN ('win','loss','draw','conceded','opponent_conceded')), PRIMARY KEY
         (game_id, seat))` + index `(account_id, game_id DESC)`.
-  - [ ] `apps/server/src/db/games.ts` : `recordGame(...)` (une transaction), `recentGames(accountId, 20)`,
+  - [x] `apps/server/src/db/games.ts` : `recordGame(...)` (une transaction), `recentGames(accountId, 20)`,
         `record(accountId)` (bilan).
-  - [ ] Test : migration depuis la version précédente sans perte.
-- [ ] **Serveur** (AC 1, 2, 4)
-  - [ ] `apps/server/src/room.ts` / `duel.ts` : quand le duel passe à `finished` (une seule fois), si au moins un siège
+  - [x] Test : migration depuis la version précédente sans perte.
+- [x] **Serveur** (AC 1, 2, 4)
+  - [x] `apps/server/src/room.ts` / `duel.ts` : quand le duel passe à `finished` (une seule fois), si au moins un siège
         a un compte (`accounts[seat]`, 8.1), enregistrer la partie : `started_at` = début du duel, `turns` = somme
         des `turnNumber` des joueurs ou le compteur de tours du moteur, résultat par siège depuis `state.winner` et
         l'événement `conceded` (et le forfait de `holdSeat` après 90 s, qui passe par `duel.concede(seat)`).
         Le pseudo enregistré est celui du siège (`names[seat]`).
-  - [ ] Injection comme pour les comptes (`roomConfig`), pour que `server.test.ts` sans base continue de marcher.
-  - [ ] `GET /api/history` (Bearer) → `{ record: { wins, losses, draws }, games: [{ id, result, opponent: {
+  - [x] Injection comme pour les comptes (`roomConfig`), pour que `server.test.ts` sans base continue de marcher.
+  - [x] `GET /api/history` (Bearer) → `{ record: { wins, losses, draws }, games: [{ id, result, opponent: {
         nickname, isGuest }, mode, turns, endedAt, durationMs }] }` ; `/api/health` ajoute `history: true`.
-- [ ] **Client** (AC 3, 5)
-  - [ ] `apps/client/src/account/HistoryPanel.tsx` (portail dans `<body>`, comme `AccountPanel` / `FriendsPanel`) ;
+- [x] **Client** (AC 3, 5)
+  - [x] `apps/client/src/account/HistoryPanel.tsx` (portail dans `<body>`, comme `AccountPanel` / `FriendsPanel`) ;
         `api.ts` : `history(token)` ; dates relatives avec `Intl.RelativeTimeFormat('fr')` et
         `Intl.DateTimeFormat('fr', { day: 'numeric', month: 'short' })`.
-  - [ ] `ui/Home.tsx` : bouton « Historique » à côté de « Amis » (garder `.account-line` et « Connecté : <pseudo> »).
-- [ ] **Tests** (AC 1-5)
-  - [ ] Serveur `apps/server/src/history.test.ts` : via WebSocket (comme `server.test.ts`), deux comptes jouent jusqu'à
+  - [x] `ui/Home.tsx` : bouton « Historique » à côté de « Amis » (garder `.account-line` et « Connecté : <pseudo> »).
+- [x] **Tests** (AC 1-5)
+  - [x] Serveur `apps/server/src/history.test.ts` : via WebSocket (comme `server.test.ts`), deux comptes jouent jusqu'à
         un abandon → chacun a une ligne avec le bon résultat ; un compte contre un invité → une seule ligne, adversaire
         « invité » ; forfait après le délai de reconnexion (2 s en test) → `opponent_conceded` ; deux invités → rien ;
         bilan ; ordre et limite de 20.
-  - [ ] Client : formatage des dates relatives et des résultats.
-  - [ ] e2e `e2e/history.spec.ts` : deux comptes, une partie en ligne terminée par « Abandonner » ; l'historique de
+  - [x] Client : formatage des dates relatives et des résultats.
+  - [x] e2e `e2e/history.spec.ts` : deux comptes, une partie en ligne terminée par « Abandonner » ; l'historique de
         chacun montre le bon résultat et l'adversaire.
 
 ## Dev Notes
@@ -83,10 +86,66 @@ so that je suive mes résultats.
 
 ### Agent Model Used
 
+Agent de dev (workflow `gds-dev-story`).
+
 ### Debug Log References
+
+- `pnpm typecheck` : OK.
+- `pnpm test` : 31 fichiers, 248 tests, tout vert.
+- `E2E_SERVER_PORT=2667 E2E_CLIENT_PORT=5274 PW_CHANNEL=chromium pnpm e2e -- --trace off` : 42/42 (dont `history.spec.ts`).
 
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created
+- Migration 4 ajoutée à `MIGRATIONS` (`games`, `game_players`, index `(account_id, game_id DESC)`), les trois
+  migrations livrées sont intactes. Test de montée depuis une base version 3 (comptes, sessions, clés, amitiés) sans
+  perte ; la suppression d'un compte garde l'historique de l'autre joueur (adversaire affiché comme invité).
+- `db/games.ts` : `recordGame` (une transaction, rien ne reste si une ligne échoue), `recentGames(id, 20)`, `record(id)`.
+- `Duel` (`duel.ts`) note `startedAt`, le siège de l'événement `conceded` (`concededBy`), `turns` (somme des
+  `turnNumber`) et appelle `out.ended(duel)` une seule fois, au passage à `finished`, après l'envoi des vues.
+  `DuelRoom.recordGame` (`room.ts`) transmet à `roomConfig.history` (injecté par `main.ts`, comme les comptes) si un
+  siège au moins a un compte et que le moteur a un vainqueur ; le forfait de `holdSeat` passe par `duel.concede`, donc
+  par le même chemin. Résultats par siège calculés par `seatResults(winner, concededBy)` depuis le moteur seul.
+- `GET /api/history` (Bearer) → `{ record, games }` ; `/api/health` ajoute `history: true`.
+- Client : `serverFeatures().history`, `useAccount().history`, `api.history(token)`, `HistoryPanel.tsx` (portail dans
+  `<body>`), formatage dans `historyFormat.ts` (`Intl.RelativeTimeFormat('fr')`, `Intl.DateTimeFormat('fr')`).
+  Bouton « Historique » à côté de « Amis » dans `.account-line`, tous deux sur une ligne `.account-social` sous
+  « Connecté : <pseudo> » / « Se déconnecter » (texte inchangé).
+- Changements limités dans les fichiers partagés avec 8.5 : `room.ts` (import, champ `history` de `roomConfig`, sortie
+  `ended`, méthode `recordGame`), aucun changement dans `packages/protocol`, `ui/Table.tsx` ni `net/online.ts` (les
+  types de l'historique sont dans `apps/server/src/history.ts` et `apps/client/src/account/api.ts`).
+- Choix notés dans `a-valider-par-root.md` (4 lignes « Story 8.4 »).
+- Capture 390×844 : `screens/8-4/history-390x844.png` (données de l'API simulées pour montrer chaque résultat) et
+  `screens/8-4/account-line-390.png`.
+- Pas encore fait (après livraison) : vérifier une partie réelle entre deux comptes de test sur cinecards.sevend.io.
 
 ### File List
+
+- `apps/server/src/db/db.ts`
+- `apps/server/src/db/games.ts` (nouveau)
+- `apps/server/src/history.ts` (nouveau)
+- `apps/server/src/history.test.ts` (nouveau)
+- `apps/server/src/duel.ts`
+- `apps/server/src/room.ts`
+- `apps/server/src/main.ts`
+- `apps/server/src/api/http.ts`
+- `apps/server/src/accounts.test.ts`
+- `apps/server/src/friends.test.ts`
+- `apps/client/src/account/api.ts`
+- `apps/client/src/account/session.ts`
+- `apps/client/src/account/HistoryPanel.tsx` (nouveau)
+- `apps/client/src/account/historyFormat.ts` (nouveau)
+- `apps/client/src/account/history.test.ts` (nouveau)
+- `apps/client/src/ui/Home.tsx`
+- `apps/client/src/styles.css`
+- `e2e/history.spec.ts` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-4/history-390x844.png` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-4/account-line-390.png` (nouveau)
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/8-4-historique.md`
+
+## Change Log
+
+- 2026-11-23 — Story 8.4 implémentée : migration 4 (`games`, `game_players`), enregistrement des parties en ligne
+  terminées par le serveur (résultats depuis le moteur), `GET /api/history`, `/api/health` avec `history: true`,
+  panneau « Historique » (bilan + 20 dernières parties). Statut : review.

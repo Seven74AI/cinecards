@@ -4,6 +4,7 @@ import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
 import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
 import { AccountPanel } from '../account/AccountPanel.tsx';
 import { FriendsPanel } from '../account/FriendsPanel.tsx';
+import { HistoryPanel } from '../account/HistoryPanel.tsx';
 import { prepareInvite, useHub } from '../account/hub.ts';
 import { signOut, useAccount } from '../account/session.ts';
 import { MOVED_URL } from '../net/config.ts';
@@ -33,9 +34,10 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [dialog, setDialog] = useState<AccountMode | null>(null);
   const [panel, setPanel] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { openCard, openRules } = useRefs();
   // signed in (story 8.1): the server takes the nickname from the session token
-  const { available: accountsOn, signedIn, manage, friends: friendsOn } = useAccount();
+  const { available: accountsOn, signedIn, manage, friends: friendsOn, history: historyOn } = useAccount();
   const requests = useHub().list?.incoming.length ?? 0;
   const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
   const session = signedIn ? { session: signedIn.token } : {};
@@ -123,16 +125,27 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                     <strong>{signedIn.nickname}</strong>
                   )}
                 </span>
-                {friendsOn ? (
-                  // story 8.3: friends, with the number of requests received
-                  <button type="button" className="btn small friends-btn" aria-label={requests ? `Amis (${requests} demande${requests > 1 ? 's' : ''})` : 'Amis'} onClick={() => setFriendsOpen(true)}>
-                    Amis
-                    {requests ? (
-                      <span className="badge" aria-hidden="true">
-                        {requests}
-                      </span>
+                {friendsOn || historyOn ? (
+                  // stories 8.3 / 8.4: friends and history, on a row of their own under the nickname
+                  <span className="account-social">
+                    {friendsOn ? (
+                      // story 8.3: friends, with the number of requests received
+                      <button type="button" className="btn small friends-btn" aria-label={requests ? `Amis (${requests} demande${requests > 1 ? 's' : ''})` : 'Amis'} onClick={() => setFriendsOpen(true)}>
+                        Amis
+                        {requests ? (
+                          <span className="badge" aria-hidden="true">
+                            {requests}
+                          </span>
+                        ) : null}
+                      </button>
                     ) : null}
-                  </button>
+                    {historyOn ? (
+                      // story 8.4: my record and latest online games
+                      <button type="button" className="btn small friends-btn history-btn" onClick={() => setHistoryOpen(true)}>
+                        Historique
+                      </button>
+                    ) : null}
+                  </span>
                 ) : null}
                 <button type="button" className="link" onClick={signOut}>
                   Se déconnecter
@@ -187,6 +200,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
       </section>
       {dialog ? <AccountDialog initial={dialog} onClose={() => setDialog(null)} /> : null}
       {panel && signedIn ? <AccountPanel me={signedIn} onClose={() => setPanel(false)} /> : null}
+      {historyOpen && signedIn && historyOn ? <HistoryPanel me={signedIn} onClose={() => setHistoryOpen(false)} /> : null}
       {friendsOpen && signedIn && friendsOn ? (
         <FriendsPanel
           me={signedIn}

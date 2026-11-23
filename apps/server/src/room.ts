@@ -3,6 +3,7 @@ import { RULES, type Action, type Catalog, type DeckMode, type PlayerId } from '
 import type { AwayMessage, LobbyMessage, RoomOptions } from '@cinecards/protocol';
 import { Duel } from './duel.ts';
 import { uniqueCode } from './codes.ts';
+import type { FinishedDuel } from './history.ts';
 import type { PresenceRegistry } from './presence.ts';
 import type { RoomSummary } from './social/invites.ts';
 
@@ -25,6 +26,8 @@ export const roomConfig: {
   /** Story 8.3: "en partie" presence of the seated accounts, and the invitations to cancel when a room starts or goes. */
   presence?: Pick<PresenceRegistry, 'inGame'> | null;
   invites?: { roomStarted(code: string): void; roomGone(code: string): void } | null;
+  /** Story 8.4: records each finished duel (a game between two guests is dropped there); null = no history. */
+  history?: { record(game: FinishedDuel): unknown } | null;
 } = { catalog: null };
 
 /** An empty waiting room stays joinable this long after its last player left (story 11.2). */
@@ -147,6 +150,21 @@ export class DuelRoom extends Room {
     this.playing = [];
   }
 
+  /** Story 8.4: the finished duel goes to the history, with each seat's account and name; results come from the engine. */
+  private recordGame(duel: Duel) {
+    if (duel.state.winner === null || (this.accounts[0] === null && this.accounts[1] === null)) return;
+    roomConfig.history?.record({
+      mode: this.mode,
+      turns: duel.turns,
+      startedAt: duel.startedAt,
+      endedAt: Date.now(),
+      accounts: [this.accounts[0], this.accounts[1]],
+      names: [this.names[0], this.names[1]],
+      winner: duel.state.winner,
+      concededBy: duel.concededBy,
+    });
+  }
+
   /** Account id of a seat, or null for a guest. */
   accountOf(seat: PlayerId): number | null {
     return this.accounts[seat];
@@ -182,6 +200,7 @@ export class DuelRoom extends Room {
           if (this.duel?.finished && this.playing.length) this.leaveGame();
         },
         rejected: (p, err) => this.seats[p]?.send('rejected', err),
+        ended: (duel) => this.recordGame(duel),
       },
       undefined,
       roomConfig.turnMs,

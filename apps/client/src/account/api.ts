@@ -47,15 +47,18 @@ export interface ServerFeatures {
   passkeys: boolean;
   /** Story 8.3: friends and invitations; an older server answers without it, which hides "Amis". */
   friends: boolean;
+  /** Story 8.4: game history; an older server answers without it, which hides "Historique". */
+  history: boolean;
 }
 
 let features: Promise<ServerFeatures> | null = null;
 /** What the server offers (`GET /api/health`, 4 s, once per visit). An older server, or none, hides the account UI. */
 export function serverFeatures(): Promise<ServerFeatures> {
-  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
+  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean; history?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
     accounts: r.ok && r.data?.accounts === true,
     passkeys: r.ok && r.data?.accounts === true && r.data?.passkeys === true,
     friends: r.ok && r.data?.accounts === true && r.data?.friends === true,
+    history: r.ok && r.data?.accounts === true && r.data?.history === true,
   }));
   return features;
 }
@@ -111,3 +114,21 @@ export const requestFriend = (token: string, nickname: string) => call<{ status:
 export const acceptFriend = (token: string, id: number) => call<null>('POST', `/api/friends/${id}/accept`, { token });
 /** Declines a received request, cancels a sent one or removes a friend. */
 export const removeFriend = (token: string, id: number) => call<null>('DELETE', `/api/friends/${id}`, { token });
+
+// ---- story 8.4: history ----
+/** A game's result from my point of view. */
+export type GameResult = 'win' | 'loss' | 'draw' | 'conceded' | 'opponent_conceded';
+export interface PlayedGame {
+  id: number;
+  result: GameResult;
+  opponent: { nickname: string; isGuest: boolean };
+  mode: string;
+  turns: number;
+  endedAt: number;
+  durationMs: number;
+}
+export interface HistoryList {
+  record: { wins: number; losses: number; draws: number };
+  games: PlayedGame[];
+}
+export const history = (token: string) => call<HistoryList>('GET', '/api/history', { token });

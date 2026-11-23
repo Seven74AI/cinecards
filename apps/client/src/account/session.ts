@@ -36,9 +36,11 @@ interface Snapshot {
   manage: boolean;
   /** Story 8.3: the server has friends and invitations (`friends: true` in `/api/health`). */
   friends: boolean;
+  /** Story 8.4: the server keeps the game history (`history: true` in `/api/health`). */
+  history: boolean;
 }
 
-let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false, friends: false };
+let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false, friends: false, history: false };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<Snapshot>) => {
   snap = { ...snap, ...patch };
@@ -56,8 +58,8 @@ export function initAccount() {
   started = true;
   const stored = readStored();
   if (!stored) set({ account: 'guest' });
-  void serverFeatures().then(async ({ accounts: available, passkeys, friends }) => {
-    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys, friends });
+  void serverFeatures().then(async ({ accounts: available, passkeys, friends, history }) => {
+    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys, friends, history });
     if (!stored) return;
     if (!available) return set({ account: stored });
     const r = await me(stored.token);

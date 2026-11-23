@@ -17,6 +17,8 @@ export const realClock: Clock = {
 export interface DuelOutput {
   view(player: PlayerId, msg: ViewMessage): void;
   rejected(player: PlayerId, error: RuleError): void;
+  /** Story 8.4: called once, after the views, when the game reaches `finished`. */
+  ended?(duel: Duel): void;
 }
 
 /**
@@ -30,6 +32,10 @@ export class Duel {
   reactionEndsAt: number | null = null;
   /** Turn time left while the turn timer is paused by a reaction window (GDD Turn Structure, architecture P3). */
   turnPausedMs: number | null = null;
+  /** When the duel started (story 8.4, history). */
+  readonly startedAt: number;
+  /** The seat whose `conceded` event ended the game, if any (story 8.4). */
+  concededBy: PlayerId | null = null;
   private turnTimer: unknown = null;
   private reactionTimer: unknown = null;
 
@@ -42,6 +48,7 @@ export class Duel {
     private readonly turnMs = RULES.TURN_SECONDS * 1000,
     private readonly reactionMs = RULES.REACTION_SECONDS * 1000,
   ) {
+    this.startedAt = clock.now();
     const { state, events } = createGame(catalog, { seed: opts.seed, mode: opts.mode });
     this.state = state;
     this.armTimers(true);
@@ -76,12 +83,21 @@ export class Duel {
     this.clear();
   }
 
+  /** Both players' own turn counters added up (story 8.4). */
+  get turns() {
+    return this.state.players[0].turnNumber + this.state.players[1].turnNumber;
+  }
+
   private commit(next: GameState, events: GameEvent[]) {
+    const wasFinished = this.finished;
     const turnChanged = events.some((e) => e.type === 'turnStarted');
+    const conceded = events.find((e): e is Extract<GameEvent, { type: 'conceded' }> => e.type === 'conceded');
+    if (conceded && !wasFinished) this.concededBy = conceded.player;
     this.state = next;
     this.seq++;
     this.armTimers(turnChanged);
     this.broadcast(events);
+    if (!wasFinished && this.finished) this.out.ended?.(this);
   }
 
   private message(seat: PlayerId, events: GameEvent[]): ViewMessage {

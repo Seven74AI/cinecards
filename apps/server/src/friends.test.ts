@@ -41,7 +41,7 @@ describe('8.3 database', () => {
       v2.close();
 
       const db = openDb(path);
-      expect(schemaVersion(db)).toBe(3);
+      expect(schemaVersion(db)).toBe(MIGRATIONS.length); // later migrations (8.4) run too
       expect(db.prepare('SELECT * FROM accounts ORDER BY id').all()).toEqual(before.accounts);
       expect(db.prepare('SELECT * FROM sessions').all()).toEqual(before.sessions);
       expect(db.prepare('SELECT * FROM passkeys').all()).toEqual(before.passkeys);
@@ -221,7 +221,7 @@ describe('8.3 HTTP API and the hub room', () => {
   };
 
   it('answers /api/health with friends, and the friend routes over HTTP', async () => {
-    expect(await (await fetch(`${base}/api/health`)).json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true });
+    expect(await (await fetch(`${base}/api/health`)).json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true, history: true });
     const a = await account('Ha');
     const b = await account('Hb');
     expect((await api('GET', '/api/friends')).status).toBe(401);

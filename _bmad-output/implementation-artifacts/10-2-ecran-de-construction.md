@@ -157,3 +157,4 @@ Agent de développement (gds-dev-story)
 ## Change Log
 
 - 2026-11-23 — Story 10.2 implémentée : decks enregistrés sur le compte (migration, API, validation serveur), écrans « Mes decks » et constructeur (maquette B), filtres, feuilles Filtres et Mon deck, tests serveur / client / e2e, captures. Statut : review.
+- 2026-11-23 — Revue : fusionnée avec 8.4 et 8.5 (feuille de style reconstruite : main + bloc 10.2 ; « Mes decks » rangé avec « Amis » et « Historique »), écrans conformes à la maquette B ; typecheck, 263 tests, e2e 46/46. Story terminée.

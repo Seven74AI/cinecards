@@ -132,3 +132,4 @@ Dev agent (gds-dev-story).
 
 - 2026-11-23 — Story 8.5 implemented: fixed emotes in online duels (protocol, server relay with 3 s limit, top-bar button,
   bubbles, mute switch, end-screen button), server and e2e tests, screenshots. Status: review.
+- 2026-11-23 — Revue : fusionnée avec 8.4 (conflits additifs résolus), bulles vérifiées ; typecheck, 249 tests, e2e 44/44. Story terminée.

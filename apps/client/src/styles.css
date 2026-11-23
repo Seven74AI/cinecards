@@ -3656,4 +3656,192 @@ span.mod-src {
 }
 .result-dot.loss {
   background: var(--crimson);
+/* ---------- story 8.5: emotes ---------- */
+.icon-btn.emote-btn[aria-expanded='true'] {
+  color: var(--parch);
+}
+/* greyed for 3 s after a send; it still opens, for the mute switch */
+.icon-btn.emote-btn.cooling {
+  opacity: 0.45;
+}
+.emote-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+}
+.room-code {
+  white-space: nowrap;
+}
+/* six 44 px buttons leave no room for "Salle" on the narrowest phones */
+@media (max-width: 379px) {
+  .compact .room-label {
+    display: none;
+  }
+}
+.emote-picker {
+  position: fixed;
+  z-index: 47;
+  padding: 8px;
+  background: linear-gradient(180deg, #24170e, #140c06);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.15s ease-out;
+}
+.emote-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.emote-choice {
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 167, 74, 0.4);
+  background: linear-gradient(180deg, #4a3020, #2b1b10);
+  color: var(--parch);
+  font-family: var(--text);
+  font-size: 15px;
+  line-height: 1.15;
+  cursor: pointer;
+}
+.emote-choice:disabled {
+  filter: grayscale(0.8) brightness(0.7);
+  cursor: not-allowed;
+}
+.emote-mute {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 0 4px;
+  color: var(--dim);
+  font-size: 14px;
+  cursor: pointer;
+}
+/* the real checkbox lies over the drawn switch, invisible */
+.emote-mute input {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.emote-switch {
+  flex: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(212, 167, 74, 0.45);
+  transition: background 0.15s;
+}
+.emote-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: transform 0.15s;
+}
+.emote-mute input:checked + .emote-switch {
+  background: var(--gold-dark);
+}
+.emote-mute input:checked + .emote-switch::after {
+  transform: translateX(16px);
+  background: var(--gold2);
+}
+.emote-mute input:focus-visible + .emote-switch {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+/* above the end screen (40), below the rules sheet (45) */
+.emote-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.emote-layer.dim {
+  opacity: 0.2;
+}
+.emote-bubble {
+  position: absolute;
+  pointer-events: none;
+  width: max-content;
+  padding: 5px 10px;
+  border-radius: 12px;
+  background: var(--parch-bg);
+  color: var(--ink);
+  border: 1px solid var(--gold-dark);
+  font-family: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+  animation: emoteIn 0.2s ease-out;
+  transition: opacity 0.25s;
+}
+.emote-bubble::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 10px;
+  height: 10px;
+  background: #ead9b0;
+  border: 1px solid var(--gold-dark);
+  transform: rotate(45deg);
+}
+.emote-bubble.below::before {
+  top: -6px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.emote-bubble.above::before {
+  bottom: -6px;
+  border-left: 0;
+  border-top: 0;
+}
+.emote-bubble.leaving {
+  opacity: 0;
+}
+@keyframes emoteIn {
+  from {
+    opacity: 0;
+    transform: translateY(var(--emote-dy, 4px)) scale(0.92);
+  }
+}
+.emote-bubble.above {
+  --emote-dy: 4px;
+}
+.emote-bubble.below {
+  --emote-dy: -4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .emote-bubble,
+  .emote-picker {
+    animation: none;
+  }
+}
+.end-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.icon-btn.end-emote {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(180deg, #4a3020, #2b1b10);
+  border-color: var(--gold-dark);
 }

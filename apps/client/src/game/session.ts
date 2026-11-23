@@ -1,3 +1,4 @@
+import type { EmoteId } from '@cinecards/protocol';
 import { apply, botRandom, botStep, createGame, RULES, timeoutAction, type Action, type Catalog, type DeckMode, type GameEvent, type GameState, type PlayerId, type RuleError } from '@cinecards/engine';
 
 export type SessionKind = 'hotseat' | 'bot' | 'online';
@@ -24,6 +25,8 @@ export interface Snapshot {
   awayUntil?: number | null;
   /** Online: the connection dropped and the SDK is retrying. */
   reconnecting?: boolean;
+  /** Online (story 8.5): the latest emote relayed by the server; `at` is local ms so a repeat shows again. */
+  lastEmote?: { from: PlayerId; id: EmoteId; at: number } | null;
 }
 
 export interface Session {
@@ -36,6 +39,8 @@ export interface Session {
   ready?(): void;
   /** Solo (story 12.1): the bot waits until the table has finished replaying the previous batch. */
   pace?(busyFor: () => number): void;
+  /** Online only (story 8.5): sends one of the fixed emotes; local sessions leave it out, which hides the button. */
+  sendEmote?(id: EmoteId): void;
   dispose(): void;
 }
 

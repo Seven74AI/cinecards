@@ -1,6 +1,6 @@
 import { Client, type Room } from '@colyseus/sdk';
 import { createGame, type Action, type Catalog, type DeckMode } from '@cinecards/engine';
-import { ROOM_NAME, type AwayMessage, type LobbyMessage, type RuleError, type ViewMessage } from '@cinecards/protocol';
+import { isEmoteId, ROOM_NAME, type AwayMessage, type EmoteId, type EmoteMessage, type LobbyMessage, type RuleError, type ViewMessage } from '@cinecards/protocol';
 import { appendLog, Store, type Session } from '../game/session.ts';
 
 import { forgetSeat, saveSeat, seatToken, SERVER_URL } from './config.ts';
@@ -104,6 +104,11 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
       if (m.player === store.snap.viewer) return;
       store.set({ status: m.until ? 'opponentAway' : 'playing', awayUntil: m.until });
     });
+    // story 8.5: emotes from either seat (ours comes back too, so the sender sees it left)
+    r.onMessage('emote', (m: EmoteMessage) => {
+      if (!m || (m.from !== 0 && m.from !== 1) || !isEmoteId(m.id)) return;
+      store.set({ lastEmote: { from: m.from, id: m.id, at: Date.now() } });
+    });
     // the SDK retries on its own after a drop; the token changes on each reconnection
     r.onDrop(() => store.set({ reconnecting: true }));
     r.onReconnect(() => store.set({ reconnecting: false }));
@@ -149,6 +154,9 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
     send(action: Action) {
       if (action.type === 'concede' && room) forgetSeat(room.roomId);
       room?.send('action', action);
+    },
+    sendEmote(id: EmoteId) {
+      room?.send('emote', { id });
     },
     /** "Quitter": a voluntary disconnect; the server keeps the seat for 90 s (only `concede` forfeits). */
     dispose() {

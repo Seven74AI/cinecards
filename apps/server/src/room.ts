@@ -1,6 +1,6 @@
 import { Room, type Client } from '@colyseus/core';
 import { RULES, type Action, type Catalog, type DeckMode, type PlayerId } from '@cinecards/engine';
-import type { AwayMessage, LobbyMessage, RoomOptions } from '@cinecards/protocol';
+import { EMOTE_COOLDOWN_MS, isEmoteId, type AwayMessage, type EmoteMessage, type LobbyMessage, type RoomOptions } from '@cinecards/protocol';
 import { Duel } from './duel.ts';
 import { uniqueCode } from './codes.ts';
 import type { FinishedDuel } from './history.ts';
@@ -28,6 +28,8 @@ export const roomConfig: {
   invites?: { roomStarted(code: string): void; roomGone(code: string): void } | null;
   /** Story 8.4: records each finished duel (a game between two guests is dropped there); null = no history. */
   history?: { record(game: FinishedDuel): unknown } | null;
+  /** Clock of the emote rate limit (story 8.5), injectable for tests. */
+  now?: () => number;
 } = { catalog: null };
 
 /** An empty waiting room stays joinable this long after its last player left (story 11.2). */
@@ -62,6 +64,7 @@ export class DuelRoom extends Room {
       if (seat === null || !this.duel || !action || typeof action !== 'object') return;
       this.duel.act(seat, action);
     });
+    this.onMessage('emote', (client: Client, msg: { id?: unknown }) => this.emote(client, msg));
     // the creator joins right away; this only matters if that join fails
     this.armExpiry();
   }
@@ -173,6 +176,19 @@ export class DuelRoom extends Room {
   private seatOf(client: Client): PlayerId | null {
     const i = this.seats.findIndex((c) => c?.sessionId === client.sessionId);
     return i < 0 ? null : (i as PlayerId);
+  }
+
+  /** Story 8.5: relays a known emote to both seats, at most one per seat every 3 s, once the duel has started. */
+  private lastEmote: [number, number] = [-Infinity, -Infinity];
+  private emote(client: Client, msg: { id?: unknown }) {
+    const seat = this.seatOf(client);
+    const id = msg?.id;
+    if (seat === null || !this.duel || !isEmoteId(id)) return;
+    const now = (roomConfig.now ?? Date.now)();
+    if (now - this.lastEmote[seat] < EMOTE_COOLDOWN_MS) return;
+    this.lastEmote[seat] = now;
+    const out: EmoteMessage = { from: seat, id };
+    this.seats.forEach((c) => c?.send('emote', out));
   }
 
   private sendLobby() {

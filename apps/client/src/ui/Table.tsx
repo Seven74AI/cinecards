@@ -26,6 +26,8 @@ import { modifierLines, type ModifierLine } from '../game/modifiers.ts';
 import { SourceLines, type SourceLink } from './SourceLines.tsx';
 import { Icon } from './Icon.tsx';
 import { Dice } from './Dice.tsx';
+import { EmoteBubbles, EmoteButton } from './Emotes.tsx';
+import type { EmoteId } from '@cinecards/protocol';
 
 /** One target request of a prompt; `index` is its position in the engine's request list. */
 type Req = { count: number; min: number; options: string[]; index: number };
@@ -725,8 +727,17 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           <button type="button" className="icon-btn" onClick={() => setConfirmQuit('quit')} aria-label="Quitter">
             <Icon name="flag" size={16} />
           </button>
-          {snap.roomCode ? <span className="room-code">Salle {snap.roomCode}</span> : <span className="room-code">CineCards</span>}
+          {snap.roomCode ? (
+            // story 8.5: the "Salle" word gives way on narrow phones so the code stays on one line
+            <span className="room-code" title={`Salle ${snap.roomCode}`}>
+              <span className="room-label">Salle </span>
+              {snap.roomCode}
+            </span>
+          ) : (
+            <span className="room-code">CineCards</span>
+          )}
           <span className="spacer" />
+          {session.sendEmote ? <EmoteButton send={session.sendEmote} /> : null}
           <button type="button" className="icon-btn speed-btn" onClick={cycleSpeed} aria-label={`Vitesse des animations : ${SPEED_FR[speed]}`} title={`Vitesse des animations : ${SPEED_FR[speed]}`}>
             <Icon name="speed" size={16} />
             <small>{speed === 'normal' ? '×1' : speed === 'fast' ? '×2' : '⏭'}</small>
@@ -905,7 +916,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
         </div>
       ) : null}
       {/* story 12.7: the end screen waits for the victory or defeat moment */}
-      {state.phase === 'finished' && !busy ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} /> : null}
+      {state.phase === 'finished' && !busy ? <EndScreen state={state} me={me} names={names} kind={session.kind} onLeave={onLeave} sendEmote={session.sendEmote} /> : null}
+      {session.sendEmote ? <EmoteBubbles last={snap.lastEmote} me={me} dim={mode.k === 'attack' || mode.k === 'targets'} /> : null}
       {confirmQuit === 'quit' ? (
         <div className="overlay">
           <div className="parchment card-panel">
@@ -1128,7 +1140,7 @@ function Highlight({ name, cardId, catalog, onDone }: { name: string; cardId: st
   );
 }
 
-function EndScreen({ state, me, names, kind, onLeave }: { state: GameState; me: PlayerId; names: [string, string]; kind: string; onLeave: () => void }) {
+function EndScreen({ state, me, names, kind, onLeave, sendEmote }: { state: GameState; me: PlayerId; names: [string, string]; kind: string; onLeave: () => void; sendEmote?: (id: EmoteId) => void }) {
   const w = state.winner;
   const title = w === 'draw' ? 'Égalité' : kind === 'hotseat' ? `${names[w as PlayerId]} gagne !` : w === me ? 'Victoire !' : 'Défaite…';
   return (
@@ -1142,9 +1154,13 @@ function EndScreen({ state, me, names, kind, onLeave }: { state: GameState; me: 
         <p className="muted">
           {state.players[0].turnNumber + state.players[1].turnNumber} tours joués
         </p>
-        <button type="button" className="btn primary" onClick={onLeave}>
-          Retour à l’accueil
-        </button>
+        <div className="end-actions">
+          <button type="button" className="btn primary" onClick={onLeave}>
+            Retour à l’accueil
+          </button>
+          {/* story 8.5: emotes stay available on the end screen, which covers the top bar */}
+          {sendEmote ? <EmoteButton send={sendEmote} className="icon-btn end-emote" /> : null}
+        </div>
       </div>
     </div>
   );

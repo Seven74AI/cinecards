@@ -91,7 +91,7 @@ development_status:
   8-6-heberger-le-jeu-sur-cinecards-sevend-io: done  # ajoutée le 2026-11-22, à faire avant 8.3 (clés d'accès liées au domaine)
   8-3-liste-d-amis-et-invitation-directe: done
   8-4-historique: done
-  8-5-emotes: ready-for-dev
+  8-5-emotes: done
   epic-8-retrospective: optional
   epic-9: backlog
   9-1-import-des-cartes-de-root: backlog

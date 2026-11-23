@@ -27,6 +27,7 @@ const P: Record<string, string> = {
   speed: '<polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/>',
   zoom: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>',
   back: '<path d="M15 6l-6 6 6 6"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.8A8 8 0 1 1 21 12z"/>',
   crown: '<path d="M3 18h18l-1.6-10-4.9 4-2.5-7-2.5 7-4.9-4z"/><path d="M3 21h18"/>',
 };
 const FILLED = new Set(['heart', 'bolt', 'star']);

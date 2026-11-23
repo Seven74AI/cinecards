@@ -42,8 +42,37 @@ export interface AwayMessage {
   until: number | null;
 }
 
+// ---- story 8.5: emotes (fixed written lines, no free chat) ----
+
+/** The 8 emotes by stable id; the client shows the text, the server only relays known ids. */
+export const EMOTES = {
+  gg: 'Bien joué !',
+  oops: 'Oups…',
+  thanks: 'Merci !',
+  thinking: 'Je réfléchis…',
+  regret: 'Tu vas le regretter.',
+  nice: 'Pas mal !',
+  goodgame: 'Bonne partie !',
+  rematch: 'Revanche ?',
+} as const;
+
+export type EmoteId = keyof typeof EMOTES;
+
+export const EMOTE_IDS = Object.keys(EMOTES) as EmoteId[];
+
+/** At most one emote per seat this often (ms). */
+export const EMOTE_COOLDOWN_MS = 3000;
+
+export const isEmoteId = (id: unknown): id is EmoteId => typeof id === 'string' && Object.prototype.hasOwnProperty.call(EMOTES, id);
+
+export interface EmoteMessage {
+  from: PlayerId;
+  id: EmoteId;
+}
+
 export interface ClientMessages {
   action: Action;
+  emote: { id: EmoteId };
 }
 
 export interface ServerMessages {
@@ -51,6 +80,7 @@ export interface ServerMessages {
   view: ViewMessage;
   rejected: RuleError;
   away: AwayMessage;
+  emote: EmoteMessage;
 }
 
 export interface RoomOptions {

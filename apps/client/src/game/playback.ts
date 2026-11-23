@@ -51,6 +51,11 @@ export type Cue = {
   lead?: boolean;
   skip?: () => void;
   names?: readonly [string, string];
+  /**
+   * Story 13.13: the director measured this beat's travel on screen and asks for another real duration (ms from the
+   * beat's start). Called during the cue or a frame later; ignored once another beat has started or while paused.
+   */
+  retime?: (ms: number) => void;
 };
 
 declare global {
@@ -76,6 +81,8 @@ export class Playback {
   private inLead = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private deathTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** Story 13.13: the beat whose duration `retime` may still change (the one holding the timer). */
+  private retimeToken: object | null = null;
   private view: ShownView;
   private listeners = new Set<() => void>();
   private paused = false;
@@ -266,7 +273,28 @@ export class Playback {
       ms = Math.round(beat.gap * r);
       this.begin(c, beat, ms);
       if (beat.removal) trace('removalAlert', 'start', beat.removal.iid);
-      this.onCue({ beat, ms, rate: r, before: c.batch.before, after: c.batch.after, events: c.batch.events, names: this.names });
+      // story 13.13: the director may stretch or shorten this beat to the travel it measured
+      const token = {};
+      this.retimeToken = token;
+      const t0 = performance.now();
+      let during = true;
+      const retime = (real: number) => {
+        if (this.retimeToken !== token || this.paused || this.cur !== c) return;
+        const next = Math.max(0, Math.round(real));
+        if (during) {
+          ms = next;
+          this.holdFor(c, beat, next);
+          return;
+        }
+        if (!this.timer || this.inLead) return;
+        clearTimeout(this.timer);
+        const left = Math.max(0, t0 + next - performance.now());
+        this.endsAt = performance.now() + left;
+        this.timer = setTimeout(() => this.step(), left);
+        this.holdFor(c, beat, left);
+      };
+      this.onCue({ beat, ms, rate: r, before: c.batch.before, after: c.batch.after, events: c.batch.events, names: this.names, retime });
+      during = false;
     }
     this.refresh();
     this.endsAt = performance.now() + ms;
@@ -278,6 +306,14 @@ export class Playback {
     trace(e.type, 'start', 'iid' in e ? (e.iid as string) : undefined);
     if (e.type !== 'cardDestroyed' && e.type !== 'returnedToHand') return;
     c.held.add(e.iid);
+    this.holdFor(c, beat, ms);
+  }
+
+  /** A dying or returning card stays in its slot for `ms` more (story 13.13: also when its beat is retimed). */
+  private holdFor(c: NonNullable<Playback['cur']>, beat: Beat, ms: number) {
+    const e = beat.event;
+    if ((e.type !== 'cardDestroyed' && e.type !== 'returnedToHand') || !c.held.has(e.iid)) return;
+    clearTimeout(this.deathTimers.get(e.iid));
     const t = setTimeout(() => {
       this.deathTimers.delete(e.iid);
       if (this.cur !== c) return;

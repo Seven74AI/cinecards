@@ -29,3 +29,25 @@ export const PHONE_ENTRANCE_MS = 1100;
  * projectiles and beams) take this much longer. Impacts and number pops keep their time.
  */
 export const PHONE_TEMPO = 1.25;
+
+/**
+ * Story 13.13 (mockup approved by Root, 2026-11-23): a travel motion lasts its usual time × `travelFactor`, so a
+ * short hop is quicker and a trip across the table slower, within these bounds.
+ */
+export const TRAVEL_BOUNDS = { min: 0.7, max: 1.4 } as const;
+/**
+ * Typical distances on screen (px, measured on the `pose` dev scene) at which a motion keeps its usual time:
+ * `attack` the dash, `fly` a card to its slot (also back to hand), `draw` deck → hand, `effect` a beam, an orb, ashes.
+ * `desk`: every layout but the portrait phone table (`phone`, the compact table).
+ */
+export const TRAVEL_REF = {
+  desk: { attack: 300, fly: 550, draw: 600, effect: 300 },
+  phone: { attack: 210, fly: 320, draw: 200, effect: 270 },
+} as const;
+export type TravelKind = keyof (typeof TRAVEL_REF)['desk'];
+
+/** How much longer than usual a motion over `distance` px takes: distance / reference, bounded. */
+export function travelFactor(distance: number, ref: number): number {
+  if (!(distance > 0) || !(ref > 0)) return 1;
+  return Math.min(TRAVEL_BOUNDS.max, Math.max(TRAVEL_BOUNDS.min, distance / ref));
+}

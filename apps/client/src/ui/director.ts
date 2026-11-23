@@ -10,6 +10,7 @@ import { abilityBody, abilityTag } from '../game/labels.ts';
 import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
 import { removalText, STAMP } from '../game/removal.ts';
 import { PHONE_FX, particleBudget } from '../game/perf.ts';
+import { TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -44,6 +45,11 @@ let stageTimer: ReturnType<typeof setTimeout> | undefined;
 const compactTable = () => !!document.querySelector('.table.compact');
 /** Story 13.11: travel motions take longer on the portrait phone table (`PHONE_TEMPO`); impacts and numbers do not. */
 const tempo = () => (compactTable() ? PHONE_TEMPO : 1);
+/** Story 13.13: a travel over `d` px on screen takes its usual time × this (distance / typical distance, bounded). */
+const travelK = (d: number, kind: TravelKind) => travelFactor(d, (compactTable() ? TRAVEL_REF.phone : TRAVEL_REF.desk)[kind]);
+const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(b.x - a.x, b.y - a.y);
+/** Story 13.13: the playback's way to stretch the beat to the measured travel (absent in tests and leads). */
+type Retime = ((ms: number) => void) | undefined;
 
 /** Where an element is on screen; a staged card answers with its staged place (also while it grows). */
 function rectOf(el: Element): DOMRect {
@@ -171,29 +177,33 @@ function recoil(el: HTMLElement, from: HTMLElement | null, r: number, power = 1)
   void animateSteps(el, [{ translate: '0 0', rotate: '0deg', easing: EASING.snap }, { translate: `${dx}px ${dy}px`, rotate: `${3 * power}deg`, offset: 0.3, easing: EASING.easeOut }, { translate: '0 0', rotate: '0deg' }], 260 * r, EASING.easeOut, { composite: 'add' });
 }
 
+/** Where the dash of an attack ends, from the attacker's centre: the demo's dash on the compact table, else just short. */
+function dashTo(att: HTMLElement, tgt: HTMLElement, compact: boolean) {
+  const a = center(att);
+  const b = center(tgt);
+  if (compact) {
+    // the demo's dash: all the way across, 78 % of the way up or down, so the staged cards overlap
+    return { dx: b.x - a.x, dy: (b.y - a.y) * 0.78 };
+  }
+  // stop just short of the target (the demo stops at 78 % of a short distance), so the cards touch
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const k = Math.max(0, len - Math.min(len * 0.22, rectOf(tgt).height * 0.45)) / len;
+  return { dx: (b.x - a.x) * k, dy: (b.y - a.y) * k };
+}
+
 /** Attack: lift, dash at the target (stopping short), then come back once the hit has landed. */
-function lunge(att: HTMLElement, tgt: HTMLElement, r: number) {
+function lunge(att: HTMLElement, tgt: HTMLElement, r: number, retime?: Retime) {
+  // story 13.13: the dash and the way back take a time in proportion to the distance; the lift does not
+  const pre = dashTo(att, tgt, compactTable());
+  const k = travelK(Math.hypot(pre.dx, pre.dy), 'attack');
   const lift = 220 * r * tempo();
-  const dash = 170 * r * tempo();
-  const back = 380 * r * tempo();
+  const dash = 170 * r * tempo() * k;
+  const back = 380 * r * tempo() * k;
+  retime?.(lift + dash);
   // story 13.6: on the compact table attacker and target are staged at the demo's size, the attacker as it lifts
   const sa = stage(att, r, lift + dash + back + 900 * r, lift);
   stage(tgt, r, lift + dash + back + 900 * r, lift);
-  const a = center(att);
-  const b = center(tgt);
-  let dx: number;
-  let dy: number;
-  if (sa || compactTable()) {
-    // the demo's dash: all the way across, 78 % of the way up or down, so the staged cards overlap
-    dx = b.x - a.x;
-    dy = (b.y - a.y) * 0.78;
-  } else {
-    // stop just short of the target (the demo stops at 78 % of a short distance), so the cards touch
-    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const k = Math.max(0, len - Math.min(len * 0.22, rectOf(tgt).height * 0.45)) / len;
-    dx = (b.x - a.x) * k;
-    dy = (b.y - a.y) * k;
-  }
+  let { dx, dy } = dashTo(att, tgt, !!sa || compactTable());
   // a transform on a staged card is drawn inside its stage scale
   const ks = sa?.k ?? 1;
   dx /= ks;
@@ -238,7 +248,7 @@ function glow(el: HTMLElement, r: number) {
 }
 
 /** Magic beam from the source to the target, no contact. */
-function beam(from: HTMLElement, to: HTMLElement, r: number, color = '#b8d4ff') {
+function beam(from: HTMLElement, to: HTMLElement, r: number, color = '#b8d4ff', k = 1) {
   const a = center(from);
   const b = center(to);
   const len = Math.hypot(b.x - a.x, b.y - a.y);
@@ -254,7 +264,7 @@ function beam(from: HTMLElement, to: HTMLElement, r: number, color = '#b8d4ff') 
       { transform: `rotate(${ang}rad) scaleX(1)`, opacity: 1, offset: 0.55, easing: EASING.linear },
       { transform: `rotate(${ang}rad) scaleX(1)`, opacity: 0 },
     ],
-    520 * r * tempo(),
+    520 * r * tempo() * k,
   ).then(() => bm.remove());
 }
 
@@ -473,6 +483,8 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
       const d = overlay('fx-ash', x, y);
       const dx = to.x - x;
       const dy = to.y - y;
+      // story 13.13: ashes going further fly longer
+      const k = travelK(Math.hypot(dx, dy), 'effect');
       void animateSteps(
         d,
         [
@@ -480,7 +492,7 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
           { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px))`, opacity: 0.8, offset: 0.5, easing: EASING.easeIn },
           { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.5)`, opacity: 0 },
         ],
-        (700 + i * 40) * Math.max(r, 0.5),
+        (700 + i * 40) * Math.max(r, 0.5) * k,
       ).then(() => {
         d.remove();
         if (--left === 0) void animateSteps(g, [{ transform: 'scale(1)', easing: EASING.overshoot }, { transform: 'scale(1.35)', offset: 0.4, easing: EASING.easeInOut }, { transform: 'scale(1)' }], 600 * Math.max(r, 0.5));
@@ -508,7 +520,7 @@ function saved(iid: string, ms: number, r: number) {
 }
 
 /** Story 12.4, back to hand: the card lifts and flies in an arc to its owner's hand, shrinking. */
-function backToHand(iid: string, owner: PlayerId, ms: number) {
+function backToHand(iid: string, owner: PlayerId, ms: number, retime?: Retime) {
   const card = cardEl(iid);
   const mine = !!card?.closest('.board.mine');
   // the compact table (story 13.2) has no row of card backs: the foe's cards fly to the hand counter of their hero
@@ -518,6 +530,10 @@ function backToHand(iid: string, owner: PlayerId, ms: number) {
   const b = center(hand);
   const dx = b.x - a.x;
   const dy = b.y - a.y;
+  // story 13.13: the flight takes a time in proportion to the distance; the card leaves its slot when it lands
+  const k = travelK(Math.hypot(dx, dy), 'fly');
+  ms *= k;
+  retime?.(ms + 16);
   card.style.zIndex = '30';
   void animate(
     card,
@@ -746,7 +762,7 @@ function handOrigin(iid: string, owner: PlayerId): Pt | null {
   return ptOf(handZone(owner));
 }
 
-function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: number, after: GameState) {
+function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: number, after: GameState, retime?: Retime) {
   const from = handOrigin(e.iid, e.player);
   if (e.zone === 'resolved') {
     if (from) castSpell(e.cardId, from, ms, r);
@@ -756,7 +772,11 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
   if (!el) return;
   // story 13.11: the entrance takes 850 ms (was 620; 1100 on the portrait phone), with its step back and its
   // overshooting landing
-  const fly = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
+  const base = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
+  // story 13.13: a longer way from the hand (or the spotlight) to the slot takes longer; the beat follows
+  const to = ptOf(el);
+  const fly = from && to ? base * travelK(dist(from, to), 'fly') : base;
+  if (fly !== base) retime?.(ms + 16 + fly - base);
   const cat = CATALOG.get(e.cardId)?.category;
   // story 13.6: on the compact table a character lands at the demo's size, then settles into its slot;
   // a terrain or an equipment (a small seal in its strip) is shown as a card that lands, then shrinks into it
@@ -776,14 +796,17 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
 }
 
 /** Deck → hand. Mine: a back slides to the card's place in the hand, then the card turns over. Foe's: a back only. */
-function drawn(iid: string, player: PlayerId, r: number) {
+function drawn(iid: string, player: PlayerId, ms: number, r: number, retime?: Retime) {
   const deck = ptOf(counterEl(player, 'Pioche'));
   if (!deck) return;
-  const total = 540 * r * tempo();
-  const slide = total * 0.7;
   const real = player === myId() ? document.querySelector<HTMLElement>(`.table .hand .card[data-iid="${CSS.escape(iid)}"]`) : null;
   const to = real ? ptOf(real) : ptOf(handZone(player));
   if (!to) return;
+  // story 13.13: a card drawn further away travels longer, and so does its beat
+  const k = travelK(dist(deck, to), 'draw');
+  if (k !== 1) retime?.((ms + 16) * k);
+  const total = 540 * r * tempo() * k;
+  const slide = total * 0.7;
   const b = overlay('fx-back', deck.x, deck.y);
   b.style.width = `${real ? to.w : 34}px`;
   const dx = to.x - deck.x;
@@ -810,7 +833,7 @@ function drawn(iid: string, player: PlayerId, r: number) {
 }
 
 /** A summoned card comes from its zone of origin: a graveyard, a hand, or the other side of the table. */
-function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameState, ms: number, r: number) {
+function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameState, ms: number, r: number, retime?: Retime) {
   const el = cardEl(e.iid);
   if (!el) return;
   const holder = ([0, 1] as const).find((p) => before.players[p].hand.includes(e.iid) || before.players[p].graveyard.includes(e.iid));
@@ -818,7 +841,11 @@ function summonedIn(e: Extract<GameEvent, { type: 'summoned' }>, before: GameSta
   if (e.from === 'graveyard' && holder !== undefined) from = ptOf(counterEl(holder, 'Cimetière'));
   else if (e.from === 'hand' && holder !== undefined) from = handOrigin(e.iid, holder);
   else from = ptOf(document.querySelector(`.table .board${e.player === myId() ? '.theirs' : '.mine'}`));
-  const fly = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
+  const base = Math.min(ms, (compactTable() ? PHONE_ENTRANCE_MS : ENTRANCE_MS) * r);
+  // story 13.13: the flight from its zone of origin takes a time in proportion to the distance
+  const to = ptOf(el);
+  const fly = from && to ? base * travelK(dist(from, to), 'fly') : base;
+  if (fly !== base) retime?.(ms + 16 + fly - base);
   stage(el, r, fly + 450 * r, 0);
   if (from) flyIn(el, { ...from, w: Math.min(from.w, 40) }, fly);
   later(() => {
@@ -870,7 +897,7 @@ function projectile(from: Pt, to: HTMLElement, ms: number) {
 }
 
 /** Where a fired ability comes from: its card on the table, or the middle of the table for a spell. */
-function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: GameEvent[], index: number, gap: number, r: number, after: GameState) {
+function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: GameEvent[], index: number, gap: number, r: number, after: GameState, retime?: Retime) {
   const card = CATALOG.get(after.instances[e.iid]?.cardId ?? '');
   const ab = card?.abilities[e.ability];
   const special = e.trigger === 'attack' || e.trigger === 'reaction';
@@ -890,12 +917,15 @@ function abilityFired(e: Extract<GameEvent, { type: 'abilityUsed' }>, events: Ga
   if (!targets.length) return;
   // the label shows first, then the effect leaves (straight away for a special attack, as in 12.2)
   const delay = special ? 0 : Math.min(gap * 0.45, 260 * r);
+  // story 13.13: the beam or the orb takes a time in proportion to the way to its farthest target; the beat follows
+  const k = travelK(Math.max(...targets.map((t) => dist(from, center(t)))), 'effect');
+  if (k !== 1) retime?.(gap + (gap - delay) * (k - 1));
   later(() => {
     for (const to of targets) {
       // story 13.6: a card target is staged before the beam or the orb leaves, so it aims at its staged place
-      if (targets.length <= 2) stageHit(to, r, gap + 900 * r);
-      if (spell || !src) projectile(from, to, Math.max(200 * r, gap - delay));
-      else beam(src, to, r, e.trigger === 'reaction' ? '#ffd27a' : special ? '#b8d4ff' : '#9fe0b0');
+      if (targets.length <= 2) stageHit(to, r, gap * k + 900 * r);
+      if (spell || !src) projectile(from, to, Math.max(200 * r, gap - delay) * k);
+      else beam(src, to, r, e.trigger === 'reaction' ? '#ffd27a' : special ? '#b8d4ff' : '#9fe0b0', k);
     }
   }, delay);
 }
@@ -1208,7 +1238,7 @@ export function direct(cue: Cue) {
       const att = cardEl(e.attacker);
       const tgt = targetEl(e.target);
       current = { attacker: e.attacker, target: e.target, until: performance.now() + 2000 * r };
-      if (att && tgt) lunge(att, tgt, r);
+      if (att && tgt) lunge(att, tgt, r, cue.retime);
       break;
     }
     case 'damageDealt': {
@@ -1250,18 +1280,19 @@ export function direct(cue: Cue) {
     case 'cardPlayed': {
       const ms = Math.max(0, cue.ms - 16);
       const after = cue.after;
-      requestAnimationFrame(() => played(e, ms, r, after));
+      requestAnimationFrame(() => played(e, ms, r, after, cue.retime));
       break;
     }
     case 'cardDrawn': {
       const { iid, player } = e;
-      requestAnimationFrame(() => drawn(iid, player, r));
+      const ms = Math.max(0, cue.ms - 16);
+      requestAnimationFrame(() => drawn(iid, player, ms, r, cue.retime));
       break;
     }
     case 'summoned': {
       const ms = Math.max(0, cue.ms - 16);
       const before = cue.before;
-      requestAnimationFrame(() => summonedIn(e, before, ms, r));
+      requestAnimationFrame(() => summonedIn(e, before, ms, r, cue.retime));
       break;
     }
     case 'deathPrevented':
@@ -1270,7 +1301,7 @@ export function direct(cue: Cue) {
       break;
     case 'returnedToHand': {
       const { iid, owner } = e;
-      requestAnimationFrame(() => backToHand(iid, owner, Math.max(0, cue.ms - 16)));
+      requestAnimationFrame(() => backToHand(iid, owner, Math.max(0, cue.ms - 16), cue.retime));
       break;
     }
     case 'healed': {
@@ -1298,7 +1329,7 @@ export function direct(cue: Cue) {
       break;
     }
     case 'abilityUsed':
-      abilityFired(e, events, beat.index, cue.ms, r, cue.after);
+      abilityFired(e, events, beat.index, cue.ms, r, cue.after, cue.retime);
       break;
     case 'turnStarted':
       turnBanner(e.player === myId(), r);

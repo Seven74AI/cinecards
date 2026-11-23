@@ -4,7 +4,7 @@ baseline_commit: 3879b3ea6ad047fe7f2974a09706123975ee5f7d
 
 # Story 10.1: Règles de construction
 
-Status: review
+Status: done
 
 ## Story
 
@@ -151,3 +151,4 @@ Agent de développement (gds-dev-story).
 - 2026-11-23 — Story 10.1 implémentée : `validateDeck` (50 cartes, un exemplaire, connues et jouables) dans
   `packages/cards`, mode `constructed` du moteur (un deck par joueur, pioche et remélange personnels, « deck ADVERSE »,
   refus des decks invalides), simulation de 200 parties en mode construit ; statut → review.
+- 2026-11-23 — Revue : moteur relu (piles personnelles par `ownPiles`, refus des decks invalides), typecheck, 220 tests, simulations 200/200 (shared/randomSplit et constructed), e2e 40/40 (agent). Story terminée.

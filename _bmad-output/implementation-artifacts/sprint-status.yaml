@@ -100,7 +100,7 @@ development_status:
   epic-9-retrospective: optional
   # epic-10 : 50 cartes exactement, un exemplaire de chaque (Root, 2026-11-22) ; après 8, avant 9
   epic-10: in-progress
-  10-1-regles-de-construction: review
+  10-1-regles-de-construction: done
   10-2-ecran-de-construction: backlog
   10-3-choisir-son-deck-en-salle: backlog
   epic-10-retrospective: optional

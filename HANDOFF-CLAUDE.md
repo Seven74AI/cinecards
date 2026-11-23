@@ -54,4 +54,4 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   - Card frames: D + E + F, in `docs/design/card-frames/`.
   - Phone layout: B (overview + zoom), in `docs/design/mobile-table/`.
   - Animations: `docs/design/animations/demo.html`, live at https://claude.ai/artifact/4FcvFHDxdeVDJY4gxQMkwN.
-- **Phone tempo:** phone-only behaviour lives behind the portrait-phone layout. `PHONE_TEMPO` (1.25) and the easing palette are in `apps/client/src/game/motion.ts`. Desktop must not change unless Root asks.
+- **Phone tempo:** phone-only behaviour lives behind the portrait-phone layout. `PHONE_TEMPO` (1.25) and the easing palette are in `apps/client/src/game/motion.ts`. Desktop must not change unless Root asks (choosing it on a mockup counts). Visual rules and the readability rule: `AGENTS.md`, "Visual changes".

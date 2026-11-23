@@ -1131,6 +1131,11 @@ Ajoutée le 2026-11-22 (choix de Root : jeu sur un sous-domaine du VPS ; « cine
 ### Story 9.1: Import des cartes de Root
 As a Root, I want importer mes cartes depuis mon format, So that les ~500 cartes rejoignent le jeu.
 **Acceptance Criteria:** **Given** un fichier de Root **When** l'import s'exécute **Then** des sets JSON valides sont générés et les capacités non traduites sont listées.
+**And** (rétrospective de l'epic 13, approuvé par Root le 2026-11-23) le test des renvois (`apps/client/src/game/richtext.test.ts`,
+story 13.1) couvre aussi les sets importés : l'import produit la liste des noms cités dans les textes qui ne
+correspondent à aucune carte, avec pour chacun la carte proposée et l'alias à ajouter (`aliases`), ou « pas une
+carte » ; la liste va dans `a-valider-par-root.md`, Root la confirme ou la corrige, puis les alias validés sont
+ajoutés aux sets et le test passe.
 
 ### Story 9.2: Illustrations
 As a Root, I want associer mes images aux cartes, So that chaque carte ait son visuel.

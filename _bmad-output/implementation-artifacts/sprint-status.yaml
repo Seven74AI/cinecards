@@ -167,24 +167,24 @@ action_items:
     epic: 13
     action: "Captures e2e hors des fichiers suivis : constructed.spec.ts écrit sous test-results/ (ou SHOTS_DIR) ; un pnpm e2e laisse git status propre"
     owner: "agent dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
   - id: "epic-13-retro-item-2-règle-de-lisibilité-un-texte-ne-rapetisse-jamais"
     epic: 13
     action: "Règle de lisibilité dans AGENTS.md et la démo (reformulée par Root) : un texte peut changer de taille entre ordinateur et téléphone, mais une information utile au joueur n est jamais cachée ni sous un seuil de lisibilité ; la maquette montre le plus petit cas réel"
     owner: "orchestrateur"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
   - id: "epic-13-retro-item-3-règles-visuelles-dans-agents-md"
     epic: 13
     action: "AGENTS.md : maquette d abord, ordinateur inchangé sauf demande de Root (un choix sur maquette vaut demande), planches compare-demo dans la définition de fini des stories d animation"
     owner: "orchestrateur"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
   - id: "epic-13-retro-item-4-renvois-du-set-importé-pour-l-epic-9"
     epic: 13
     action: "Story 9.1 : étendre richtext.test.ts au set importé et lister citations non reconnues et alias à ajouter pour validation de Root"
     owner: "agent dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
-last_updated: 11-23-2026 13:00
+last_updated: 11-23-2026 14:00

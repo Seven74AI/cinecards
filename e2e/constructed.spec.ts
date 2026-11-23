@@ -4,7 +4,9 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 /** Story 10.3: choosing a saved deck for an online room, and for a solo game against Le Grimoire. */
 
 const API = `http://localhost:${process.env.E2E_SERVER_PORT ?? 2567}`;
-const SHOTS = '_bmad-output/implementation-artifacts/screens/10-3';
+// Screenshots go to the git-ignored test-results/ folder, so an e2e run leaves the tracked story screens alone.
+// To refresh the story's screens on purpose: SHOTS_DIR=_bmad-output/implementation-artifacts/screens pnpm e2e
+const SHOTS = `${process.env.SHOTS_DIR ?? 'test-results/screens'}/10-3`;
 
 type Acc = { token: string; id: number; nickname: string };
 

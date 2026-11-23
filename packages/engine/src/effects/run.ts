@@ -1,6 +1,7 @@
 import { RULES } from '../rules.ts';
 import { randomInt, rollD6 } from '../rng.ts';
 import { roundDamage } from '../state/compute-stats.ts';
+import { ownPiles } from '../state/helpers.ts';
 import type { PlayerId, Status } from '../types.ts';
 import { board, cardOf, characters, coinCap, immuneTo, inst, onBoard, stats, type Eff, type G } from '../ctx.ts';
 import { drawCard, pileOf } from '../turn/turn.ts';
@@ -113,7 +114,7 @@ function runOne(g: G, e: Eff, ctx: EffectCtx): void {
         }
         return;
       }
-      if (e.who === 'opponentPile' && g.s.mode === 'randomSplit') {
+      if (e.who === 'opponentPile' && ownPiles(g.s.mode)) {
         // "deck ADVERSE": draw from the opponent's pile
         const pile = g.s.players[other(ctx.player)].deck;
         for (let k = 0; k < (e.count ?? 1) && pile.length > 0; k++) {

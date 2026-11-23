@@ -1,6 +1,10 @@
+---
+baseline_commit: 3879b3ea6ad047fe7f2974a09706123975ee5f7d
+---
+
 # Story 10.1: Règles de construction
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -32,28 +36,28 @@ so that le mode soit équilibré.
 
 ## Tasks / Subtasks
 
-- [ ] **Cartes** — `packages/cards/src/deck.ts` (+ export dans `index.ts`) (AC 1)
-  - [ ] `DECK_SIZE = 50`, `validateDeck(ids, catalog, playable)` (la liste des cartes jouables est passée en
+- [x] **Cartes** — `packages/cards/src/deck.ts` (+ export dans `index.ts`) (AC 1)
+  - [x] `DECK_SIZE = 50`, `validateDeck(ids, catalog, playable)` (la liste des cartes jouables est passée en
         paramètre pour que `packages/cards` ne dépende pas du moteur — l'architecture interdit `cards → engine` ;
         le moteur exporte `playableCardIds`). Erreurs triées : taille, puis doublons, inconnues, non jouables.
-  - [ ] Tests `packages/cards/src/deck.test.ts` : deck valide (50 cartes jouables distinctes), 49, 51, doublon, inconnue,
+  - [x] Tests `packages/cards/src/deck.test.ts` : deck valide (50 cartes jouables distinctes), 49, 51, doublon, inconnue,
         non jouable, plusieurs erreurs à la fois, textes français.
-- [ ] **Moteur** — `packages/engine` (AC 2, 3)
-  - [ ] `DeckMode` (`types.ts`) : ajouter `'constructed'` ; `CreateGameOptions.decks?: [string[], string[]]`.
-  - [ ] `state/create.ts` : en `constructed`, valider chaque deck (exception `invalid deck for player N: <codes>`),
+- [x] **Moteur** — `packages/engine` (AC 2, 3)
+  - [x] `DeckMode` (`types.ts`) : ajouter `'constructed'` ; `CreateGameOptions.decks?: [string[], string[]]`.
+  - [x] `state/create.ts` : en `constructed`, valider chaque deck (exception `invalid deck for player N: <codes>`),
         créer les instances par joueur (`owner` = le joueur), mélanger chaque pioche avec la graine, `sharedDeck` vide.
-  - [ ] Partout où le code teste `mode === 'shared'` ou `mode === 'randomSplit'` (`turn/turn.ts` pioche et remélange,
+  - [x] Partout où le code teste `mode === 'shared'` ou `mode === 'randomSplit'` (`turn/turn.ts` pioche et remélange,
         `play/abilities.ts` choix dans le deck, `effects/run.ts` `opponentPile`), traiter `constructed` comme
         `randomSplit` (pioches personnelles). Préférer un utilitaire `ownPiles(mode)` à des `||` dispersés.
-  - [ ] Le bot (`bot.ts`) et `timeout.ts` n'ont rien de spécifique au mode : vérifier.
-  - [ ] Tests (`engine.test.ts` ou `constructed.test.ts`) : création, pioche dans son deck, remélange depuis son
+  - [x] Le bot (`bot.ts`) et `timeout.ts` n'ont rien de spécifique au mode : vérifier.
+  - [x] Tests (`engine.test.ts` ou `constructed.test.ts`) : création, pioche dans son deck, remélange depuis son
         cimetière, effet « deck adverse », refus d'un deck invalide, même carte dans les deux decks.
-- [ ] **Protocole** — `packages/protocol` : `DeckMode` est réexporté depuis le moteur ; vérifier que le serveur
+- [x] **Protocole** — `packages/protocol` : `DeckMode` est réexporté depuis le moteur ; vérifier que le serveur
       (`room.ts` : `options.mode === 'randomSplit' ? … : 'shared'`) **refuse** toujours `constructed` tant que 10.3
       n'existe pas (pas de deck à fournir) : une salle demandée en `constructed` reste en `shared`.
-- [ ] **Simulation** (AC 4) — `simulate.test.ts` : ajouter la variante `constructed` (deux decks de 50 tirés parmi
+- [x] **Simulation** (AC 4) — `simulate.test.ts` : ajouter la variante `constructed` (deux decks de 50 tirés parmi
       les cartes jouables avec la graine de la partie) ; garder les assertions existantes.
-- [ ] **Documents** : GDD (section Deck Building) déjà à jour ; ajouter à `a-valider-par-root.md` (section « Epics 8
+- [x] **Documents** : GDD (section Deck Building) déjà à jour ; ajouter à `a-valider-par-root.md` (section « Epics 8
       et 10 ») les textes d'erreur et le comportement « deck adverse » en mode construit.
 
 ## Dev Notes
@@ -79,10 +83,71 @@ so that le mode soit équilibré.
 
 ### Agent Model Used
 
+Agent de développement (gds-dev-story).
+
 ### Debug Log References
+
+- Le worktree n'avait pas de `node_modules` : `@cinecards/cards/deck` se résolvait vers la copie principale →
+  `pnpm install --frozen-lockfile` dans le worktree.
+- Un test de refus mal construit (le doublon n'en était pas un) corrigé ; aucune autre erreur.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- `packages/cards/src/deck.ts` : `DECK_SIZE = 50`, `validateDeck(ids, catalog, playable)` → `{ ok: true }` ou
+  `{ ok: false, errors }` (code, texte français, `cardId`). Erreurs triées taille → doublons → inconnues → non jouables,
+  chacune dans l'ordre du deck ; une seule erreur par carte en double, quel que soit le nombre de copies ; pluriel géré
+  (« 1 carte », « 3 cartes »). Exporté par `index.ts` et par un nouveau sous-chemin pur `@cinecards/cards/deck`.
+- Frontière d'architecture : le moteur importe `validateDeck` par `@cinecards/cards/deck` (fichier sans zod, qui
+  n'importe que des types) ; `cards` n'importe jamais le moteur (la liste `playableCardIds` est passée en paramètre).
+  Amendement noté dans `game-architecture.md` (Architectural Boundaries).
+- Moteur : `DeckMode` = `'shared' | 'randomSplit' | 'constructed'` ; `CreateGameOptions.decks?: [string[], string[]]`.
+  `createGame` en `constructed` : exception `constructed mode needs one deck per player` sans decks, sinon
+  `invalid deck for player N: <codes>` (codes distincts dans l'ordre des erreurs, ex. `size, duplicate, unknown`) ;
+  instances créées avec `owner` = le joueur, chaque pioche triée puis mélangée avec la graine (joueur 0 puis 1),
+  `sharedDeck` vide. Le code `shared` / `randomSplit` est inchangé (déplacé dans `splitDeck`).
+- Utilitaire `ownPiles(mode)` (`state/helpers.ts`) utilisé par `pileOf`, le remélange (cimetière du propriétaire,
+  événement `deckReshuffled` avec le joueur), « deck ADVERSE » (`effects/run.ts`) ; `choose` (`play/abilities.ts`)
+  passe par `pileOf`. `bot.ts` et `timeout.ts` n'ont rien de spécifique au mode (vérifié par grep).
+- Protocole / serveur : `DeckMode` réexporté tel quel ; `room.ts` fait déjà
+  `options.mode === 'randomSplit' ? 'randomSplit' : 'shared'`, donc une salle demandée en `constructed` reste en
+  `shared` : aucune modification de `apps/`.
+- Tests : `packages/cards/src/deck.test.ts` (6 tests : valide, 49 / 51, doublon, inconnue, non jouable, plusieurs
+  erreurs + textes) ; `packages/engine/src/constructed.test.ts` (5 tests : création et propriétaires, même carte dans
+  les deux decks, déterminisme, pioche dans son deck et remélange de son seul cimetière, « deck ADVERSE », refus de
+  decks invalides y compris carte non jouable, modes existants inchangés).
+- Simulation (`simulate.test.ts`) : la boucle est extraite dans `run(modeOf)` ; test existant inchangé
+  (`shared`/`randomSplit` alternés, ≥ 190) : 200/200 finies (100 shared, 100 randomSplit), victoires 103/97,
+  5537 tours, plus longue 77 tours. Nouveau test `constructed` (deux decks de 50 tirés parmi les jouables avec une
+  graine dérivée de celle de la partie, assertion 200/200) : 200/200 finies, victoires 97/103, 5717 tours, plus longue
+  64 tours.
+- Documents : GDD (Deck Building + index des `[ASSUMPTION]`) et `a-valider-par-root.md` (textes d'erreur ; « deck
+  ADVERSE » et même carte dans les deux decks).
+- Définition de fini : `pnpm typecheck` OK ; `pnpm test` 27 fichiers, 220 tests OK ; e2e (ports 2677 / 5284)
+  40/40 OK.
 
 ### File List
+
+- `packages/cards/src/deck.ts` (nouveau)
+- `packages/cards/src/deck.test.ts` (nouveau)
+- `packages/cards/src/index.ts`
+- `packages/cards/package.json` (sous-chemin `./deck`)
+- `packages/engine/src/types.ts`
+- `packages/engine/src/state/create.ts`
+- `packages/engine/src/state/helpers.ts`
+- `packages/engine/src/turn/turn.ts`
+- `packages/engine/src/effects/run.ts`
+- `packages/engine/src/play/abilities.ts`
+- `packages/engine/src/constructed.test.ts` (nouveau)
+- `packages/engine/src/simulate.test.ts`
+- `_bmad-output/game-architecture.md`
+- `_bmad-output/planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/10-1-regles-de-construction.md`
+
+## Change Log
+
+- 2026-11-23 — Story 10.1 implémentée : `validateDeck` (50 cartes, un exemplaire, connues et jouables) dans
+  `packages/cards`, mode `constructed` du moteur (un deck par joueur, pioche et remélange personnels, « deck ADVERSE »,
+  refus des decks invalides), simulation de 200 parties en mode construit ; statut → review.

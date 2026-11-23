@@ -1,8 +1,11 @@
 import type { Card } from '@cinecards/cards';
 import { RULES } from '../rules.ts';
-import type { Catalog, CardInstance, GameState, PlayerId, PlayerState, SlotKind } from '../types.ts';
+import type { Catalog, CardInstance, DeckMode, GameState, PlayerId, PlayerState, SlotKind } from '../types.ts';
 
 export const other = (p: PlayerId): PlayerId => (p === 0 ? 1 : 0);
+
+/** True when each player draws from their own pile (randomSplit and constructed modes). */
+export const ownPiles = (mode: DeckMode): boolean => mode !== 'shared';
 
 export function cardOf(catalog: Catalog, state: GameState, iid: string): Card {
   const inst = state.instances[iid];

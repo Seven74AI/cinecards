@@ -2,6 +2,7 @@ import type { ApplyResult, PlayerId, RuleError, Target } from '../types.ts';
 import { cardOf, inst, isSilenced, onBoard, type Eff, type G } from '../ctx.ts';
 import { counterAttack, canAttack } from '../combat/combat.ts';
 import { enqueueUse, queueOf, settle } from '../effects/triggers.ts';
+import { pileOf } from '../turn/turn.ts';
 
 const err = (code: RuleError['code'], params?: RuleError['params']): ApplyResult => ({ ok: false, error: params ? { code, params } : { code } });
 
@@ -94,7 +95,7 @@ export function choose(g: G, player: PlayerId, picks: string[]): ApplyResult {
   const unique = [...new Set(picks)];
   const min = pending.min ?? pending.count; // older states: exactly `count`
   if (unique.length < min || unique.length > pending.count || !unique.every((p) => pending.options.includes(p))) return err('INVALID_CHOICE', { count: pending.count });
-  const pile = pending.from === 'graveyard' ? g.s.players[player].graveyard : g.s.mode === 'shared' ? g.s.sharedDeck : g.s.players[player].deck;
+  const pile = pending.from === 'graveyard' ? g.s.players[player].graveyard : pileOf(g.s, player);
   const hand = g.s.players[player].hand;
   for (const iid of unique) {
     pile.splice(pile.indexOf(iid), 1);

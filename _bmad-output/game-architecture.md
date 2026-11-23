@@ -311,7 +311,7 @@ cinecards/
 
 ### Architectural Boundaries
 
-`client` → `protocol`, `cards` (read-only data for display) · `server` → `engine`, `cards`, `protocol` · `protocol` → `engine` (re-exports Action, GameEvent, GameState types) · `engine` → `cards` types only · nothing imports `apps/*`. *(Amended during story 1.3: game types are owned by the engine.)*
+`client` → `protocol`, `cards` (read-only data for display) · `server` → `engine`, `cards`, `protocol` · `protocol` → `engine` (re-exports Action, GameEvent, GameState types) · `engine` → `cards` types only, plus the pure deck rules of `@cinecards/cards/deck` (no zod at runtime) · nothing imports `apps/*`. *(Amended during story 1.3: game types are owned by the engine. Amended during story 10.1: `createGame` refuses invalid constructed decks with `validateDeck`.)*
 
 ## Epic to Architecture Mapping
 

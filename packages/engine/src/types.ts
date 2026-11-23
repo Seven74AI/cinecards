@@ -1,7 +1,8 @@
 import type { Card } from '@cinecards/cards';
 
 export type PlayerId = 0 | 1;
-export type DeckMode = 'shared' | 'randomSplit';
+/** shared: one common pile; randomSplit: the common pile cut in two; constructed: one 50-card deck per player (story 10.1). */
+export type DeckMode = 'shared' | 'randomSplit' | 'constructed';
 export type SlotKind = 'characters' | 'terrains' | 'spells';
 export type Catalog = ReadonlyMap<string, Card>;
 
@@ -44,7 +45,7 @@ export interface PlayerState {
   turnNumber: number; // this player's own turn counter
   hand: string[];
   graveyard: string[];
-  deck: string[]; // own pile (randomSplit mode); unused in shared mode
+  deck: string[]; // own pile (randomSplit and constructed modes); unused in shared mode
   characters: (string | null)[];
   terrains: (string | null)[];
   spells: (string | null)[];

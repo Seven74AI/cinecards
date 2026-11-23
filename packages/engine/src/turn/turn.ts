@@ -1,7 +1,7 @@
 import { RULES } from '../rules.ts';
 import { shuffleInPlace } from '../rng.ts';
 import type { CardInstance, GameEvent, GameState, PlayerId } from '../types.ts';
-import { other } from '../state/helpers.ts';
+import { other, ownPiles } from '../state/helpers.ts';
 import { board, coinCap, cycleActive, inst, passives, stats, type G } from '../ctx.ts';
 import { checkWinner, damage, processDeaths } from '../effects/core.ts';
 import { runEffects } from '../effects/run.ts';
@@ -9,13 +9,13 @@ import { drain, emit } from '../effects/triggers.ts';
 
 /** The pile a player draws from, depending on the deck mode. */
 export function pileOf(state: GameState, player: PlayerId): string[] {
-  return state.mode === 'shared' ? state.sharedDeck : state.players[player].deck;
+  return ownPiles(state.mode) ? state.players[player].deck : state.sharedDeck;
 }
 
-/** Refills an empty pile from graveyards (both in shared mode, the owner's in randomSplit mode). */
+/** Refills an empty pile from graveyards (both in shared mode, the owner's with own piles). */
 function refill(state: GameState, player: PlayerId, events: GameEvent[]): boolean {
   const pile = pileOf(state, player);
-  const sources: PlayerId[] = state.mode === 'shared' ? [0, 1] : [player];
+  const sources: PlayerId[] = ownPiles(state.mode) ? [player] : [0, 1];
   const cards = sources.flatMap((p) => state.players[p].graveyard.splice(0));
   if (cards.length === 0) return false;
   for (const iid of cards) {
@@ -24,7 +24,7 @@ function refill(state: GameState, player: PlayerId, events: GameEvent[]): boolea
     if (inst.bodyDamage) inst.bodyDamage = inst.bodyDamage.map(() => 0);
   }
   pile.push(...shuffleInPlace(state, cards));
-  events.push({ type: 'deckReshuffled', player: state.mode === 'shared' ? 'shared' : player, size: pile.length });
+  events.push({ type: 'deckReshuffled', player: ownPiles(state.mode) ? player : 'shared', size: pile.length });
   return true;
 }
 

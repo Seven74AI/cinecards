@@ -34,3 +34,4 @@
 - 2026-11-23 — Root valide le lot 5 de `a-valider-par-root.md` : comptes et sécurité (13 points, stories 8.1 et 8.2).
 - 2026-11-23 — Root valide le lot 6 de `a-valider-par-root.md` : hébergement, amis, historique, émotes (17 points, stories 8.3 à 8.6).
 - 2026-11-23 — Root valide le lot 7 de `a-valider-par-root.md` : decks construits (12 points, stories 10.1 à 10.3). Tout le fichier est validé.
+- 2026-11-23 — Root : un deck de joueur n'est jamais modifié automatiquement ; devenu invalide, il est inutilisable jusqu'à ce que son propriétaire le corrige (GDD, Deck Building). Lot 8 de `a-valider-par-root.md` (test en direct, story 8.7) validé.

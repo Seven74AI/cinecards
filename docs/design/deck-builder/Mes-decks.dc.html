@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mes decks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&amp;family=Alegreya:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0c0703}
+.canvas{display:flex;gap:40px;align-items:flex-start;padding:40px;box-sizing:border-box;background:#0c0703;width:max-content}
+.lbl{font-family:Cinzel,serif;font-size:12px;letter-spacing:.14em;color:#d4a74a;text-transform:uppercase;margin:0 0 10px}
+.phone{--pw:390px;--ph:844px;width:var(--pw);height:var(--ph);box-sizing:border-box;overflow:hidden;position:relative;display:flex;flex-direction:column;color:#ead9b0;background:radial-gradient(ellipse at 50% 30%,#3a2414 0%,#2b1b10 45%,#120a05 100%);font-family:Alegreya,serif}
+.phone.sm{--pw:360px;--ph:640px}
+.phone *{box-sizing:border-box}
+button{font:inherit;color:inherit}
+.top{flex:none;display:flex;align-items:center;gap:4px;height:52px;padding:0 8px 0 2px}
+.ib{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;cursor:pointer;border-radius:10px}
+.name{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:44px;padding:0 10px;border-radius:8px;background:rgba(20,12,6,.55);box-shadow:inset 0 0 0 1px rgba(212,167,74,.3)}
+.name input{flex:1;min-width:0;border:0;background:transparent;font-family:Cinzel,serif;font-weight:700;font-size:14px;color:#f2d27a;outline:0;padding:0;text-overflow:ellipsis}
+.btn{height:44px;padding:0 14px;border:0;border-radius:10px;font-family:Cinzel,serif;font-weight:900;font-size:12px;letter-spacing:.02em;cursor:pointer;flex:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.gold{color:#2a1a0e;background:linear-gradient(#f2d27a,#c08a2a);box-shadow:0 0 0 1px #5a3d12,0 2px 6px rgba(0,0,0,.5)}
+.btn.ghost{color:#f2d27a;background:rgba(20,12,6,.6);box-shadow:inset 0 0 0 1px rgba(212,167,74,.5)}
+.btn.red{color:#fff3d6;background:radial-gradient(circle at 40% 35%,#c0392b,#7a1414 70%);box-shadow:0 0 0 2px #4d0c0a}
+.meta{font-family:Alegreya,serif;font-size:12px;color:#b9a27a}
+.err{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:12px;font-family:Alegreya,serif;font-weight:500;font-size:13px;color:#ffd6cc;background:rgba(142,31,31,.55);box-shadow:inset 0 0 0 1px rgba(255,120,100,.55);white-space:nowrap}
+.okp{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:12px;font-family:Alegreya,serif;font-weight:500;font-size:13px;color:#d4f5dc;background:rgba(29,106,54,.5);box-shadow:inset 0 0 0 1px rgba(90,200,120,.55);white-space:nowrap}
+.count{font-family:Cinzel,serif;font-weight:900;font-size:22px;color:#f2d27a;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+.count small{font-size:14px;color:#b9a27a}
+.bar{height:6px;border-radius:3px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(212,167,74,.3);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#c08a2a,#f2d27a)}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:22px;background:rgba(20,12,6,.6);box-shadow:inset 0 0 0 1px rgba(212,167,74,.35);font-family:Alegreya,serif;font-size:15px;color:#8a7658}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:22px;border:0;font-family:Alegreya,serif;font-weight:500;font-size:14px;color:#ead9b0;background:rgba(20,12,6,.6);box-shadow:inset 0 0 0 1px rgba(212,167,74,.35);white-space:nowrap;cursor:pointer}
+.chip.on{color:#2a1a0e;background:linear-gradient(#f3e6c4,#d9c08a);box-shadow:0 0 0 1px #d4a74a}
+.chip.sq{width:44px;padding:0;justify-content:center}
+.chip.small{height:32px;padding:0 10px;font-size:13px}
+.hscroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
+.hscroll::-webkit-scrollbar{display:none}
+.sec{font-family:Cinzel,serif;font-weight:700;font-size:12px;letter-spacing:.08em;color:#d4a74a;text-transform:uppercase}
+/* card (same markup as docs/design/mobile-table) */
+.c{position:relative;flex:none;width:var(--w);height:calc(var(--w) * 1.4);padding:2px;border-radius:5px;background:linear-gradient(145deg,#f2d27a,#d4a74a 40%,#8a6416 75%,#f2d27a);box-shadow:0 0 0 1px #3a2608,0 3px 6px rgba(0,0,0,.6)}
+.c .in{height:100%;border-radius:3px;display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(90,61,12,.5);background:radial-gradient(ellipse at 50% 40%,#f3e6c4,#ead9b0 60%,#cdb07a)}
+.c.p-spell .in{background:radial-gradient(ellipse at 50% 35%,#f6dcc8,#e8c0a6 60%,#c08e72)}
+.c.p-equip .in{background:radial-gradient(ellipse at 50% 35%,#eef1ef,#d6dbd6 60%,#a9b0ab)}
+.c.p-terr .in{background:radial-gradient(ellipse at 50% 35%,#eef0cf,#d8ddb0 60%,#a9b37a)}
+.c .nm{flex:none;font-family:Cinzel,serif;font-weight:900;font-size:max(8px,calc(var(--w) * .1));line-height:1.05;color:#2a1a0e;text-align:center;padding:4px 3px 3px calc(var(--w) * .22);height:calc(var(--w) * .34);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.c .nm.nm-s{font-size:max(7px,calc(var(--w) * .082));letter-spacing:-.02em}
+.c .nm span{overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c .art{flex:1;margin:0 3px 3px;border-radius:2px;border:1px solid #8a6416}
+.c .st{position:absolute;left:2px;right:2px;bottom:2px;display:flex;justify-content:space-between}
+.c .st span{font-family:Cinzel,serif;font-weight:900;font-size:max(9px,calc(var(--w) * .12));color:#fff;padding:0 3px;border-radius:2px 2px 5px 5px;box-shadow:0 0 0 1px #f2d27a;line-height:1.35}
+.c .a{background:linear-gradient(#b8322a,#7a1414)}.c .h{background:linear-gradient(#8a3cb0,#4e1670)}
+.r1 .in{border:1.5px solid #2f7bf6}.r2 .in{border:1.5px solid #b020c0;box-shadow:inset 0 0 8px rgba(176,32,192,.4)}
+.c.r3{background:linear-gradient(145deg,#fff2c0,#ffb54a 30%,#d4a74a 55%,#8a6416 80%,#fff2c0);box-shadow:0 0 0 1px #3a2608,0 0 9px rgba(255,149,0,.55)}.r3 .in{border:1.5px solid #ff9500}
+/* cost token by category (card-frames D) */
+.tk{position:absolute;top:-4px;left:-4px;width:calc(var(--w) * .3);height:calc(var(--w) * .34);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.tk i,.tk b{position:absolute;inset:0;font-style:normal}
+.tk i{background:linear-gradient(145deg,#fff4c4,#d4a74a 45%,#7a5410)}
+.tk b{inset:1.5px;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:max(9px,calc(var(--w) * .15));color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.7)}
+.tk.tkl{position:relative;top:auto;left:auto;flex:none;display:inline-block;width:var(--s);height:calc(var(--s) * 1.12)}
+.tk.tkl b{font-size:calc(var(--s) * .5)}
+.shield i,.shield b{clip-path:polygon(0 0,100% 0,100% 58%,50% 100%,0 58%)}
+.shield b{background:linear-gradient(#e9c25d,#9a6a14);color:#3a2608;text-shadow:none;padding-bottom:22%}
+.seal i{border-radius:47% 53% 50% 50% / 53% 47% 53% 47%;background:#5a0f0d}
+.seal b{border-radius:50%;inset:3px;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 55%,#5a0f0d)}
+.hex i,.hex b{clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)}
+.hex b{background:linear-gradient(145deg,#9aa8b4,#4a5662 60%,#2f3943)}
+.dia i,.dia b{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.dia b{inset:3px;background:linear-gradient(160deg,#7fb84a,#3e7a1c 55%,#1d3a0c)}
+.gem{display:inline-block;flex:none;width:9px;height:9px;transform:rotate(45deg);--rc:#b8bcc4;background:linear-gradient(135deg,#fff 0%,var(--rc) 35%,var(--rc) 70%,#000 140%);box-shadow:0 0 0 1.5px #d4a74a,0 0 6px var(--rc)}
+.g-common{--rc:#b8bcc4;box-shadow:0 0 0 1.5px #d4a74a}.g-rare{--rc:#2f7bf6}.g-epic{--rc:#b020c0}.g-legendary{--rc:#ff9500}
+/* deck badges on cards */
+.badge{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+.badge.bin{color:#2a1a0e;background:linear-gradient(#f2d27a,#c08a2a);box-shadow:0 0 0 2px #2a1a0e,0 2px 4px rgba(0,0,0,.6)}
+.badge.badd{color:#f2d27a;background:rgba(20,12,6,.85);box-shadow:0 0 0 1.5px rgba(212,167,74,.7)}
+.cbtn .c .nm{padding-right:calc(var(--w) * .2)}
+.used{opacity:.55;filter:saturate(.6)}
+.toast{position:absolute;left:12px;right:12px;display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;border-radius:10px;font-family:Alegreya,serif;font-size:14px;line-height:1.25;color:#ffe9e2;background:linear-gradient(#7a1414,#4d0c0a);box-shadow:0 0 0 1.5px #d4a74a,0 8px 18px rgba(0,0,0,.6);z-index:5}
+.toast b{font-family:Cinzel,serif;font-weight:900;font-size:13px;display:block;color:#fff3d6}
+.curve{display:flex;align-items:flex-end;gap:2px;margin-bottom:12px;flex:none}
+.curve span{position:relative;width:8px;background:linear-gradient(#f2d27a,#8a6416);border-radius:1px 1px 0 0}
+.curve em{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);font-style:normal;font-family:Cinzel,serif;font-size:8px;color:#8a7658}
+.scrollhint{position:absolute;right:3px;width:4px;border-radius:2px;background:rgba(212,167,74,.45)}
+
+.mhead{flex:none;display:flex;align-items:center;gap:4px;height:56px;padding:0 10px 0 2px}
+.mhead h1{margin:0 auto 0 0;font-family:Cinzel,serif;font-weight:900;font-size:20px;color:#f2d27a}
+.dlist{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:4px 12px 12px}
+.deck{display:flex;flex-direction:column;border-radius:12px;background:linear-gradient(#f3e6c4,#ddc48e);box-shadow:0 0 0 1.5px #d4a74a,0 4px 12px rgba(0,0,0,.5);color:#2a1a0e;overflow:hidden}
+.deck.bad{box-shadow:0 0 0 1.5px #b8322a,0 4px 12px rgba(0,0,0,.5)}
+.dtop{display:flex;align-items:center;gap:12px;padding:12px 12px 10px;border:0;background:transparent;text-align:left;cursor:pointer;width:100%}
+.fan{position:relative;width:64px;height:66px;flex:none}
+.fan .c{position:absolute;top:2px}
+.dt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.dn{font-family:Cinzel,serif;font-weight:900;font-size:15px;line-height:1.15;color:#2a1a0e}
+.df{font-family:Alegreya,serif;font-size:13px;color:#5a3d1c}
+.dc{font-family:Cinzel,serif;font-weight:900;font-size:14px;color:#2a1a0e;font-variant-numeric:tabular-nums}
+.st-ok{display:inline-flex;align-items:center;gap:4px;font-family:Alegreya,serif;font-weight:700;font-size:13px;color:#1d6a36}
+.st-bad{display:inline-flex;align-items:center;gap:4px;font-family:Alegreya,serif;font-weight:700;font-size:13px;color:#8e1f1f}
+.dact{display:flex;border-top:1px solid rgba(90,61,12,.3);background:rgba(90,61,12,.08)}
+.dact button{flex:1;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;gap:6px;font-family:Alegreya,serif;font-weight:700;font-size:14px;color:#5a3d1c;cursor:pointer}
+.dact button+button{border-left:1px solid rgba(90,61,12,.25)}
+.dact svg{stroke:#5a3d1c}
+.dact .del,.dact .del svg{color:#8e1f1f;stroke:#8e1f1f}
+.newd{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:12px;border:1.5px dashed rgba(212,167,74,.6);background:transparent;font-family:Cinzel,serif;font-weight:700;font-size:14px;color:#f2d27a;cursor:pointer}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);z-index:7;padding:18px 16px 16px;border-radius:14px;background:linear-gradient(#f3e6c4,#d9c08a);box-shadow:0 0 0 2px #d4a74a,0 14px 40px rgba(0,0,0,.7);color:#2a1a0e;display:flex;flex-direction:column;gap:10px}
+.dlg h2{margin:0;font-family:Cinzel,serif;font-weight:900;font-size:17px}
+.dlg p{margin:0;font-family:Alegreya,serif;font-size:15px;line-height:1.3;color:#3a2608}
+.scrim{position:absolute;inset:0;background:rgba(5,3,1,.62);z-index:6}
+
+</style>
+</helmet>
+<div class="canvas">
+<div><p class="lbl">Mes decks</p>
+<div class="phone">
+<div class="mhead"><button type="button" class="ib" aria-label="Retour au menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2.2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1>Mes decks</h1><button type="button" class="btn gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouveau</button></div>
+<p class="meta" style="margin:0 14px 10px;font-size:13px">Un deck compte exactement 50 cartes, une copie de chaque. Seuls les decks valides peuvent être choisis en salle.</p>
+<div class="dlist"><article class="deck bad">
+<button type="button" class="dtop" aria-label="Modifier Chevaliers et agents"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Arthur, roi des Bretons"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2f5a2a,#12280f)"></div></div><span class="tk shield"><i></i><b>9</b></span></div><div class="c r3 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Néo a.k.a L'élu"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>10</b></span></div><div class="c r3 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Topper Harley"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>9</b></span></div></span><span class="dt"><span class="dn">Chevaliers et agents</span><span class="df">Sacré Graal · Matrix · Hot Shots! · White Chicks</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">47 / 50</span><span class="st-bad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>Il manque 3 cartes</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article><article class="deck">
+<button type="button" class="dtop" aria-label="Modifier Les élus de Sion"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Smith a.k.a The Virus"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>13</b></span></div><div class="c r2 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Trinity"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>7</b></span></div><div class="c r3 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Latrell Spencer"><div class="in"><div class="art" style="background:linear-gradient(160deg,#7a3a6a,#2a0f24)"></div></div><span class="tk shield"><i></i><b>9</b></span></div></span><span class="dt"><span class="dn">Les élus de Sion</span><span class="df">Matrix · Sacré Graal · White Chicks</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">50 / 50</span><span class="st-ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Valide</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article><article class="deck bad">
+<button type="button" class="dtop" aria-label="Modifier Escadrille Graal (copie)"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Topper Harley"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>9</b></span></div><div class="c r2 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Le Chevalier noir"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2f5a2a,#12280f)"></div></div><span class="tk shield"><i></i><b>7</b></span></div><div class="c r2 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Ramada Thompson"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>6</b></span></div></span><span class="dt"><span class="dn">Escadrille Graal (copie)</span><span class="df">Hot Shots! · Sacré Graal · Matrix</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">51 / 50</span><span class="st-bad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>1 carte de trop</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article>
+<p class="meta" style="text-align:center;margin:2px 0 0">Enregistrés sur votre compte · visibles sur tous vos appareils</p>
+</div>
+
+</div>
+</div>
+<div><p class="lbl">Supprimer (confirmation)</p>
+<div class="phone">
+<div class="mhead"><button type="button" class="ib" aria-label="Retour au menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2.2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1>Mes decks</h1><button type="button" class="btn gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouveau</button></div>
+<p class="meta" style="margin:0 14px 10px;font-size:13px">Un deck compte exactement 50 cartes, une copie de chaque. Seuls les decks valides peuvent être choisis en salle.</p>
+<div class="dlist"><article class="deck bad">
+<button type="button" class="dtop" aria-label="Modifier Chevaliers et agents"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Arthur, roi des Bretons"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2f5a2a,#12280f)"></div></div><span class="tk shield"><i></i><b>9</b></span></div><div class="c r3 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Néo a.k.a L'élu"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>10</b></span></div><div class="c r3 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Topper Harley"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>9</b></span></div></span><span class="dt"><span class="dn">Chevaliers et agents</span><span class="df">Sacré Graal · Matrix · Hot Shots! · White Chicks</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">47 / 50</span><span class="st-bad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>Il manque 3 cartes</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article><article class="deck">
+<button type="button" class="dtop" aria-label="Modifier Les élus de Sion"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Smith a.k.a The Virus"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>13</b></span></div><div class="c r2 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Trinity"><div class="in"><div class="art" style="background:linear-gradient(160deg,#1c3a24,#040a06)"></div></div><span class="tk shield"><i></i><b>7</b></span></div><div class="c r3 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Latrell Spencer"><div class="in"><div class="art" style="background:linear-gradient(160deg,#7a3a6a,#2a0f24)"></div></div><span class="tk shield"><i></i><b>9</b></span></div></span><span class="dt"><span class="dn">Les élus de Sion</span><span class="df">Matrix · Sacré Graal · White Chicks</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">50 / 50</span><span class="st-ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Valide</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article><article class="deck bad">
+<button type="button" class="dtop" aria-label="Modifier Escadrille Graal (copie)"><span class="fan"><div class="c r3 p-char " style="--w:38px;left:0px;transform:rotate(-8deg);z-index:0" title="Topper Harley"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>9</b></span></div><div class="c r2 p-char " style="--w:38px;left:12px;transform:rotate(0deg);z-index:1" title="Le Chevalier noir"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2f5a2a,#12280f)"></div></div><span class="tk shield"><i></i><b>7</b></span></div><div class="c r2 p-char " style="--w:38px;left:24px;transform:rotate(8deg);z-index:2" title="Ramada Thompson"><div class="in"><div class="art" style="background:linear-gradient(160deg,#2a5a8a,#0a1e36)"></div></div><span class="tk shield"><i></i><b>6</b></span></div></span><span class="dt"><span class="dn">Escadrille Graal (copie)</span><span class="df">Hot Shots! · Sacré Graal · Matrix</span><span style="display:flex;align-items:center;gap:10px"><span class="dc">51 / 50</span><span class="st-bad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>1 carte de trop</span></span></span></button>
+<div class="dact"><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Modifier</button><button type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a74a" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier</button><button type="button" class="del"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a6a" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Supprimer</button></div>
+</article>
+<p class="meta" style="text-align:center;margin:2px 0 0">Enregistrés sur votre compte · visibles sur tous vos appareils</p>
+</div>
+<div class="scrim"></div><div class="dlg" role="dialog"><h2>Supprimer ce deck ?</h2><p>« Escadrille Graal (copie) » sera supprimé de votre compte. Cette action est définitive.</p><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn ghost" style="flex:1;color:#2a1a0e;background:transparent;box-shadow:inset 0 0 0 1.5px #8a6416">Annuler</button><button type="button" class="btn red" style="flex:1">Supprimer</button></div></div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":960}}'></script>
+</body>
+</html>

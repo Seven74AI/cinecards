@@ -3,7 +3,7 @@ baseline_commit: 45f6c030581110b7c511d39d2330c02a7f5e9e9e
 ---
 # Story 8.4: Historique
 
-Status: review
+Status: done
 
 ## Story
 
@@ -149,3 +149,4 @@ Agent de dev (workflow `gds-dev-story`).
 - 2026-11-23 — Story 8.4 implémentée : migration 4 (`games`, `game_players`), enregistrement des parties en ligne
   terminées par le serveur (résultats depuis le moteur), `GET /api/history`, `/api/health` avec `history: true`,
   panneau « Historique » (bilan + 20 dernières parties). Statut : review.
+- 2026-11-23 — Revue : enregistrement seulement avec un vainqueur du moteur, écran vérifié ; typecheck, 248 tests, e2e 42/42. Story terminée.

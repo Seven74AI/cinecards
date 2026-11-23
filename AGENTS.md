@@ -7,7 +7,7 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
 ## Source of truth
 - Rules: `_bmad-output/planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md` (Root's paper rules win).
 - Architecture: `_bmad-output/game-architecture.md`. Stories: `_bmad-output/planning-artifacts/epics.md`.
-- Progress: `_bmad-output/implementation-artifacts/sprint-status.yaml`. Current work: **epic 13** (playtest fixes; epic 12 done).
+- Progress: `_bmad-output/implementation-artifacts/sprint-status.yaml`. Current work: epics 8 and 10 done (2026-11-23); epic 9 waits for Root's cards.
   Epic 12 = per-action visual feedback, spec `planning-artifacts/retours-visuels-actions.md`, approved animated demo
   `docs/design/animations/demo.html`), before epics 8-10. Epic 11 (playtest-1 fixes) is done.
 
@@ -24,6 +24,11 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
   `PW_CHANNEL=chromium pnpm e2e -- --trace off`. When several agents work in parallel worktrees, give each its own ports
   (`E2E_SERVER_PORT` / `E2E_CLIENT_PORT`, e.g. 2667/5274) so their e2e servers don't collide. If the story touches the engine or the cards, the
   200-game simulation must also pass.
+- **Agents in parallel (retrospective of epics 8 and 10, 2026-11-23):** stories may be built in parallel worktrees,
+  but merge them into `main` **one at a time**: rebase, resolve, then rerun `pnpm typecheck`, `pnpm test` and the full
+  e2e suite after *each* merge. Conflicts in stylesheets are resolved by keeping both blocks whole, never by gluing
+  conflict halves (a lost `}` broke every page twice). Before e2e, make sure no stale server listens on the e2e ports.
+  When two agents report the same problem as "out of scope", it becomes a task.
 - **Ship:** commit and push straight to `main`. The game lives at https://cinecards.sevend.io/: the
   game server also serves the built client (story 8.6, `CLIENT_DIR` in the Docker image), so the VPS
   autodeploy below ships client and server together. GitHub Pages is now the old site (a "moved"

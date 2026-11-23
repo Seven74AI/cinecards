@@ -64,7 +64,12 @@ test('draws: the foe gets a card back, my drawn card stays hidden until it turns
     }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
   });
   const before = await page.locator('.hand .card').count();
-  await page.getByRole('button', { name: 'Fin du tour' }).click();
+  const endTurn = page.getByRole('button', { name: 'Fin du tour' });
+  // under load the first press can land before the table takes input: press until the turn has really passed
+  await expect(async () => {
+    if (await endTurn.isEnabled()) await endTurn.click();
+    await expect(endTurn).toBeDisabled({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
   // Le Grimoire's turn, then mine again: more cards in my hand
   await expect(page.getByRole('button', { name: 'Fin du tour' })).toBeEnabled({ timeout: 90000 });
   await expect.poll(() => page.locator('.hand .card').count(), { timeout: 15_000 }).toBeGreaterThan(before);

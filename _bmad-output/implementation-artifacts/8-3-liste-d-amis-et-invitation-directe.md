@@ -239,3 +239,4 @@ Agent dev (workflow gds-dev-story)
 - 2026-11-23 — Story 8.3 implémentée : liste d'amis (demande par pseudo, acceptation, refus, annulation, retrait),
   présence en direct (en ligne / en partie / hors ligne) par la salle `hub`, invitation directe de 2 min rejointe d'un
   appui, migration 3, `/api/health` avec `friends: true`. Statut : review.
+- 2026-11-23 — Revue : rebasée sur main (10.1), écrans vérifiés, typecheck, 237 tests, e2e 41/41. Test `play-draw` (« draws ») rendu robuste : l'appui sur « Fin du tour » est répété jusqu'à ce que le tour passe vraiment. Story terminée.

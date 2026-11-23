@@ -16,7 +16,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - **Tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`. Plan: `_bmad-output/planning-artifacts/epics.md`. Rules: the GDD (`planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`). History of decisions: `decision-log.md` next to it.
 
 ## Waiting on Root (go through these first)
-- **Pending:** the 5 new lines of stories 13.13–13.15 in `a-valider-par-root.md`; batches 1-8 are validated (2026-11-22/23). Neo's doubling stays uncapped until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects. Root's rule: a saved deck is never changed automatically (GDD, Deck Building).
+- **Nothing pending:** `a-valider-par-root.md` is fully validated (batches 1-9, 2026-11-22/23; batch 9 = stories 13.13–13.15). Neo's doubling stays uncapped until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects. Root's rule: a saved deck is never changed automatically (GDD, Deck Building).
 - **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
   `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.
 - **Parked by Root:** the iPhone `?fps` check and performance tests (2026-11-22), and the playtest with friends until the real cards are in (2026-11-23). Do not bring them up until Root does.
@@ -41,7 +41,6 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   the one you pushed (the VPS updates within ~5 min) and `ok` is true; a failed step has an `error`.
 
 ## Next options (let Root choose)
-- **To validate:** the 13.13–13.15 defaults in `a-valider-par-root.md` (typical distances, portrait scale, shake cap).
 - Animation timing hook: `Cue.retime(ms)` (`game/playback.ts`) lets the director stretch a beat to the travel it measured;
   `TRAVEL_REF`, `fxScale` and `shakeScale` live in `game/motion.ts`.
 - **Epic 9, importing Root's ~500 cards:** Root brings a sample of his format in about a week. Existing saved decks must

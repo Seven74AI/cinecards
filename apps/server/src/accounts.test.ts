@@ -232,7 +232,7 @@ describe('8.1 HTTP API and rooms', () => {
     expect(await (await fetch(`${base}/health`)).text()).toBe('ok');
     const r = await fetch(`${base}/api/health`);
     expect(r.headers.get('content-type')).toBe('application/json; charset=utf-8');
-    expect(await r.json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true, history: true });
+    expect(await r.json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true, history: true, decks: true });
   });
 
   it('creates, reads, logs in, logs out and recovers over HTTP', async () => {
@@ -279,7 +279,7 @@ describe('8.1 HTTP API and rooms', () => {
     expect(refused.headers.get('access-control-allow-origin')).toBeNull();
     const pre = await fetch(`${base}/api/accounts`, { method: 'OPTIONS', headers: { Origin: 'https://example.test', 'Access-Control-Request-Method': 'POST' } });
     expect(pre.status).toBe(204);
-    expect(pre.headers.get('access-control-allow-methods')).toBe('GET, POST, DELETE');
+    expect(pre.headers.get('access-control-allow-methods')).toBe('GET, POST, PUT, DELETE');
     expect(pre.headers.get('access-control-allow-headers')).toBe('Authorization, Content-Type');
     expect(pre.headers.get('access-control-max-age')).toBe('600');
     expect(originAllowed('http://127.0.0.1:2567', [])).toBe(true);

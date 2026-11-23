@@ -7,6 +7,8 @@ const art = import.meta.glob('../../../../content/art/**/*.{jpg,png,svg,webp}', 
 
 const sets = Object.entries(rawSets).map(([file, json]) => ({ set: parseSet(json, file), file }));
 export const SET_TITLES: Record<string, string> = Object.fromEntries(sets.map(({ set }) => [set.id, set.title]));
+/** Short film names ("Sacré Graal", "White Chicks"), for tight places such as the deck builder (story 10.2). */
+export const SET_FAMILIES: Record<string, string> = Object.fromEntries(sets.map(({ set }) => [set.id, set.family]));
 export const CATALOG: Catalog = buildCatalog(sets);
 export const PLAYABLE = playableCardIds(CATALOG);
 

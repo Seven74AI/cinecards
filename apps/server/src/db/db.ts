@@ -64,6 +64,16 @@ export const MIGRATIONS: string[] = [
      PRIMARY KEY (game_id, seat)
    );
    CREATE INDEX game_players_account ON game_players(account_id, game_id DESC);`,
+  // story 10.2: constructed decks saved on the account; `cards` is a JSON array of card ids
+  `CREATE TABLE decks (
+     id INTEGER PRIMARY KEY,
+     account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     cards TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX decks_account ON decks(account_id);`,
 ];
 
 /** The database file inside DATA_DIR, or ':memory:' (tests). */

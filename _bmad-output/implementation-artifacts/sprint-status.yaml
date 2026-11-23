@@ -101,8 +101,8 @@ development_status:
   # epic-10 : 50 cartes exactement, un exemplaire de chaque (Root, 2026-11-22) ; après 8, avant 9
   epic-10: in-progress
   10-1-regles-de-construction: done
-  10-2-ecran-de-construction: ready-for-dev  # maquette B retenue par Root le 2026-11-23
-  10-3-choisir-son-deck-en-salle: ready-for-dev
+  10-2-ecran-de-construction: done  # maquette B retenue par Root le 2026-11-23
+  10-3-choisir-son-deck-en-salle: backlog
   epic-10-retrospective: optional
   # epic-12 (retours visuels de chaque action) : approuvé par Root le 2026-11-22, à faire juste après l'epic 11, avant 8, 9, 10
   epic-12: done

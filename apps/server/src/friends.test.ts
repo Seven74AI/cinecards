@@ -221,7 +221,7 @@ describe('8.3 HTTP API and the hub room', () => {
   };
 
   it('answers /api/health with friends, and the friend routes over HTTP', async () => {
-    expect(await (await fetch(`${base}/api/health`)).json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true, history: true });
+    expect(await (await fetch(`${base}/api/health`)).json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true, history: true, decks: true });
     const a = await account('Ha');
     const b = await account('Hb');
     expect((await api('GET', '/api/friends')).status).toBe(401);

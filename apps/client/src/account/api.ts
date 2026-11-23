@@ -49,16 +49,19 @@ export interface ServerFeatures {
   friends: boolean;
   /** Story 8.4: game history; an older server answers without it, which hides "Historique". */
   history: boolean;
+  /** Story 10.2: decks saved on the account; an older server answers without it, which hides "Mes decks". */
+  decks: boolean;
 }
 
 let features: Promise<ServerFeatures> | null = null;
 /** What the server offers (`GET /api/health`, 4 s, once per visit). An older server, or none, hides the account UI. */
 export function serverFeatures(): Promise<ServerFeatures> {
-  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean; history?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
+  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean; history?: boolean; decks?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
     accounts: r.ok && r.data?.accounts === true,
     passkeys: r.ok && r.data?.accounts === true && r.data?.passkeys === true,
     friends: r.ok && r.data?.accounts === true && r.data?.friends === true,
     history: r.ok && r.data?.accounts === true && r.data?.history === true,
+    decks: r.ok && r.data?.accounts === true && r.data?.decks === true,
   }));
   return features;
 }
@@ -132,3 +135,16 @@ export interface HistoryList {
   games: PlayedGame[];
 }
 export const history = (token: string) => call<HistoryList>('GET', '/api/history', { token });
+// ---- story 10.2: decks saved on the account (status computed by the server) ----
+export interface SavedDeck {
+  id: number;
+  name: string;
+  cards: string[];
+  valid: boolean;
+  errors: string[];
+  updatedAt: number;
+}
+export const listDecks = (token: string) => call<{ decks: SavedDeck[] }>('GET', '/api/decks', { token });
+export const createDeck = (token: string, name: string, cards: string[]) => call<{ deck: SavedDeck }>('POST', '/api/decks', { token, body: { name, cards } });
+export const updateDeck = (token: string, id: number, name: string, cards: string[]) => call<{ deck: SavedDeck }>('PUT', `/api/decks/${id}`, { token, body: { name, cards } });
+export const deleteDeck = (token: string, id: number) => call<null>('DELETE', `/api/decks/${id}`, { token });

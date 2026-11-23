@@ -3,6 +3,7 @@ import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/pas
 import type { AccountService, AuthResult } from '../auth/service.ts';
 import type { HistoryService } from '../history.ts';
 import type { FriendService } from '../social/friends.ts';
+import type { DeckService } from '../decks/decks.ts';
 
 /**
  * Default client origins: the game on Root's domain (story 8.6) and the old GitHub Pages site during the move;
@@ -89,7 +90,7 @@ const bearer = (req: http.IncomingMessage) => /^Bearer\s+(\S+)$/i.exec(req.heade
  * JSON API under `/api/` (story 8.1), served on the game server's port. Returns a request handler that
  * answers `/api/*` and returns true, or returns false so the request goes on to Colyseus.
  */
-export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService, history?: HistoryService) {
+export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService, history?: HistoryService, decks?: DeckService) {
   return (req: http.IncomingMessage, res: http.ServerResponse): boolean => {
     const path = (req.url ?? '').split('?')[0]!;
     if (path !== '/api' && !path.startsWith('/api/')) return false;
@@ -109,7 +110,7 @@ export function createApi(service: AccountService, origins: string[], passkeys =
     };
     if (req.method === 'OPTIONS') {
       res
-        .writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, DELETE', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Max-Age': '600' })
+        .writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Max-Age': '600' })
         .end();
       return true;
     }
@@ -129,9 +130,13 @@ export function createApi(service: AccountService, origins: string[], passkeys =
         return reply(friends!.accept(bearer(req), Number(friend[1])), 204);
       }
       if (friend && req.method === 'DELETE' && !friend[2]) return reply(friends!.remove(bearer(req), Number(friend[1])), 204);
+      // story 10.2: one saved deck
+      const deck = decks ? /^\/api\/decks\/(\d{1,15})$/.exec(path) : null;
+      if (deck && req.method === 'PUT') return reply(decks!.update(bearer(req), Number(deck[1]), await readJson(req)), 200);
+      if (deck && req.method === 'DELETE') return reply(decks!.remove(bearer(req), Number(deck[1])), 204);
       switch (route) {
         case 'GET /api/health':
-          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}) });
+          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}), ...(decks ? { decks: true } : {}) });
         case 'GET /api/history':
           if (!history) break;
           return reply(history.list(bearer(req)), 200);
@@ -143,6 +148,12 @@ export function createApi(service: AccountService, origins: string[], passkeys =
           const b = await readJson(req);
           return reply(friends.request(bearer(req), b.nickname), 201);
         }
+        case 'GET /api/decks':
+          if (!decks) break;
+          return reply(decks.list(bearer(req)), 200);
+        case 'POST /api/decks':
+          if (!decks) break;
+          return reply(decks.create(bearer(req), await readJson(req)), 201);
         case 'POST /api/accounts': {
           const b = await readJson(req);
           return reply(await service.create(b.nickname, b.password), 201);

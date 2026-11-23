@@ -14,6 +14,7 @@ import { HubRoom, hubConfig } from './hub.ts';
 import { DuelRoom, findDuelRoom, roomConfig } from './room.ts';
 import { Social } from './social/social.ts';
 import { createStatic } from './static.ts';
+import { DeckService } from './decks/decks.ts';
 
 export interface ServerOptions {
   /** Folder of the SQLite file and its daily copies; ':memory:' keeps nothing (tests). Default: DATA_DIR or ./data. */
@@ -47,7 +48,9 @@ export async function startServer(
   const history = new HistoryService(db, (t) => accounts.accountOf(t));
   roomConfig.history = history;
   const stopMaintenance = startMaintenance(db, dataDir, accounts.purge);
-  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history);
+  // story 10.2: decks saved on the account, checked against the server's own catalog
+  const decks = new DeckService(db, (t) => accounts.accountOf(t), catalog, playableCardIds(catalog), opts.now);
+  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history, decks);
   const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
   // answer the health check, the JSON API and the game's files (GET/HEAD only) before Colyseus' own HTTP routes see the request

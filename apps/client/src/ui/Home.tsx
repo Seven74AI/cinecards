@@ -5,6 +5,7 @@ import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
 import { AccountPanel } from '../account/AccountPanel.tsx';
 import { FriendsPanel } from '../account/FriendsPanel.tsx';
 import { HistoryPanel } from '../account/HistoryPanel.tsx';
+import { DecksScreen } from '../decks/DecksScreen.tsx';
 import { prepareInvite, useHub } from '../account/hub.ts';
 import { signOut, useAccount } from '../account/session.ts';
 import { MOVED_URL } from '../net/config.ts';
@@ -35,9 +36,10 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [panel, setPanel] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [decksOpen, setDecksOpen] = useState(false);
   const { openCard, openRules } = useRefs();
   // signed in (story 8.1): the server takes the nickname from the session token
-  const { available: accountsOn, signedIn, manage, friends: friendsOn, history: historyOn } = useAccount();
+  const { available: accountsOn, signedIn, manage, friends: friendsOn, history: historyOn, decks: decksOn } = useAccount();
   const requests = useHub().list?.incoming.length ?? 0;
   const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
   const session = signedIn ? { session: signedIn.token } : {};
@@ -48,6 +50,8 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
       /* ignore */
     }
   };
+  // story 10.2: "Mes decks" and the deck builder take the whole screen
+  if (decksOpen && signedIn && decksOn) return <DecksScreen me={signedIn} onClose={() => setDecksOpen(false)} />;
   const showcase = ['mx-neo', 'hg-arthur', 'hs-topper', 'wc-latrell'].map((id) => CATALOG.get(id)).filter((c) => !!c);
   return (
     <div className="home">
@@ -125,8 +129,8 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                     <strong>{signedIn.nickname}</strong>
                   )}
                 </span>
-                {friendsOn || historyOn ? (
-                  // stories 8.3 / 8.4: friends and history, on a row of their own under the nickname
+                {friendsOn || historyOn || decksOn ? (
+                  // stories 8.3 / 8.4 / 10.2: friends, history and decks, on a row of their own under the nickname
                   <span className="account-social">
                     {friendsOn ? (
                       // story 8.3: friends, with the number of requests received
@@ -143,6 +147,12 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                       // story 8.4: my record and latest online games
                       <button type="button" className="btn small friends-btn history-btn" onClick={() => setHistoryOpen(true)}>
                         Historique
+                      </button>
+                    ) : null}
+                    {decksOn ? (
+                      // story 10.2: constructed decks saved on the account
+                      <button type="button" className="btn small friends-btn decks-btn" onClick={() => setDecksOpen(true)}>
+                        Mes decks
                       </button>
                     ) : null}
                   </span>

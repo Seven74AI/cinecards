@@ -143,12 +143,11 @@ test('réglages: a tap outside closes without touching the table', async ({ page
   await expect(page.locator('.hand-panel .card')).toHaveCount(10);
 });
 
-test('réglages on desktop: the gear is there, the setting changes nothing (the hand is not folded)', async ({ page }) => {
+test('réglages on desktop: no gear, desktop unchanged (the hand is not folded there)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?scene=pleine');
-  await page.getByRole('button', { name: 'Réglages' }).click();
-  await page.getByRole('dialog', { name: 'Réglages' }).getByRole('button', { name: 'Détaillée' }).click();
   await expect(page.locator('.table .hand .card').first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Réglages' })).toHaveCount(0);
   await expect(page.locator('.table .hand-btn')).toHaveCount(0);
   await expect(page.locator('.table .card-full')).toHaveCount(0);
 });

@@ -93,3 +93,4 @@ Agent dev (Claude Code)
 ### Change Log
 
 - 2026-11-23 : story créée puis implémentée (réglage « Main ouverte », vitesse dans le panneau en ligne sur téléphone).
+- 2026-11-23 (revue) : la roue dentée n'est affichée que sur la table téléphone en portrait ; ordinateur, tablette et paysage inchangés (règle de Root). e2e « réglages on desktop » mis à jour ; e2e 65/65.

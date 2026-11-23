@@ -864,7 +864,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           >
             <Icon name={muted ? 'mute' : 'sound'} size={16} />
           </button>
-          <SettingsButton speed={speedInSettings ? { value: speed, set: changeSpeed } : undefined} />
+          {/* story 14.4: only the folded phone hand uses this setting; desktop, tablet and landscape stay as they were */}
+          {compact ? <SettingsButton speed={speedInSettings ? { value: speed, set: changeSpeed } : undefined} /> : null}
         </div>
 
         {Hero({ player: foe })}

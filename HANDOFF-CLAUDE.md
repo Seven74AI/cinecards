@@ -8,7 +8,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   - Game: https://cinecards.sevend.io/ (served by the game server itself since story 8.6, same origin as
     `wss://cinecards.sevend.io` and `/api`; `/health` → `ok`)
   - Old site: https://seven74ai.github.io/cinecards/ (GitHub Pages, "CineCards a déménagé" banner, no passkeys)
-- **Done:** epics 1–7 (MVP), 11 (playtest-1 fixes), 12 (per-action animations) and 13 (playtest-2 fixes, stories 13.1–13.12). `main` passes typecheck and 152 unit tests (including the 200-game simulation). The last full e2e run reported 38/38.
+- **Done:** epics 1–7, 8 (accounts, passkeys, friends, history, emotes, new address) and 10 (constructed decks), plus (MVP), 11 (playtest-1 fixes), 12 (per-action animations) and 13 (playtest-2 fixes, stories 13.1–13.12). `main` passes typecheck and 152 unit tests (including the 200-game simulation). The last full e2e run reported 38/38.
 - **Deploy:**
   - **Game:** deployed with the server below (the Docker image builds the client with `VITE_SERVER_URL=same-origin`).
   - **Old site (Pages):** push to `main`, then start the Pages workflow yourself (GitHub MCP `actions_run_trigger`, `run_workflow`, `pages.yml`, ref `main`). Push-triggered Actions are broken on the GitHub account side, and Hermes and Root agreed not to chase it.
@@ -21,6 +21,21 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
   `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.
 - **Parked by Root (2026-11-22):** the iPhone `?fps` check and further performance tests. Do not bring them up until Root does.
+
+
+## Cloudflare Access (since 2026-11-23)
+- Every `*.sevend.io` subdomain, the game included, is behind Cloudflare Access: players get an e-mail code, then the game.
+- Automated checks use a service token. The **Client Secret** is a network secret on this cloud environment (header
+  `CF-Access-Client-Secret`, injected by the proxy for `cinecards.sevend.io`). The **Client ID** is not secret: send
+  `CF-Access-Client-Id: bdb9bca10221ff4b0763ad9f3d8f1335.access` yourself, e.g. `curl -H "CF-Access-Client-Id: …" https://cinecards.sevend.io/api/health`.
+- Plain HTTP works this way. Browser WebSocket handshakes from this container do not (browsers send no custom header
+  on them, and a local relay did not get an upgrade through the proxy), so live duels/invites can't be driven from
+  here: rely on the local e2e suite and API checks.
+- Open question for Root: in an earlier test, logged-in API calls through Access answered "session expirée"; it is
+  either this container's proxy setup or Access stripping `Authorization` (players would be affected). Root to confirm
+  "Amis" / "Historique" open on a phone; if not, send the session token in a custom header as well.
+- `deploy/autodeploy.sh` checks `https://cinecards.sevend.io/health`, now behind Access: point `HEALTH_URL` at
+  `http://localhost:2567/health` on the VPS (pending Root / Hermes).
 
 ## Next options (let Root choose)
 - **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.

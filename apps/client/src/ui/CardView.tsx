@@ -170,9 +170,14 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
   const multi = stats?.bodies;
   // story 13.3: on the table, a modified badge shows how many sources change it
   const srcN = size === 'board' ? sourceCounts(stats?.sources) : { atk: 0, hp: 0 };
+  // a stable tag (not a component made here), so React keeps the card's DOM between renders
+  const Root = onClick ? 'button' : 'span';
+  const rootProps = onClick ? { type: 'button' as const, onClick } : { role: 'img' };
   const cls = ['card', `card-${size}`, CATEGORY_TOKEN[card.category]?.cls ?? '', RARITY_CLASS[card.rarity] ?? '', state ? `is-${state}` : '', dying ? 'is-dying' : '', leaving ? 'is-leaving' : '', statuses.some((s) => s.kind === 'silence') ? 'is-silenced' : ''].join(' ');
   return (
-    <button type="button" className={cls} onClick={onClick} data-iid={iid} aria-label={label ?? card.name} style={style}>
+    // a card without an action is not a button: on the table it sits inside the slot's own button, and a button may not
+    // contain another one (invalid HTML, taps could land on the wrong element)
+    <Root {...rootProps} className={cls} data-iid={iid} aria-label={label ?? card.name} style={style}>
       <span className="card-frame">
         <span className="card-name">{card.name}</span>
         <span className="card-art">{art ? <img src={art} alt="" draggable={false} /> : null}</span>
@@ -237,7 +242,7 @@ export function CardView({ card, stats, statuses = [], sick, cycle, size = 'boar
         </>
       ) : null}
       {statuses.some((s) => s.kind === 'silence') ? <Chains /> : null}
-    </button>
+    </Root>
   );
 }
 

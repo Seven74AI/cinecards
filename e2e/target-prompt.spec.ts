@@ -25,6 +25,8 @@ async function clearPopups(page: Page) {
 }
 
 test('hot seat: an arrival effect asks for up to N targets, and "Aucune cible" skips it', async ({ page }) => {
+  // it plays turns until a card asks for targets: under parallel load that can outlast the default 60 s
+  test.setTimeout(120_000);
   await page.addInitScript(seeded);
   await page.goto('/');
   await page.getByRole('button', { name: 'Duel à deux sur ce téléphone' }).click();

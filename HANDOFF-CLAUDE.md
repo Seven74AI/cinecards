@@ -34,8 +34,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - Logged-in API calls through Access fail **from this container only** ("session expirée": the proxy rule for the
   host interferes with `Authorization`). Root confirmed on a phone (2026-11-23) that "Amis" and "Historique" work:
   players are not affected. Don't "fix" the game for this.
-- `deploy/autodeploy.sh` checks `https://cinecards.sevend.io/health`, now behind Access: point `HEALTH_URL` at
-  `http://localhost:2567/health` on the VPS (pending Root / Hermes).
+- `deploy/autodeploy.sh` checks `http://localhost:2567/health` on the VPS since 2026-11-23 (the public address is behind Access).
 
 ## Next options (let Root choose)
 - **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.

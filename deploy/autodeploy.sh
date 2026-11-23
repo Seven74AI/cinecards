@@ -5,7 +5,8 @@ set -euo pipefail
 # Wrapped in main so bash parses the whole file before git updates it.
 main() {
   REPO_DIR="${REPO_DIR:-/root/cinecards}"
-  HEALTH_URL="${HEALTH_URL:-https://cinecards.sevend.io/health}"
+  # local check: the public address is behind Cloudflare Access (2026-11-23), which redirects to its login page
+  HEALTH_URL="${HEALTH_URL:-http://localhost:2567/health}"
   cd "$REPO_DIR"
   git fetch --quiet origin main
   LOCAL="$(git rev-parse HEAD)"

@@ -27,7 +27,7 @@ même adresse) et le serveur, qui sert ce client grâce à `CLIENT_DIR=/app/apps
 Vérification :
 
 ```bash
-curl https://cinecards.sevend.io/health   # répond "ok"
+curl http://localhost:2567/health   # sur le VPS, répond "ok" (l'adresse publique est derrière Cloudflare Access)
 curl -I https://cinecards.sevend.io/      # 200, text/html : le jeu
 ```
 
@@ -103,7 +103,7 @@ Chrono : 75 s par tour, 5 s pour une réaction, 90 s pour revenir après une dé
 
 Sur le VPS, un minuteur systemd (`deploy/systemd/cinecards-autodeploy.timer`) lance
 `deploy/autodeploy.sh` toutes les 5 minutes. Le script récupère `main` et ne reconstruit le
-serveur (et donc le jeu) que si le commit a changé, puis vérifie `/health`. L'installation est décrite dans
+serveur (et donc le jeu) que si le commit a changé, puis vérifie `http://localhost:2567/health` sur le VPS (l'adresse publique est derrière Cloudflare Access depuis le 2026-11-23). L'installation est décrite dans
 `HANDOFF-HERMES.md`. Pour suspendre les mises à jour : `systemctl stop cinecards-autodeploy.timer`.
 
 Les push sur `main` ne déclenchent pas GitHub Actions pour l'instant : pour mettre à jour l'ancien

@@ -9,31 +9,39 @@ test('a played card flies from the hand and lands in its slot with a ring of run
   const card = page.locator('.hand .card').first();
   const name = (await card.getAttribute('aria-label'))!;
   await card.press('Enter');
-  // follow the card in its slot, frame by frame, from the moment it appears on the board
+  // follow the card in its slot, frame by frame, from the moment it appears on the board. Sampling is bounded by
+  // time, not by a frame count: under CPU load (parallel e2e) frames get rarer and a fixed count overran the timeout.
   await page.evaluate((n) => {
-    const w = window as unknown as { __ccFly: number[]; __ccRune: boolean };
+    const w = window as unknown as { __ccFly: { t: number; y: number }[]; __ccRune: boolean; __ccDone: boolean };
     w.__ccFly = [];
     w.__ccRune = false;
-    const tick = () => {
+    w.__ccDone = false;
+    let start = 0;
+    const tick = (now: number) => {
       const el = document.querySelector(`.board.mine [aria-label="${n}"]`);
       const slot = el?.closest('.slot');
-      if (el && slot) w.__ccFly.push(el.getBoundingClientRect().top - slot.getBoundingClientRect().top);
+      if (el && slot) {
+        if (!start) start = now;
+        w.__ccFly.push({ t: now - start, y: el.getBoundingClientRect().top - slot.getBoundingClientRect().top });
+      }
       if (document.querySelector('.fx-rune')) w.__ccRune = true;
-      if (w.__ccFly.length < 150) requestAnimationFrame(tick);
+      // the flight lasts ~1.1 s on the portrait phone (story 13.11); keep watching well past the landing
+      if (start && now - start > 2200 && w.__ccFly.length >= 10) w.__ccDone = true;
+      else requestAnimationFrame(tick);
     };
-    tick();
+    requestAnimationFrame(tick);
   }, name);
   await page.getByRole('button', { name: /^Jouer/ }).first().click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __ccFly: number[] }).__ccFly.length), { timeout: 5000 }).toBeGreaterThanOrEqual(150);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ccDone: boolean }).__ccDone), { timeout: 20_000 }).toBe(true);
   const { fly, rune } = await page.evaluate(() => {
-    const w = window as unknown as { __ccFly: number[]; __ccRune: boolean };
+    const w = window as unknown as { __ccFly: { t: number; y: number }[]; __ccRune: boolean };
     return { fly: w.__ccFly, rune: w.__ccRune };
   });
-  // it started far below its slot (in the hand), went through the air, and ended in place (story 13.11: ~1.1 s on
-  // the portrait phone, with an overshooting landing, so it is followed for 150 frames)
-  expect(Math.max(...fly.slice(0, 5))).toBeGreaterThan(60);
-  expect(Math.min(...fly)).toBeLessThan(-5);
-  expect(Math.abs(fly.at(-1)!)).toBeLessThan(2);
+  const ys = fly.map((f) => f.y);
+  // it started far below its slot (in the hand), went through the air, and ended in place (overshooting landing)
+  expect(Math.max(...fly.filter((f) => f.t < 250).map((f) => f.y))).toBeGreaterThan(60);
+  expect(Math.min(...ys)).toBeLessThan(-5);
+  expect(Math.abs(ys.at(-1)!)).toBeLessThan(2);
   expect(rune).toBe(true);
   const beats = await page.evaluate(() => (window.__ccBeats ?? []).map((b) => b.type));
   expect(beats).toContain('cardPlayed');
@@ -59,17 +67,17 @@ test('draws: the foe gets a card back, my drawn card stays hidden until it turns
   await page.getByRole('button', { name: 'Fin du tour' }).click();
   // Le Grimoire's turn, then mine again: more cards in my hand
   await expect(page.getByRole('button', { name: 'Fin du tour' })).toBeEnabled({ timeout: 90000 });
-  await expect.poll(() => page.locator('.hand .card').count(), { timeout: 5000 }).toBeGreaterThan(before);
+  await expect.poll(() => page.locator('.hand .card').count(), { timeout: 15_000 }).toBeGreaterThan(before);
   // (the buttons follow the real state: the replay of the draws may still be running)
   const seen = () =>
     page.evaluate(() => {
       const w = window as unknown as { __ccBack: number; __ccHidden: string[] };
       return { back: w.__ccBack, hidden: w.__ccHidden.length };
     });
-  await expect.poll(async () => (await seen()).back, { timeout: 5000 }).toBeGreaterThanOrEqual(2); // the foe's draw and mine start as a card back
+  await expect.poll(async () => (await seen()).back, { timeout: 15_000 }).toBeGreaterThanOrEqual(2); // the foe's draw and mine start as a card back
   expect((await seen()).hidden).toBeGreaterThanOrEqual(1);
   // in the end every card of my hand is shown
-  await expect(page.locator('.hand .card[style*="opacity: 0"]')).toHaveCount(0, { timeout: 3000 });
+  await expect(page.locator('.hand .card[style*="opacity: 0"]')).toHaveCount(0, { timeout: 15_000 });
   const beats = await page.evaluate(() => (window.__ccBeats ?? []).filter((b) => b.type === 'cardDrawn').length);
   expect(beats).toBeGreaterThanOrEqual(2);
 });

@@ -1,6 +1,9 @@
+---
+baseline_commit: 5b8e2deab90a79656a3be9ab9ae798875ccbc9d3
+---
 # Story 8.3: Liste d'amis et invitation directe
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -36,73 +39,73 @@ so that je n'aie pas à partager de code.
 
 ## Tasks / Subtasks
 
-- [ ] **Base** — migration 3 ajoutée à `MIGRATIONS` (`apps/server/src/db/db.ts`), sans toucher aux migrations 1 et 2
+- [x] **Base** — migration 3 ajoutée à `MIGRATIONS` (`apps/server/src/db/db.ts`), sans toucher aux migrations 1 et 2
       (la base de production est en version 2 avec de vrais comptes) (AC 1, 2, 7)
-  - [ ] `friendships(a INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, b INTEGER NOT NULL REFERENCES
+  - [x] `friendships(a INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, b INTEGER NOT NULL REFERENCES
         accounts(id) ON DELETE CASCADE, requested_by INTEGER NOT NULL, status TEXT NOT NULL CHECK(status IN
         ('pending','accepted')), created_at INTEGER NOT NULL, accepted_at INTEGER, PRIMARY KEY (a, b),
         CHECK (a < b))` + index sur `b` (une ligne par paire, `a` = plus petit id).
-  - [ ] `apps/server/src/db/friends.ts` : demander (ou accepter si l'autre a déjà demandé), accepter, refuser /
+  - [x] `apps/server/src/db/friends.ts` : demander (ou accepter si l'autre a déjà demandé), accepter, refuser /
         annuler / retirer (supprimer la ligne), lister (amis acceptés + demandes reçues + envoyées, avec pseudos).
-  - [ ] Test : base en version 2 avec comptes → version 3 sans perte.
-- [ ] **API HTTP** — `apps/server/src/api/http.ts` + un `FriendService` (`apps/server/src/auth/friends.ts` ou
+  - [x] Test : base en version 2 avec comptes → version 3 sans perte.
+- [x] **API HTTP** — `apps/server/src/api/http.ts` + un `FriendService` (`apps/server/src/auth/friends.ts` ou
       `apps/server/src/social/friends.ts`) qui reçoit le `Db`, l'horloge et `accountOf` (AC 1, 2, 6, 7)
-  - [ ] `GET /api/health` ajoute `friends: true`.
-  - [ ] `GET /api/friends` (Bearer) → `{ friends: [{ id, nickname, presence }], incoming: [{ id, nickname }],
+  - [x] `GET /api/health` ajoute `friends: true`.
+  - [x] `GET /api/friends` (Bearer) → `{ friends: [{ id, nickname, presence }], incoming: [{ id, nickname }],
         outgoing: [{ id, nickname }] }` (`presence` lue dans le registre de présence ci-dessous).
-  - [ ] `POST /api/friends` `{ nickname }` → `201 { status: 'pending' | 'accepted' }` ; erreurs `404 unknown_player`,
+  - [x] `POST /api/friends` `{ nickname }` → `201 { status: 'pending' | 'accepted' }` ; erreurs `404 unknown_player`,
         `400 self`, `409 already_friends | already_requested`, `429 slow_down`, `409 limit_reached`.
-  - [ ] `POST /api/friends/:id/accept` → `204` ; `DELETE /api/friends/:id` → `204` (refuser, annuler ou retirer,
+  - [x] `POST /api/friends/:id/accept` → `204` ; `DELETE /api/friends/:id` → `204` (refuser, annuler ou retirer,
         selon l'état). Toute modification notifie les deux comptes en direct (salle `hub`, ci-dessous).
-  - [ ] Messages en français, tutoiement, format `{ error, message }` des stories 8.1-8.2.
-- [ ] **Présence et invitations en direct** — salle Colyseus `hub` (`apps/server/src/hub.ts`, déclarée dans
+  - [x] Messages en français, tutoiement, format `{ error, message }` des stories 8.1-8.2.
+- [x] **Présence et invitations en direct** — salle Colyseus `hub` (`apps/server/src/hub.ts`, déclarée dans
       `main.ts` à côté de `duel`) (AC 3, 4, 5)
-  - [ ] Une seule instance partagée (`filterBy` inutile : créer avec `joinOrCreate('hub')`, `maxClients` élevé,
+  - [x] Une seule instance partagée (`filterBy` inutile : créer avec `joinOrCreate('hub')`, `maxClients` élevé,
         `autoDispose = false`). Entrée seulement avec une session valide (`onAuth` ou `onJoin` qui refuse : options
         `{ session }`, même `accountOf` que la salle de duel). Un compte peut avoir plusieurs onglets / appareils :
         compter les connexions par compte.
-  - [ ] Registre de présence en mémoire, module partagé (`apps/server/src/presence.ts`) : `online(accountId)`,
+  - [x] Registre de présence en mémoire, module partagé (`apps/server/src/presence.ts`) : `online(accountId)`,
         `offline(accountId)`, `inGame(accountId, bool)` ; `DuelRoom` signale `inGame` au début de la partie et à sa
         fin / quand le siège est libéré (via `accounts[seat]` déjà retenu en 8.1). Chaque changement de présence
         envoie `friendPresence { id, presence }` aux amis connectés au `hub`.
-  - [ ] Messages serveur → client (dans `packages/protocol`) : `friendPresence`, `friendsChanged` (le client relit
+  - [x] Messages serveur → client (dans `packages/protocol`) : `friendPresence`, `friendsChanged` (le client relit
         `GET /api/friends`), `invite { inviteId, from: { id, nickname }, roomCode, mode, expiresAt }`,
         `inviteCancelled { inviteId, reason: 'expired' | 'started' | 'gone' | 'cancelled' }`,
         `inviteDeclined { inviteId, by: { id, nickname } }`.
-  - [ ] Messages client → serveur : `invite { friendId, roomCode }` (le serveur vérifie : amis acceptés, ami en
+  - [x] Messages client → serveur : `invite { friendId, roomCode }` (le serveur vérifie : amis acceptés, ami en
         ligne et pas en partie, la salle existe, est en attente et a été créée par ce compte — `DuelRoom` retient le
         compte du siège 0), `declineInvite { inviteId }`, `cancelInvite { inviteId }`. Invitation expirée au bout de
         2 min, annulée quand la salle démarre (2 joueurs) ou disparaît.
-  - [ ] Une salle de duel peut être retrouvée par code : utiliser `matchMaker.getLocalRoomById(code)` (ou un
+  - [x] Une salle de duel peut être retrouvée par code : utiliser `matchMaker.getLocalRoomById(code)` (ou un
         registre local tenu par `DuelRoom` en `onCreate`/`onDispose`) ; un seul processus serveur, c'est suffisant.
-- [ ] **Client** (AC 1-6)
-  - [ ] `apps/client/src/account/hub.ts` : connexion au `hub` avec le SDK Colyseus **chargé à la demande** (comme
+- [x] **Client** (AC 1-6)
+  - [x] `apps/client/src/account/hub.ts` : connexion au `hub` avec le SDK Colyseus **chargé à la demande** (comme
         `net/online.ts`, l'accueil ne doit pas embarquer le SDK pour un invité), une seule connexion par onglet, quand
         le joueur est connecté et que le serveur a `friends: true` ; reconnexion automatique du SDK ; fermée à la
         déconnexion du compte. Store simple (comme `session.ts`) : amis, demandes, invitations reçues.
-  - [ ] `apps/client/src/account/FriendsPanel.tsx` (portail dans `<body>`, comme `AccountPanel`) : champ pseudo +
+  - [x] `apps/client/src/account/FriendsPanel.tsx` (portail dans `<body>`, comme `AccountPanel`) : champ pseudo +
         « Ajouter », demandes reçues (Accepter / Refuser), demandes envoyées (Annuler), amis avec point de présence,
         « Inviter » (si vert) et « Retirer » (confirmation). Cibles de 44 px. État vide : « Ajoute un ami avec son
         pseudo. »
-  - [ ] `apps/client/src/account/InviteToast.tsx` : encart en haut de l'écran (portail), « **Pseudo** t'invite à un
+  - [x] `apps/client/src/account/InviteToast.tsx` : encart en haut de l'écran (portail), « **Pseudo** t'invite à un
         duel » · Rejoindre · Refuser, compte à rebours discret ; plusieurs invitations empilées (3 au plus visibles).
         « Rejoindre » = le même chemin que rejoindre par code (`start({ kind: 'join', code, … })` avec la session).
         Affiché sur l'accueil et la salle d'attente, pas sur la table.
-  - [ ] Inviter depuis l'accueil : crée la salle (`start({ kind: 'create', … })`), puis envoie `invite` au `hub`
+  - [x] Inviter depuis l'accueil : crée la salle (`start({ kind: 'create', … })`), puis envoie `invite` au `hub`
         quand le code de salle est connu ; la salle d'attente montre « Invitation envoyée à **Pseudo** » (et
         « Pseudo a refusé. » le cas échéant).
-  - [ ] `ui/Home.tsx` : bouton « Amis » (pastille) à côté de la ligne « Connecté : Pseudo » (garder le texte
+  - [x] `ui/Home.tsx` : bouton « Amis » (pastille) à côté de la ligne « Connecté : Pseudo » (garder le texte
         « Connecté : <pseudo> » et la classe `.account-line` : e2e 8.1/8.2).
-- [ ] **Tests** (AC 1-7)
-  - [ ] Serveur `apps/server/src/friends.test.ts` : migration 2 → 3 ; demande, acceptation croisée automatique,
+- [x] **Tests** (AC 1-7)
+  - [x] Serveur `apps/server/src/friends.test.ts` : migration 2 → 3 ; demande, acceptation croisée automatique,
         refus, annulation, retrait, limites, erreurs ; via WebSocket (comme `server.test.ts`) : présence en ligne /
         hors ligne / en partie, invitation reçue en direct, refus notifié, expiration (horloge ou délai injectable,
         pas d'attente de 2 min), annulation au démarrage de la salle, refus d'inviter un non-ami ou un ami en partie,
         `hub` refusé sans session.
-  - [ ] e2e `e2e/friends.spec.ts` : deux comptes dans deux contextes ; A ajoute B, B accepte ; B voit A en vert ; A
+  - [x] e2e `e2e/friends.spec.ts` : deux comptes dans deux contextes ; A ajoute B, B accepte ; B voit A en vert ; A
         invite B ; B voit l'encart et rejoint d'un appui ; la partie démarre avec les deux pseudos ; A voit B
         « en partie » depuis un troisième contexte si simple, sinon vérifier via l'API.
-  - [ ] Les e2e existants passent sans changement.
+  - [x] Les e2e existants passent sans changement.
 
 ## Dev Notes
 
@@ -145,10 +148,94 @@ so that je n'aie pas à partager de code.
 
 ### Agent Model Used
 
+Agent dev (workflow gds-dev-story)
+
 ### Debug Log References
+
+- `pnpm typecheck` : vert. `pnpm test` : 27 fichiers, 225 tests verts.
+- `E2E_SERVER_PORT=2667 E2E_CLIENT_PORT=5274 PW_CHANNEL=chromium pnpm e2e -- --trace off` : 40 verts, 1 échec
+  `play-draw.spec.ts` (fragile connu sous charge parallèle : 73 images d'envol au lieu de 150) ; relancé seul : 2 verts.
+- Le bundle de l'accueil ne contient pas le SDK Colyseus (vérifié sur un `vite build` : `@colyseus/sdk` reste dans son
+  morceau chargé à la demande, `hub.ts` ne l'importe qu'avec `await import`).
+- Captures 390 × 844 (échelle 1) : `screens/8-3/friends-panel.png` (un ami en ligne, un hors ligne, une demande reçue),
+  `screens/8-3/invite-toast-home.png` (encart d'invitation sur l'accueil), `screens/8-3/lobby-invite-sent.png`.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- Base : migration 3 ajoutée à la suite de `MIGRATIONS` (table `friendships` une ligne par paire, `a < b`, index sur `b`,
+  suppression en cascade avec le compte) ; migrations 1 et 2 intactes. Dépôt `db/friends.ts`. Test : une base en
+  version 2 avec comptes, sessions et clé d'accès passe en version 3 à l'identique.
+- Service `social/friends.ts` (`FriendService`) : demande par pseudo exact (clé de pseudo de 8.1), acceptation croisée
+  automatique, accepter, refuser / annuler / retirer (DELETE idempotent, 204), liste avec présence. Erreurs
+  `unknown_player`, `self`, `already_friends`, `already_requested`, `limit_reached`, `slow_down`, `not_found` au format
+  `{ error, message }`. Limites 100 amis / 50 demandes / 20 actions par minute (fenêtre glissante, `Limiter` de 8.1,
+  partagée avec les invitations). Chaque changement envoie `friendsChanged` aux deux comptes.
+- API : `GET /api/health` ajoute `friends: true` ; `GET/POST /api/friends`, `POST /api/friends/:id/accept`,
+  `DELETE /api/friends/:id`.
+- Présence : `presence.ts` (`PresenceRegistry`) compte les connexions au `hub` par compte (plusieurs onglets) et les
+  salles « en partie » par code (chaque salle n'efface que son drapeau). `DuelRoom` signale « en partie » au début du
+  duel et l'efface à la fin (`duel.finished`, y compris l'abandon après 90 s) ou à `onDispose`. Chaque changement envoie
+  `friendPresence` aux amis connectés.
+- Salle `hub` (`hub.ts`) : `onAuth` refuse sans session valide ; `autoDispose = false`, `maxClients` élevé ; l'état vit
+  dans `social/social.ts` (`Social`, une instance par processus), donc deux instances de `hub` (course au
+  `joinOrCreate`) resteraient justes. Une coupure garde le joueur « en ligne » 20 s (`allowReconnection`).
+- Invitations (`social/invites.ts`) : le serveur vérifie amis acceptés, ami vert (ni hors ligne ni en partie), salle
+  ouverte, en attente et créée par l'inviteur (`findDuelRoom`, registre local tenu par `DuelRoom`). 2 min (durée
+  injectable `inviteTtlMs` pour les tests), annulée au démarrage de la salle (`started`), à sa disparition ou au départ
+  du créateur (`gone`), par l'inviteur ou au retrait de l'ami (`cancelled`). Une invitation par ami et par inviteur (la
+  nouvelle remplace l'ancienne). Renvoyée à un onglet qui se connecte pendant sa durée. Messages ajoutés au contrat
+  (en plus de ceux de la story) : `inviteSent` (l'inviteur reçoit l'id, pour relier le refus) et `inviteFailed` (refus
+  du serveur avec un message en français).
+- Client : `account/hub.ts` (une connexion par onglet, SDK chargé à la demande, reconnexion du SDK puis nouvel essai
+  avec délai croissant si elle abandonne, fermée à la déconnexion ; magasin amis / invitations reçues / invitation
+  envoyée), `FriendsPanel.tsx` et `InviteToast.tsx` en portail dans `<body>`, bouton « Amis » avec pastille à côté de
+  « Connecté : Pseudo » (classe `.account-line` et texte gardés), « Inviter » crée la salle avec le mode de pioche de
+  l'accueil puis envoie l'invitation dès que le code est connu ; la salle d'attente montre « Invitation envoyée à
+  Pseudo », « Pseudo a refusé. » ou l'expiration. L'encart s'affiche sur l'accueil et la salle d'attente, pas sur la
+  table (il réapparaît à la fin s'il n'a pas expiré). Rien ne change pour un invité ni face à un serveur sans `friends`.
+- Tests : `apps/server/src/friends.test.ts` (13 : migration 2 → 3, service, limites, présence, HTTP, `hub` refusé sans
+  session, présence en direct en ligne / en partie / hors ligne, invitation en direct, refus notifié, annulation au
+  démarrage, expiration, annulation, remplacement, départ du créateur, refus non-ami / hors ligne / en partie / salle
+  d'un autre), `apps/client/src/account/hub.test.ts` (4), e2e `e2e/friends.spec.ts`. Deux tests existants ajustés :
+  `/api/health` contient `friends: true`, et le test 8.2 de montée de version attend la dernière version.
+- Choix hors story listés dans `a-valider-par-root.md` (section « Epics 8 et 10 »).
 
 ### File List
+
+- `packages/protocol/src/index.ts`
+- `apps/server/src/db/db.ts`
+- `apps/server/src/db/friends.ts` (nouveau)
+- `apps/server/src/presence.ts` (nouveau)
+- `apps/server/src/social/friends.ts` (nouveau)
+- `apps/server/src/social/invites.ts` (nouveau)
+- `apps/server/src/social/social.ts` (nouveau)
+- `apps/server/src/hub.ts` (nouveau)
+- `apps/server/src/room.ts`
+- `apps/server/src/main.ts`
+- `apps/server/src/api/http.ts`
+- `apps/server/src/friends.test.ts` (nouveau)
+- `apps/server/src/accounts.test.ts`
+- `apps/server/src/passkeys.test.ts`
+- `apps/client/src/account/api.ts`
+- `apps/client/src/account/session.ts`
+- `apps/client/src/account/hub.ts` (nouveau)
+- `apps/client/src/account/hub.test.ts` (nouveau)
+- `apps/client/src/account/FriendsPanel.tsx` (nouveau)
+- `apps/client/src/account/InviteToast.tsx` (nouveau)
+- `apps/client/src/App.tsx`
+- `apps/client/src/ui/Home.tsx`
+- `apps/client/src/ui/Lobby.tsx`
+- `apps/client/src/styles.css`
+- `e2e/friends.spec.ts` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-3/friends-panel.png` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-3/invite-toast-home.png` (nouveau)
+- `_bmad-output/implementation-artifacts/screens/8-3/lobby-invite-sent.png` (nouveau)
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+## Change Log
+
+- 2026-11-23 — Story 8.3 implémentée : liste d'amis (demande par pseudo, acceptation, refus, annulation, retrait),
+  présence en direct (en ligne / en partie / hors ligne) par la salle `hub`, invitation directe de 2 min rejointe d'un
+  appui, migration 3, `/api/health` avec `friends: true`. Statut : review.

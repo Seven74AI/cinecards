@@ -4,12 +4,14 @@ import { Server } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { loadSetsFromDir } from '@cinecards/cards/node';
 import { playableCardIds } from '@cinecards/engine';
-import { ROOM_NAME } from '@cinecards/protocol';
+import { HUB_ROOM_NAME, ROOM_NAME } from '@cinecards/protocol';
 import { createApi, parseOrigins } from './api/http.ts';
 import { AccountService } from './auth/service.ts';
 import { startMaintenance } from './db/backup.ts';
 import { dbPath, openDb } from './db/db.ts';
-import { DuelRoom, roomConfig } from './room.ts';
+import { HubRoom, hubConfig } from './hub.ts';
+import { DuelRoom, findDuelRoom, roomConfig } from './room.ts';
+import { Social } from './social/social.ts';
 import { createStatic } from './static.ts';
 
 export interface ServerOptions {
@@ -20,6 +22,8 @@ export interface ServerOptions {
   now?: () => number;
   /** Folder of the built client (story 8.6), served at `/`; unset = no game files (dev, tests). Default: CLIENT_DIR. */
   clientDir?: string;
+  /** Invitation lifetime (story 8.3), read at each invitation; default 2 min. */
+  inviteTtlMs?: () => number;
 }
 
 export async function startServer(
@@ -33,8 +37,13 @@ export async function startServer(
   const db = openDb(dbPath(dataDir));
   const accounts = new AccountService(db, opts.now);
   roomConfig.accounts = accounts;
+  // story 8.3: friends, presence and invitations, shared by the hub and the duel rooms
+  const social = new Social(db, (t) => accounts.accountOf(t), { now: opts.now, findRoom: findDuelRoom, inviteTtlMs: opts.inviteTtlMs });
+  roomConfig.presence = social.presence;
+  roomConfig.invites = social.invites;
+  hubConfig.social = social;
   const stopMaintenance = startMaintenance(db, dataDir, accounts.purge);
-  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS));
+  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends);
   const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
   // answer the health check, the JSON API and the game's files (GET/HEAD only) before Colyseus' own HTTP routes see the request
@@ -53,9 +62,16 @@ export async function startServer(
   }) as typeof httpServer.emit;
   const server = new Server({ transport: new WebSocketTransport({ server: httpServer }) });
   server.define(ROOM_NAME, DuelRoom);
+  server.define(HUB_ROOM_NAME, HubRoom);
   server.onShutdown(() => {
     stopMaintenance();
     if (roomConfig.accounts === accounts) roomConfig.accounts = null;
+    if (hubConfig.social === social) {
+      hubConfig.social = null;
+      roomConfig.presence = null;
+      roomConfig.invites = null;
+    }
+    social.dispose();
     db.close();
   });
   await server.listen(port);

@@ -3,8 +3,15 @@ import { RULES, type Action, type Catalog, type DeckMode, type PlayerId } from '
 import type { AwayMessage, LobbyMessage, RoomOptions } from '@cinecards/protocol';
 import { Duel } from './duel.ts';
 import { uniqueCode } from './codes.ts';
+import type { PresenceRegistry } from './presence.ts';
+import type { RoomSummary } from './social/invites.ts';
 
 const usedCodes = new Set<string>();
+/** Open duel rooms by code (story 8.3: an invitation checks its room). One server process, so a local map is enough. */
+const openRooms = new Map<string, DuelRoom>();
+
+/** The room behind a code, as the invitation service sees it; null when no such room is open. */
+export const findDuelRoom = (code: string): RoomSummary | null => openRooms.get(code)?.summary() ?? null;
 
 /** Catalog injected at startup (main.ts) so the room stays free of file-system code. */
 export const roomConfig: {
@@ -15,6 +22,9 @@ export const roomConfig: {
   reactionMs?: number;
   reconnectSeconds?: number;
   lobbyTtlMs?: number;
+  /** Story 8.3: "en partie" presence of the seated accounts, and the invitations to cancel when a room starts or goes. */
+  presence?: Pick<PresenceRegistry, 'inGame'> | null;
+  invites?: { roomStarted(code: string): void; roomGone(code: string): void } | null;
 } = { catalog: null };
 
 /** An empty waiting room stays joinable this long after its last player left (story 11.2). */
@@ -36,10 +46,13 @@ export class DuelRoom extends Room {
   /** Account id of each seat, null for a guest (story 8.1; used by the history, story 8.4). */
   private accounts: [number | null, number | null] = [null, null];
   private duel: Duel | null = null;
+  /** Accounts flagged "en partie" by this room (story 8.3), cleared when the duel ends or the room goes. */
+  private playing: number[] = [];
 
   onCreate(options: RoomOptions) {
     this.roomId = uniqueCode((c) => usedCodes.has(c));
     usedCodes.add(this.roomId);
+    openRooms.set(this.roomId, this);
     this.mode = options?.mode === 'randomSplit' ? 'randomSplit' : 'shared';
     this.onMessage('action', (client: Client, action: Action) => {
       const seat = this.seatOf(client);
@@ -77,6 +90,8 @@ export class DuelRoom extends Room {
         this.seats[seat] = null;
         this.accounts[seat] = null;
         this.sendLobby();
+        // the creator left the waiting room: invitations to it are pointless now
+        if (seat === 0) roomConfig.invites?.roomGone(this.roomId);
       }
     }
     this.armExpiry();
@@ -115,7 +130,21 @@ export class DuelRoom extends Room {
   onDispose() {
     this.clearExpiry();
     usedCodes.delete(this.roomId);
+    if (openRooms.get(this.roomId) === this) openRooms.delete(this.roomId);
     this.duel?.dispose();
+    this.leaveGame();
+    roomConfig.invites?.roomGone(this.roomId);
+  }
+
+  /** What an invitation needs to know (story 8.3). */
+  summary(): RoomSummary {
+    return { creator: this.seats[0] ? this.accounts[0] : null, waiting: !this.duel && !this.locked && !this.seats[1], mode: this.mode };
+  }
+
+  /** Clears the "en partie" presence this room set. */
+  private leaveGame() {
+    for (const id of this.playing) roomConfig.presence?.inGame(id, false, this.roomId);
+    this.playing = [];
   }
 
   /** Account id of a seat, or null for a guest. */
@@ -148,12 +177,18 @@ export class DuelRoom extends Room {
       { seed, mode: this.mode },
       this.names,
       {
-        view: (p, msg) => this.seats[p]?.send('view', msg),
+        view: (p, msg) => {
+          this.seats[p]?.send('view', msg);
+          if (this.duel?.finished && this.playing.length) this.leaveGame();
+        },
         rejected: (p, err) => this.seats[p]?.send('rejected', err),
       },
       undefined,
       roomConfig.turnMs,
       roomConfig.reactionMs,
     );
+    this.playing = this.accounts.filter((a): a is number => a !== null);
+    for (const id of this.playing) roomConfig.presence?.inGame(id, true, this.roomId);
+    roomConfig.invites?.roomStarted(this.roomId);
   }
 }

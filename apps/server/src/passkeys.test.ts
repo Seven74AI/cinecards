@@ -53,7 +53,7 @@ describe('8.2 database', () => {
       v1.close();
 
       const db = openDb(path);
-      expect(schemaVersion(db)).toBe(2);
+      expect(schemaVersion(db)).toBe(MIGRATIONS.length); // later migrations (8.3) run too
       const row = db.prepare('SELECT * FROM accounts').get() as unknown as AccountRow;
       expect(row).toEqual({ id: 1, nickname: 'Léa', nickname_key: 'léa', password_hash: 'scrypt$hash', recovery_hash: 'rec', created_at: 42, webauthn_user_id: null });
       expect(db.prepare('SELECT * FROM sessions').all()).toEqual([{ token_hash: 'tok', account_id: 1, created_at: 42, last_seen_at: 43 }]);

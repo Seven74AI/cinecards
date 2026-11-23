@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 
 export type Db = DatabaseSync;
 
-/** Numbered migrations (stories 8.1, 8.2): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
+/** Numbered migrations (stories 8.1, 8.2, 8.3): index i brings the schema from user_version i to i + 1. Never edit a shipped one. */
 export const MIGRATIONS: string[] = [
   `CREATE TABLE accounts (
      id INTEGER PRIMARY KEY,
@@ -35,6 +35,18 @@ export const MIGRATIONS: string[] = [
      last_used_at INTEGER
    );
    CREATE INDEX passkeys_account ON passkeys(account_id);`,
+  // story 8.3: friends. One row per pair, `a` the smaller account id; a pending row is a request from `requested_by`
+  `CREATE TABLE friendships (
+     a INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+     b INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+     requested_by INTEGER NOT NULL,
+     status TEXT NOT NULL CHECK (status IN ('pending', 'accepted')),
+     created_at INTEGER NOT NULL,
+     accepted_at INTEGER,
+     PRIMARY KEY (a, b),
+     CHECK (a < b)
+   );
+   CREATE INDEX friendships_b ON friendships(b);`,
 ];
 
 /** The database file inside DATA_DIR, or ':memory:' (tests). */

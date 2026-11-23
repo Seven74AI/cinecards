@@ -61,3 +61,88 @@ export interface RoomOptions {
 }
 
 export const ROOM_NAME = 'duel';
+
+// ---- story 8.3: friends, presence and direct invitations (room `hub`) ----
+
+export const HUB_ROOM_NAME = 'hub';
+
+/** Green = the game is open and signed in, orange = playing an online duel, grey = not connected. */
+export type Presence = 'online' | 'inGame' | 'offline';
+
+export interface FriendRef {
+  id: number;
+  nickname: string;
+}
+
+/** `GET /api/friends`. */
+export interface FriendsList {
+  friends: (FriendRef & { presence: Presence })[];
+  incoming: FriendRef[];
+  outgoing: FriendRef[];
+}
+
+/** Joining the hub needs a valid account session. */
+export interface HubOptions {
+  session: string;
+}
+
+export interface FriendPresenceMessage {
+  id: number;
+  presence: Presence;
+}
+
+export interface InviteMessage {
+  inviteId: string;
+  from: FriendRef;
+  roomCode: string;
+  mode: DeckMode;
+  /** Server epoch ms; prefer `msLeft` (a skewed device clock). */
+  expiresAt: number;
+  msLeft: number;
+}
+
+export type InviteCancelReason = 'expired' | 'started' | 'gone' | 'cancelled';
+
+export interface InviteCancelledMessage {
+  inviteId: string;
+  reason: InviteCancelReason;
+}
+
+export interface InviteDeclinedMessage {
+  inviteId: string;
+  by: FriendRef;
+}
+
+/** To the inviter: the invitation is out (its id is needed to match a decline or to cancel it). */
+export interface InviteSentMessage {
+  inviteId: string;
+  to: FriendRef;
+  roomCode: string;
+  expiresAt: number;
+  msLeft: number;
+}
+
+/** To the inviter: the invitation was refused by the server (not friends, offline, in a game, room gone, too many). */
+export interface InviteFailedMessage {
+  friendId: number;
+  roomCode: string;
+  error: string;
+  message: string;
+}
+
+export interface HubServerMessages {
+  friendPresence: FriendPresenceMessage;
+  /** Something changed in the friend list: the client reads `GET /api/friends` again. */
+  friendsChanged: Record<string, never>;
+  invite: InviteMessage;
+  inviteCancelled: InviteCancelledMessage;
+  inviteDeclined: InviteDeclinedMessage;
+  inviteSent: InviteSentMessage;
+  inviteFailed: InviteFailedMessage;
+}
+
+export interface HubClientMessages {
+  invite: { friendId: number; roomCode: string };
+  declineInvite: { inviteId: string };
+  cancelInvite: { inviteId: string };
+}

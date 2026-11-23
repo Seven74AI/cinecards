@@ -3,6 +3,8 @@ import type { DeckMode } from '@cinecards/engine';
 import { CATALOG, PLAYABLE, SET_TITLES } from '../game/catalog.ts';
 import { AccountDialog, type AccountMode } from '../account/AccountDialog.tsx';
 import { AccountPanel } from '../account/AccountPanel.tsx';
+import { FriendsPanel } from '../account/FriendsPanel.tsx';
+import { prepareInvite, useHub } from '../account/hub.ts';
 import { signOut, useAccount } from '../account/session.ts';
 import { MOVED_URL } from '../net/config.ts';
 import { CardView } from './CardView.tsx';
@@ -10,7 +12,7 @@ import { useRefs } from './Refs.tsx';
 
 export type Start =
   | { kind: 'hotseat' | 'bot'; mode: DeckMode }
-  | { kind: 'create'; mode: DeckMode; nickname: string; session?: string }
+  | { kind: 'create'; mode: DeckMode; nickname: string; session?: string; invite?: boolean }
   | { kind: 'join'; code: string; nickname: string; session?: string }
   | { kind: 'reconnect'; token: string };
 
@@ -30,9 +32,11 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [showCards, setShowCards] = useState(false);
   const [dialog, setDialog] = useState<AccountMode | null>(null);
   const [panel, setPanel] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const { openCard, openRules } = useRefs();
   // signed in (story 8.1): the server takes the nickname from the session token
-  const { available: accountsOn, signedIn, manage } = useAccount();
+  const { available: accountsOn, signedIn, manage, friends: friendsOn } = useAccount();
+  const requests = useHub().list?.incoming.length ?? 0;
   const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
   const session = signedIn ? { session: signedIn.token } : {};
   const remember = () => {
@@ -119,6 +123,17 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
                     <strong>{signedIn.nickname}</strong>
                   )}
                 </span>
+                {friendsOn ? (
+                  // story 8.3: friends, with the number of requests received
+                  <button type="button" className="btn small friends-btn" aria-label={requests ? `Amis (${requests} demande${requests > 1 ? 's' : ''})` : 'Amis'} onClick={() => setFriendsOpen(true)}>
+                    Amis
+                    {requests ? (
+                      <span className="badge" aria-hidden="true">
+                        {requests}
+                      </span>
+                    ) : null}
+                  </button>
+                ) : null}
                 <button type="button" className="link" onClick={signOut}>
                   Se déconnecter
                 </button>
@@ -172,6 +187,18 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
       </section>
       {dialog ? <AccountDialog initial={dialog} onClose={() => setDialog(null)} /> : null}
       {panel && signedIn ? <AccountPanel me={signedIn} onClose={() => setPanel(false)} /> : null}
+      {friendsOpen && signedIn && friendsOn ? (
+        <FriendsPanel
+          me={signedIn}
+          onClose={() => setFriendsOpen(false)}
+          onInvite={(friend) => {
+            // a new room with the draw mode chosen here; the invitation goes out once its code is known
+            setFriendsOpen(false);
+            prepareInvite(friend);
+            onStart({ kind: 'create', mode, nickname: signedIn.nickname, session: signedIn.token, invite: true });
+          }}
+        />
+      ) : null}
       <button type="button" className="link" onClick={() => setShowCards((v) => !v)}>
         {showCards ? 'Masquer les cartes' : `Voir les ${PLAYABLE.length} cartes`}
       </button>

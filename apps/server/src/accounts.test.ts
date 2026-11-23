@@ -232,7 +232,7 @@ describe('8.1 HTTP API and rooms', () => {
     expect(await (await fetch(`${base}/health`)).text()).toBe('ok');
     const r = await fetch(`${base}/api/health`);
     expect(r.headers.get('content-type')).toBe('application/json; charset=utf-8');
-    expect(await r.json()).toEqual({ ok: true, accounts: true, passkeys: true });
+    expect(await r.json()).toEqual({ ok: true, accounts: true, passkeys: true, friends: true });
   });
 
   it('creates, reads, logs in, logs out and recovers over HTTP', async () => {

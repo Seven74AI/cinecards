@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { clearSent, connectHub, disconnectHub, sendInvite } from './account/hub.ts';
+import { InviteToast } from './account/InviteToast.tsx';
+import { useAccount } from './account/session.ts';
 import { CATALOG } from './game/catalog.ts';
 import { localSession, type Session } from './game/session.ts';
 import { lastSeat, SERVER_URL } from './net/config.ts';
@@ -17,6 +20,14 @@ export function App() {
   const [lastCode, setLastCode] = useState<string | undefined>(undefined);
 
   useEffect(() => () => session?.dispose(), [session]);
+
+  // story 8.3: one hub connection per tab while signed in on a server with friends
+  const { signedIn, friends } = useAccount();
+  const hubToken = signedIn && friends ? signedIn.token : null;
+  useEffect(() => {
+    if (hubToken) connectHub(hubToken);
+    else disconnectHub();
+  }, [hubToken]);
 
   // dev server only: `?scene=<name>` opens a prepared solo position for the e2e tests (story 12.1); story 13.12: also
   // in a production build made with VITE_SCENES=1, so `scripts/perf-phone.mjs` times the real (minified) client
@@ -44,18 +55,30 @@ export function App() {
       setLastCode(s.code);
     }
     else return;
+    if (!(s.kind === 'create' && s.invite)) clearSent();
     void import('./net/online.ts').then(({ onlineSession }) => {
       const sess = onlineSession(CATALOG, how, (msg) => {
         setError(msg);
         setSession(null);
         setLobby(false);
+        clearSent();
       });
+      if (s.kind === 'create' && s.invite) {
+        // invite the friend chosen in "Amis" as soon as the room has its code
+        const stop = sess.subscribe(() => {
+          const code = sess.get().roomCode;
+          if (!code) return;
+          stop();
+          sendInvite(code);
+        });
+      }
       setSession(sess);
       setLobby(true);
     });
   };
 
   const leave = () => {
+    clearSent();
     session?.dispose();
     setSession(null);
     setLobby(false);
@@ -63,7 +86,15 @@ export function App() {
   };
 
   const seat = lastSeat();
-  if (session && lobby) return <Lobby session={session} onReady={() => setLobby(false)} onLeave={leave} />;
+  // an invitation joins the inviter's room by code, with the account (story 8.3)
+  const toast = signedIn ? <InviteToast onJoin={(i) => start({ kind: 'join', code: i.roomCode, nickname: signedIn.nickname, session: signedIn.token })} /> : null;
+  if (session && lobby)
+    return (
+      <>
+        <Lobby session={session} onReady={() => setLobby(false)} onLeave={leave} />
+        {toast}
+      </>
+    );
   if (session) return <Table session={session} onLeave={leave} />;
   return (
     <>
@@ -80,6 +111,7 @@ export function App() {
         </div>
       ) : null}
       <Home onStart={start} initialCode={lastCode ?? roomFromUrl()} onlineAvailable={!!SERVER_URL} />
+      {toast}
     </>
   );
 }

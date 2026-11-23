@@ -1,11 +1,41 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { Session } from '../game/session.ts';
+import { useHub, type SentInvite } from '../account/hub.ts';
 import { Icon } from './Icon.tsx';
+
+/** Where the invitation sent from "Amis" stands (story 8.3). */
+function InviteStatus({ sent }: { sent: SentInvite }) {
+  const who = <strong>{sent.to.nickname}</strong>;
+  if (sent.state === 'declined')
+    return (
+      <p className="invite-status" role="status">
+        {who} a refusé.
+      </p>
+    );
+  if (sent.state === 'expired')
+    return (
+      <p className="invite-status" role="status">
+        L’invitation à {who} a expiré.
+      </p>
+    );
+  if (sent.state === 'failed')
+    return (
+      <p className="invite-status field-error" role="alert">
+        {sent.message ?? 'L’invitation n’a pas pu partir.'}
+      </p>
+    );
+  return (
+    <p className="invite-status" role="status">
+      {sent.state === 'sending' ? <>Invitation pour {who}…</> : <>Invitation envoyée à {who}</>}
+    </p>
+  );
+}
 
 /** Waiting room: shows the code and the invitation link until the opponent arrives (story 6.2). */
 export function Lobby({ session, onReady, onLeave }: { session: Session; onReady: () => void; onLeave: () => void }) {
   const snap = useSyncExternalStore(session.subscribe, session.get);
   const [copied, setCopied] = useState(false);
+  const { sent } = useHub();
   useEffect(() => {
     if (snap.status === 'playing' || snap.status === 'opponentAway') onReady();
   }, [snap.status, onReady]);
@@ -35,6 +65,7 @@ export function Lobby({ session, onReady, onLeave }: { session: Session; onReady
             <button type="button" className="btn primary" onClick={share}>
               {copied ? 'Lien copié !' : 'Partager le lien d’invitation'}
             </button>
+            {sent && (sent.roomCode === null || sent.roomCode === code) ? <InviteStatus sent={sent} /> : null}
             <ul className="seats">
               {(snap.seats ?? [null, null]).map((n, i) => (
                 <li key={i} className={n ? 'on' : ''}>

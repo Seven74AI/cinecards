@@ -34,9 +34,11 @@ interface Snapshot {
   passkeys: boolean;
   /** Story 8.2: the server has "Mon compte" (`GET /api/account`); a story-8.1 server does not. */
   manage: boolean;
+  /** Story 8.3: the server has friends and invitations (`friends: true` in `/api/health`). */
+  friends: boolean;
 }
 
-let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false };
+let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false, friends: false };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<Snapshot>) => {
   snap = { ...snap, ...patch };
@@ -54,8 +56,8 @@ export function initAccount() {
   started = true;
   const stored = readStored();
   if (!stored) set({ account: 'guest' });
-  void serverFeatures().then(async ({ accounts: available, passkeys }) => {
-    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys });
+  void serverFeatures().then(async ({ accounts: available, passkeys, friends }) => {
+    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys, friends });
     if (!stored) return;
     if (!available) return set({ account: stored });
     const r = await me(stored.token);

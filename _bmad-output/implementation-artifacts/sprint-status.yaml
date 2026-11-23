@@ -89,7 +89,7 @@ development_status:
   8-1-compte-avec-pseudo-et-mot-de-passe: done
   8-2-cle-d-acces-et-code-de-secours: done
   8-6-heberger-le-jeu-sur-cinecards-sevend-io: done  # ajoutée le 2026-11-22, à faire avant 8.3 (clés d'accès liées au domaine)
-  8-3-liste-d-amis-et-invitation-directe: ready-for-dev
+  8-3-liste-d-amis-et-invitation-directe: done
   8-4-historique: ready-for-dev
   8-5-emotes: ready-for-dev
   epic-8-retrospective: optional

@@ -1,4 +1,5 @@
 /** Accounts API client (story 8.1). Plain `fetch`, no Colyseus SDK: it loads with the home screen. */
+import type { FriendsList } from '@cinecards/protocol';
 import { SERVER_URL } from '../net/config.ts';
 
 /** HTTP base of the game server, from its WebSocket URL (`ws://` → `http://`, `wss://` → `https://`). */
@@ -44,14 +45,17 @@ export interface ServerFeatures {
   accounts: boolean;
   /** Story 8.2: a story-8.1 server answers without this field, which hides every passkey button. */
   passkeys: boolean;
+  /** Story 8.3: friends and invitations; an older server answers without it, which hides "Amis". */
+  friends: boolean;
 }
 
 let features: Promise<ServerFeatures> | null = null;
 /** What the server offers (`GET /api/health`, 4 s, once per visit). An older server, or none, hides the account UI. */
 export function serverFeatures(): Promise<ServerFeatures> {
-  features ??= call<{ accounts?: boolean; passkeys?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
+  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
     accounts: r.ok && r.data?.accounts === true,
     passkeys: r.ok && r.data?.accounts === true && r.data?.passkeys === true,
+    friends: r.ok && r.data?.accounts === true && r.data?.friends === true,
   }));
   return features;
 }
@@ -100,3 +104,10 @@ export const formatRecoveryCode = (typed: string) =>
     .replace(/[^A-Z0-9]/g, '')
     .slice(0, 16)
     .replace(/(.{4})(?=.)/g, '$1-');
+
+// ---- story 8.3: friends ----
+export const friendsList = (token: string) => call<FriendsList>('GET', '/api/friends', { token });
+export const requestFriend = (token: string, nickname: string) => call<{ status: 'pending' | 'accepted' }>('POST', '/api/friends', { token, body: { nickname } });
+export const acceptFriend = (token: string, id: number) => call<null>('POST', `/api/friends/${id}/accept`, { token });
+/** Declines a received request, cancels a sent one or removes a friend. */
+export const removeFriend = (token: string, id: number) => call<null>('DELETE', `/api/friends/${id}`, { token });

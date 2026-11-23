@@ -1,6 +1,7 @@
 import type http from 'node:http';
 import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/passkeys.ts';
 import type { AccountService, AuthResult } from '../auth/service.ts';
+import type { FriendService } from '../social/friends.ts';
 
 /**
  * Default client origins: the game on Root's domain (story 8.6) and the old GitHub Pages site during the move;
@@ -87,7 +88,7 @@ const bearer = (req: http.IncomingMessage) => /^Bearer\s+(\S+)$/i.exec(req.heade
  * JSON API under `/api/` (story 8.1), served on the game server's port. Returns a request handler that
  * answers `/api/*` and returns true, or returns false so the request goes on to Colyseus.
  */
-export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service)) {
+export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService) {
   return (req: http.IncomingMessage, res: http.ServerResponse): boolean => {
     const path = (req.url ?? '').split('?')[0]!;
     if (path !== '/api' && !path.startsWith('/api/')) return false;
@@ -118,12 +119,26 @@ export function createApi(service: AccountService, origins: string[], passkeys =
       return rp;
     };
     void (async () => {
-      // the only route with a parameter (story 8.2)
+      // routes with a parameter (stories 8.2, 8.3)
       const keyId = req.method === 'DELETE' && path.startsWith('/api/passkeys/') ? safeDecode(path.slice('/api/passkeys/'.length)) : null;
       if (keyId) return reply(passkeys.remove(bearer(req), keyId), 204);
+      const friend = friends ? /^\/api\/friends\/(\d{1,15})(\/accept)?$/.exec(path) : null;
+      if (friend && req.method === 'POST' && friend[2]) {
+        req.resume(); // no body expected
+        return reply(friends!.accept(bearer(req), Number(friend[1])), 204);
+      }
+      if (friend && req.method === 'DELETE' && !friend[2]) return reply(friends!.remove(bearer(req), Number(friend[1])), 204);
       switch (route) {
         case 'GET /api/health':
-          return send(200, { ok: true, accounts: true, passkeys: true });
+          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}) });
+        case 'GET /api/friends':
+          if (!friends) break;
+          return reply(friends.list(bearer(req)), 200);
+        case 'POST /api/friends': {
+          if (!friends) break;
+          const b = await readJson(req);
+          return reply(friends.request(bearer(req), b.nickname), 201);
+        }
         case 'POST /api/accounts': {
           const b = await readJson(req);
           return reply(await service.create(b.nickname, b.password), 201);
@@ -167,9 +182,8 @@ export function createApi(service: AccountService, origins: string[], passkeys =
           const b = await readJson(req);
           return reply(await service.changePassword(bearer(req), b.currentPassword, b.newPassword), 204);
         }
-        default:
-          return send(404, { error: 'not_found', message: 'Introuvable.' });
       }
+      return send(404, { error: 'not_found', message: 'Introuvable.' });
     })().catch((err: unknown) => {
       if (err instanceof HttpError) {
         send(err.status, { error: err.code, message: err.message });

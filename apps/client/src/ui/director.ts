@@ -10,7 +10,7 @@ import { abilityBody, abilityTag } from '../game/labels.ts';
 import { PHONE_SPELL, REMOVAL, SPOT } from '../game/fx.ts';
 import { removalText, STAMP } from '../game/removal.ts';
 import { PHONE_FX, particleBudget } from '../game/perf.ts';
-import { TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
+import { FX_MIN_FONT, fxScale, TRAVEL_REF, travelFactor, type TravelKind } from '../game/motion.ts';
 
 /**
  * Epic 12 staging: turns each beat of the playback into Web Animations on the table's DOM, following the
@@ -139,8 +139,8 @@ const STAR = '<svg viewBox="0 0 64 64" width="64" height="64"><path d="M32 2l6 1
 /** Impact star at the target, scaled with the damage. */
 function splat(el: HTMLElement, amount: number, r: number, small = false) {
   const c = center(el);
-  const fit = Math.min(1, Math.max(0.6, rectOf(el).width / 90));
-  const size = fit * (small ? 0.7 : 1) * Math.min(1.5, 0.8 + amount / 200);
+  // story 13.14: at the scale of the card (a portrait: of a card of this table)
+  const size = fxScaleOf(el) * (small ? 0.7 : 1) * Math.min(1.5, 0.8 + amount / 200);
   const s = overlay('fx-splat', c.x, c.y, STAR);
   void animateSteps(
     s,
@@ -280,8 +280,17 @@ function effectTargets(events: GameEvent[], from: number): string[] {
   return out;
 }
 
-/** How big a card is compared with the demo's cards (100 px wide): effects scale with it. */
-const fitOf = (el: Element) => Math.min(1.2, Math.max(0.6, rectOf(el).width / 90));
+/**
+ * Story 13.14: the scale effects on `el` are drawn at, from its width on screen (the demo's cards are 100 px wide).
+ * A portrait is a small avatar: its effects take the scale of a card of this table (a card, or else an empty slot).
+ */
+function fxScaleOf(el: Element): number {
+  if (el.classList.contains('card')) return fxScale(rectOf(el).width);
+  const ref = document.querySelector('.table .board .card') ?? document.querySelector('.table .board .slot');
+  return fxScale(ref ? ref.getBoundingClientRect().width : rectOf(el).width);
+}
+/** Story 13.14: a number's size in px, at the scale of its card, never under `FX_MIN_FONT`. */
+const numPx = (base: number, el: Element) => Math.max(FX_MIN_FONT, base * fxScaleOf(el));
 
 /** Story 12.3: a number that splashes up from the target; its size follows the value. */
 function floatText(x: number, y: number, text: string, color: string, size: number, r: number, cls = '') {
@@ -316,6 +325,9 @@ let liveParticles = 0;
 /** Small particles (poison bubbles, healing sparks, shield shards) rising from the card. */
 function particles(el: HTMLElement, n: number, colors: string[], r: number, rise = 50, ms = 700, cls = 'fx-dot') {
   const rect = rectOf(el);
+  // story 13.14: particles, their rise and their drift follow the size of the card
+  const s = fxScaleOf(el);
+  rise *= s;
   const count = particleBudget(n, compactTable(), liveParticles);
   liveParticles += count;
   // on the phone a smaller burst keeps the spread of the full one (every k-th particle of it)
@@ -326,14 +338,14 @@ function particles(el: HTMLElement, n: number, colors: string[], r: number, rise
     const y = rect.top + rect.height * (0.55 + (0.35 * ((i * 53) % 100)) / 100);
     const d = overlay(cls, x, y);
     d.style.setProperty('--c', colors[i % colors.length]!);
-    const dx = ((i * 29) % 21) - 10;
+    const dx = (((i * 29) % 21) - 10) * s;
     const up = rise * (0.6 + ((i * 41) % 40) / 100);
     void animateSteps(
       d,
       [
-        { transform: 'translate(-50%,-50%) scale(.4)', opacity: 0, easing: EASING.snap },
-        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.2, easing: EASING.easeOut },
-        { transform: `translate(calc(-50% + ${dx}px), calc(-50% - ${up}px)) scale(.6)`, opacity: 0 },
+        { transform: `translate(-50%,-50%) scale(${0.4 * s})`, opacity: 0, easing: EASING.snap },
+        { transform: `translate(-50%,-50%) scale(${s})`, opacity: 1, offset: 0.2, easing: EASING.easeOut },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% - ${up}px)) scale(${0.6 * s})`, opacity: 0 },
       ],
       ms * r * (0.8 + ((i * 17) % 40) / 100),
       EASING.easeOut,
@@ -352,7 +364,11 @@ function statArrow(card: HTMLElement, which: 'atk' | 'hp', delta: number, r: num
   const up = delta > 0;
   const color = up ? '#f2d27a' : '#b98cff';
   const path = up ? 'M12 3l8 10h-5v8H9v-8H4z' : 'M12 21l8-10h-5V3H9v8H4z';
-  const a = overlay('fx-arrow', c.x, c.y - 16, `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="${path}" fill="${color}" stroke="#2a1a0e" stroke-width="1.2"/></svg><b style="color:${color}">${up ? '+' : '−'}${Math.abs(delta)}</b>`);
+  // story 13.14: at the scale of the card, still legible
+  const s = fxScaleOf(card);
+  const icon = Math.round(Math.max(12, 22 * s));
+  const a = overlay('fx-arrow', c.x, c.y - 16 * s, `<svg viewBox="0 0 24 24" width="${icon}" height="${icon}" aria-hidden="true"><path d="${path}" fill="${color}" stroke="#2a1a0e" stroke-width="1.2"/></svg><b style="color:${color}">${up ? '+' : '−'}${Math.abs(delta)}</b>`);
+  a.style.fontSize = `${Math.round(Math.max(10, 15 * s))}px`;
   void animateSteps(
     a,
     [
@@ -405,7 +421,7 @@ function shieldHit(card: HTMLElement, absorbed: number, broken: boolean, r: numb
     EASING.linear,
   ).then(() => crack.remove());
   if (broken) particles(card, 10, ['#f2d27a', '#fff3d6'], r, 30, 600, 'fx-shard');
-  floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', 12 * fitOf(card), r, 'small');
+  floatText(c.x, c.y + size * 0.35, `absorbé ${absorbed}`, '#c9c2b4', numPx(12, card), r, 'small');
 }
 
 /** Each status lands with its own effect: chains for silence, bubbles for poison, a shield, or its icon. */
@@ -435,7 +451,7 @@ function statusFx(card: HTMLElement, kind: string, r: number) {
     }
     void animateSteps(ic, land, 650 * r).then(() => ic.remove());
   }
-  if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, 13 * fitOf(card), r, 'small');
+  if (meta) floatText(c.x, rect.top + rect.height * 0.25, meta.label, meta.color, numPx(13, card), r, 'small');
 }
 
 const later = (fn: () => void, ms: number) => setTimeout(fn, ms);
@@ -469,6 +485,7 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
   void animate(card.querySelector('.cracks'), [{ opacity: 0 }, { opacity: 0, offset: 0.08 }, { opacity: 1, offset: 0.25 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
   void animate(card.querySelector('.scorch'), [{ opacity: 0 }, { opacity: 0, offset: 0.46 }, { opacity: 0.7, offset: 0.75 }, { opacity: 1 }], ms, { fill: 'forwards', easing: 'linear' });
   const rect = rectOf(card);
+  const ash = fxScaleOf(card); // story 13.14: ashes at the scale of the card
   later(() => particles(card, 18, ['#ff8a3d', '#ffd27a', '#8e1f1f'], r, 70, 900), ms * 0.46);
   // ashes: from where the card was to the graveyard counter
   later(() => {
@@ -488,9 +505,9 @@ function death(iid: string, owner: PlayerId, ms: number, r: number) {
       void animateSteps(
         d,
         [
-          { transform: 'translate(-50%,-50%)', opacity: 0.9, easing: EASING.easeOut },
-          { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px))`, opacity: 0.8, offset: 0.5, easing: EASING.easeIn },
-          { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.5)`, opacity: 0 },
+          { transform: `translate(-50%,-50%) scale(${ash})`, opacity: 0.9, easing: EASING.easeOut },
+          { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 60}px)) scale(${ash})`, opacity: 0.8, offset: 0.5, easing: EASING.easeIn },
+          { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${0.5 * ash})`, opacity: 0 },
         ],
         (700 + i * 40) * Math.max(r, 0.5) * k,
       ).then(() => {
@@ -515,7 +532,7 @@ function saved(iid: string, ms: number, r: number) {
     tint(card, 'saved', r, 450);
     particles(card, 10, ['#f2d27a', '#fff4c4'], r, 40, 600);
     const c = center(card);
-    floatText(c.x, c.y - 10, 'Sauvé !', '#f2d27a', 16 * fitOf(card), r, 'small');
+    floatText(c.x, c.y - 10, 'Sauvé !', '#f2d27a', numPx(16, card), r, 'small');
   }, ms * 0.5);
 }
 
@@ -1248,10 +1265,10 @@ export function direct(cue: Cue) {
       const c = center(tgt);
       if (e.absorbed > 0) shieldHit(tgt, e.absorbed, !cue.after.instances[e.target]?.statuses.some((st) => st.kind === 'shield'), r);
       if (e.amount <= 0) {
-        if (!e.absorbed) floatText(c.x, c.y, '0', '#c9c2b4', 16 * fitOf(tgt), r);
+        if (!e.absorbed) floatText(c.x, c.y, '0', '#c9c2b4', numPx(16, tgt), r);
         break;
       }
-      floatText(c.x, c.y - 6, `−${e.amount}`, '#ffd7c2', Math.min(30, 15 + e.amount / 10) * fitOf(tgt) * 1.1, r, 'dmg');
+      floatText(c.x, c.y - 6, `−${e.amount}`, '#ffd7c2', numPx(Math.min(30, 15 + e.amount / 10) * 1.1, tgt), r, 'dmg');
       tint(tgt, 'hurt', r);
       const riposte = !!current && e.target === current.attacker && current.target.kind === 'card' && e.source === current.target.iid;
       splat(tgt, e.amount, r, riposte);
@@ -1265,7 +1282,7 @@ export function direct(cue: Cue) {
       if (!hero || !face) break;
       splat(face, e.amount, r);
       const c = center(face);
-      floatText(c.x + 30, c.y, `−${e.amount}`, '#ff6a5a', Math.min(40, 20 + e.amount / 8), r, 'dmg');
+      floatText(c.x + 30 * fxScaleOf(face), c.y, `−${e.amount}`, '#ff6a5a', numPx(Math.min(40, 20 + e.amount / 8), face), r, 'dmg');
       recoil(hero, current ? cardEl(current.attacker) : null, r, 0.8);
       shake(e.amount, r);
       break;
@@ -1311,7 +1328,7 @@ export function direct(cue: Cue) {
       const c = center(tgt);
       tint(tgt, 'heal', r, 500);
       particles(tgt, 8, ['#6fdc8c', '#c6f5a8'], r, 45, 650);
-      floatText(c.x, c.y - 6, `+${e.amount}`, '#7fe0a8', Math.min(28, 15 + e.amount / 10) * fitOf(tgt), r, 'heal');
+      floatText(c.x, c.y - 6, `+${e.amount}`, '#7fe0a8', numPx(Math.min(28, 15 + e.amount / 10), tgt), r, 'heal');
       break;
     }
     case 'modified': {

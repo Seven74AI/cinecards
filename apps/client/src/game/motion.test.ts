@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TRAVEL_BOUNDS, TRAVEL_REF, travelFactor } from './motion.ts';
+import { FX_MIN_FONT, fxScale, TRAVEL_BOUNDS, TRAVEL_REF, travelFactor } from './motion.ts';
 
 describe('story 13.13: travel time follows the distance', () => {
   it('keeps the usual time at the reference distance and scales in proportion around it', () => {
@@ -19,5 +19,17 @@ describe('story 13.13: travel time follows the distance', () => {
   });
   it('has a typical distance for each motion on both layouts', () => {
     for (const layout of [TRAVEL_REF.desk, TRAVEL_REF.phone]) for (const v of Object.values(layout)) expect(v).toBeGreaterThan(100);
+  });
+});
+
+describe('story 13.14: effects at the scale of the card', () => {
+  it('is the width over the demo card (100 px), bounded by 0.45 and 1.3', () => {
+    expect(fxScale(100)).toBe(1);
+    expect(fxScale(59)).toBeCloseTo(0.59);
+    expect(fxScale(104)).toBeCloseTo(1.04);
+    expect(fxScale(20)).toBe(0.45);
+    expect(fxScale(400)).toBe(1.3);
+    expect(fxScale(0)).toBe(1);
+    expect(FX_MIN_FONT).toBe(11);
   });
 });

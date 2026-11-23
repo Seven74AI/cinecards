@@ -130,7 +130,7 @@ development_status:
   13-11-courbes-d-acceleration-et-entree-de-carte-plus-lente: done
   13-12-fluidite-des-animations-sur-telephone: done
   13-13-duree-des-deplacements-selon-la-distance: done  # maquette validée le 2026-11-23
-  13-14-taille-des-effets-a-l-echelle-de-la-carte: backlog  # maquette validée le 2026-11-23
+  13-14-taille-des-effets-a-l-echelle-de-la-carte: done  # maquette validée le 2026-11-23
   13-15-tremblement-a-l-echelle-de-l-ecran: backlog
   epic-13-retrospective: optional
 action_items:

@@ -51,3 +51,14 @@ export function travelFactor(distance: number, ref: number): number {
   if (!(distance > 0) || !(ref > 0)) return 1;
   return Math.min(TRAVEL_BOUNDS.max, Math.max(TRAVEL_BOUNDS.min, distance / ref));
 }
+
+/**
+ * Story 13.14 (mockup approved by Root, 2026-11-23): effects on a card (numbers, impact star, particles, stat arrows)
+ * are drawn at the scale of the card: its width ÷ the demo's 100 px card, bounded. Numbers keep a legible size.
+ */
+export const FX_SCALE = { ref: 100, min: 0.45, max: 1.3 } as const;
+export const FX_MIN_FONT = 11;
+export function fxScale(width: number): number {
+  if (!(width > 0)) return 1;
+  return Math.min(FX_SCALE.max, Math.max(FX_SCALE.min, width / FX_SCALE.ref));
+}

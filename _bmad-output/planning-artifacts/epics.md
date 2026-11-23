@@ -123,6 +123,7 @@ Découpage complet en epics et stories, à partir du GDD final, de l'architectur
 | 11 | Corrections du playtest 1 | Oui | Solo, chrono et reconnexion fiables ; capacités déclenchées ; lisibilité des cartes (à faire avant 8, 9, 10) |
 | 12 | Retours visuels de chaque action | Oui | Chaque action se voit : attaques, morts, poses, déclencheurs (après 11, avant 8, 9, 10) |
 | 13 | Retours du playtest 2 | Oui | Aperçu des cartes citées, table sans défilement, origine des bonus et malus (après 12.4) |
+| 14 | Table téléphone v2 | Oui | Sans zoom, main repliée derrière un bouton, vue compacte ou détaillée au choix (avant 9) |
 | 8 | Comptes et amis | Non | Clé d'accès ou pseudo + mot de passe, code de secours, amis, historique, émotes (à faire maintenant, avant 10 puis 9) |
 | 9 | Pipeline de contenu | Non | Import des ~500 cartes |
 | 10 | Decks construits | Non | Decks de 50 cartes uniques, écran de construction, deck choisi en salle (après 8, avant 9) |
@@ -1070,6 +1071,50 @@ As a joueur, I want que la table tremble avec la même force apparente sur tél�
 - **Then** l'amplitude reste proportionnelle aux dégâts et devient proportionnelle à la taille de la table (son petit côté), avec une taille de référence et des bornes choisies sur la maquette
 - **And** la durée ne change pas ; « réduire les animations » supprime toujours le tremblement
 - **And** ordinateur, tablette et paysage ne changent que si Root le choisit sur la maquette
+
+## Epic 14: Table téléphone v2
+
+Retour de Root (2026-11-23) sur la table téléphone, maquette **F** validée (`docs/design/mobile-table-v2/`,
+`planning-artifacts/sprint-change-proposal-2026-11-23-table-v2.md`). Téléphone en portrait seulement : ordinateur,
+tablette et paysage ne changent pas. Toujours sans défilement vertical de 360 × 640 à 430 × 932.
+
+### Story 14.1: Table sans zoom, rangées terrains et sorts, bandeaux complets
+As a joueur sur téléphone, I want voir les deux camps tels quels, avec leurs terrains et leurs sorts, So that je n'aie plus à agrandir un camp.
+**Constat :** le zoom d'un camp (13.2) ne sert pas ; les terrains et sorts ne sont qu'une fine bande.
+**Acceptance Criteria:**
+- **Given** la table compacte (téléphone en portrait)
+- **Then** il n'y a plus de zoom ni de repli : pas de « agrandir », pas de zoom automatique sur une attaque ou une demande de cible, pas de barre « Vue d'ensemble » ; la barre de consigne d'un choix reste dans le bandeau du tour
+- **And** chaque camp montre une rangée « Terrains » et une rangée « Sorts » de 5 cases (petite plaque avec l'icône et le nom de la carte, case vide en pointillés), touchables, au-dessus des personnages chez l'adversaire et en dessous chez moi, puis la grille 2 × 5 des personnages
+- **And** chaque bandeau montre l'initiale, le nom, la barre de PV, les PV, les pièces et le stock, la main (adversaire), la pioche et le cimetière ; le bandeau du joueur actif est mis en évidence ; rien de ce qui est affiché aujourd'hui ne disparaît
+- **And** les cibles tactiles mesurent au moins 44 px ; les e2e de la table téléphone sont réécrits (plus de zoom) et vérifient l'absence de défilement vertical à 390 × 844 et 360 × 640
+
+### Story 14.2: Main repliée derrière le bouton éventail, vue compacte
+As a joueur sur téléphone, I want ouvrir et fermer ma main d'un bouton, So that chaque carte soit facile à toucher sans cacher la table.
+**Acceptance Criteria:**
+- **Given** la table compacte
+- **Then** il n'y a plus de rangée de main en bas : mon bandeau porte un bouton « éventail + pastille » (trois cartes en éventail, nombre de cartes en pastille rouge ; ouvert : l'éventail s'écarte, couleurs inversées), au moins 44 px touchables
+- **And** le bouton ouvre la main dans un panneau opaque, sans en-tête ni bouton de fermeture, posé par-dessus le bas de mon camp ; le plateau ne bouge pas et ne change pas de taille ; le même bouton la referme
+- **And** vue compacte : les faces entières des cartes (`CardView`) sur une ligne qui défile horizontalement, sans défilement vertical
+- **And** toucher une carte ouvre la fiche actuelle (avec « Jouer ») ; « Jouer » referme la main pour laisser voir la table pendant la pose
+- **And** la main reste fermée quand je pioche : la pastille s'anime ; la pioche et le retour en main visent le bouton quand la main est fermée
+- **And** les e2e jouent une carte en ouvrant la main ; planches `scripts/compare-demo.mjs` à jour
+
+### Story 14.3: Carte complète et vue détaillée de la main
+As a joueur sur téléphone, I want lire en entier les cartes de ma main sans ouvrir chaque fiche, So that je choisisse vite quoi jouer.
+**Acceptance Criteria:**
+- **Given** la main ouverte en vue détaillée
+- **Then** chaque carte est une carte complète : cadre, jeton de coût et gemme du jeu, illustration, puis un encart avec, pour chaque capacité, son icône d'énergie, son étiquette de type (À l'arrivée, Passif, Réaction, Effet…) et son texte d'effet, sans la réplique du film ; ATQ/PV en bas
+- **And** la carte fait 70 % de la largeur de l'écran, 280 px au plus ; textes d'au moins 12 px
+- **And** le panneau a la hauteur de la carte la plus haute de la main (recalculée quand la main change) : aucune carte ne défile verticalement ; il monte au-dessus de mon camp, du bandeau du tour et d'une partie du camp adverse, sans dépasser le bandeau adverse
+- **And** les cartes défilent horizontalement ; toucher une carte ouvre la fiche actuelle (répliques comprises, « Jouer »)
+
+### Story 14.4: Réglage « Main ouverte » : compacte ou détaillée
+As a joueur, I want choisir la vue de ma main, So that je garde celle qui me convient.
+**Acceptance Criteria:**
+- **Given** la barre du haut
+- **Then** un bouton « Réglages » (roue dentée) ouvre un petit panneau avec « Main ouverte : Compacte | Détaillée » et une phrase d'explication
+- **And** le choix est retenu sur l'appareil (comme la vitesse et le son) ; par défaut : Compacte
+- **And** sur ordinateur, tablette et paysage, le réglage existe mais ne change rien tant que la main n'est pas repliée
 
 ## Epic 8: Comptes et amis (post-MVP)
 

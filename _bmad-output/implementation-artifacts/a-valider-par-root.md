@@ -207,3 +207,12 @@ Maquette validée par Root le 2026-11-23 (`docs/design/animations/maquette-13-13
 - [x] Story 13.14 — sur un portrait (avatar de 28 à 32 px), l'étoile d'impact prend l'échelle d'une carte de la table du même écran. `[ASSUMPTION]` — ✅ Validé par Root (2026-11-23, lot 9).
 - [x] Story 13.14 — Root (2026-11-23) : les textes ne rapetissent pas (lisibilité) ; ils gardent leur taille d'avant. Le facteur ne touche plus que l'étoile d'impact, les particules (taille, montée, dérive), les cendres et l'icône des flèches de stat. ✅ Décidé par Root.
 - [x] Story 13.15 — « petit côté de l'écran » = le plus petit de la largeur et de la hauteur de la fenêtre ; ordinateur 1 440 × 900 et 1 280 × 720 : tremblement doublé (plafond 2×, 20 px au plus) ; téléphone de 360 px : 0,92×. `[ASSUMPTION]` — ✅ Validé par Root (2026-11-23, lot 9).
+
+## Epic 14 — table téléphone v2 (2026-11-23)
+
+Maquette F validée par Root le 2026-11-23 (`docs/design/mobile-table-v2/`). Choix par défaut à confirmer :
+
+- [ ] Epic 14 — vue de la main ouverte par défaut pour un nouveau joueur : **Compacte**. `[ASSUMPTION]`
+- [ ] Epic 14 — largeur de la carte complète : 70 % de l'écran, **280 px au plus** (Root a demandé « avec un maximum »). `[ASSUMPTION]`
+- [ ] Epic 14 — « Jouer » dans la fiche referme la main pour laisser voir la table pendant la pose ; la main reste fermée quand je pioche (la pastille du bouton s'anime). `[ASSUMPTION]`
+- [ ] Epic 14 — en vue détaillée aussi, toucher une carte ouvre la fiche actuelle (c'est là que se trouvent « Jouer » et les répliques). `[ASSUMPTION]`

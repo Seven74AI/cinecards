@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bouton de la main · options</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&amp;family=Alegreya:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+.ph{display:flex;align-items:center;gap:7px;height:48px;width:370px;padding:0 6px 0 10px;box-sizing:border-box;border-radius:10px;background:rgba(20,12,6,.7);box-shadow:0 0 0 1.5px #f2d27a,0 0 10px rgba(242,210,122,.35)}
+.av{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:13px;color:#f2d27a;background:radial-gradient(circle,#8e1f1f,#4d0c0a);box-shadow:0 0 0 1.5px #d4a74a}
+.pmain{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.pn{font-family:Cinzel,serif;font-weight:700;font-size:12px;color:#ead9b0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpbar{height:3px;border-radius:2px;background:rgba(0,0,0,.5);overflow:hidden}
+.hpbar i{display:block;height:100%;width:87%;background:linear-gradient(90deg,#8e1f1f,#d8402e)}
+.hp{display:flex;align-items:center;gap:2px;font-family:Cinzel,serif;font-weight:900;font-size:13px;color:#ead9b0}
+.coin{display:flex;align-items:center;gap:3px;font-family:Cinzel,serif;font-weight:900;font-size:12px;color:#f2d27a}
+.coin span{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff4c4,#f2d27a 35%,#c08a2a 75%,#7a5410)}
+.cnt{display:flex;align-items:center;gap:2px;font-family:Cinzel,serif;font-weight:700;font-size:11px;color:#ead9b0;white-space:nowrap}
+.btn{flex:none;position:relative;border:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;color:#2a1a0e}
+.btn::after{content:"";position:absolute;inset:-4px}
+.badge{position:absolute;top:-5px;right:-6px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:900;font-size:11px;color:#fff;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 60%,#5a0f0d);box-shadow:0 0 0 1.5px #f2d27a}
+.gold{background:linear-gradient(#f2d27a,#c08a2a);box-shadow:0 0 0 1.5px #5a3d0c,0 2px 4px rgba(0,0,0,.5)}
+.on.gold{background:#2a1a0e;color:#f2d27a;box-shadow:0 0 0 1.5px #f2d27a,0 0 12px rgba(242,210,122,.6)}
+.v1{width:40px;height:40px;border-radius:10px}
+.v2{height:38px;padding:0 10px 0 6px;gap:4px;border-radius:19px;font-size:14px}
+.v3{height:40px;padding:0 10px 0 6px;gap:6px;border-radius:10px;font-size:12px}
+.v4{width:34px;height:42px;border-radius:5px;background:linear-gradient(145deg,#f2d27a,#d4a74a 40%,#8a6416 75%,#f2d27a);box-shadow:0 0 0 1px #3a2608,3px 3px 0 -1px #6b4a12,6px 6px 0 -2px #4a330c,0 3px 6px rgba(0,0,0,.6)}
+.v4 .back{position:absolute;inset:2px;border-radius:3px;background:radial-gradient(circle,#8e1f1f,#4d0c0a 70%);display:flex;align-items:center;justify-content:center;font-size:15px;color:#f2d27a}
+.v4.on{transform:translateY(-4px);box-shadow:0 0 0 1px #3a2608,0 0 14px rgba(242,210,122,.75)}
+.v5{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e0574a,#a3271f 55%,#5a0f0d);box-shadow:0 0 0 2px #d4a74a,0 2px 5px rgba(0,0,0,.6);color:#fff3d6}
+.v5.on{background:radial-gradient(circle at 40% 35%,#4fd1c5,#1d6a64 60%,#0b2a28);box-shadow:0 0 0 2px #f2d27a,0 0 12px rgba(79,209,197,.7)}
+.v6{flex-direction:column;width:46px;height:46px;border-radius:10px;gap:0;font-size:10px;line-height:1}
+.v6 b{font-size:9px;letter-spacing:.06em}
+.lbl{font-family:Cinzel,serif;font-weight:900;font-size:14px;color:#f2d27a}
+.dsc{font-family:Alegreya,serif;font-size:13px;color:#c4ae86;max-width:360px}
+.colh{font-family:Alegreya,serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#c4ae86}
+</style>
+</helmet>
+<div style="width:1000px;height:980px;box-sizing:border-box;padding:32px 40px;background:radial-gradient(ellipse at 50% 30%,#3d2616,#24170d 60%,#140c06);display:flex;flex-direction:column;gap:22px;color:#ead9b0">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-family:Cinzel,serif;font-weight:900;font-size:22px;color:#f2d27a">Bouton de la main — six options</span>
+<span class="dsc" style="max-width:none">Chaque option dans mon bandeau réel (390 px), main repliée à gauche, main ouverte à droite. Zone touchable de 44 px au moins.</span>
+</div>
+<div style="display:grid;grid-template-columns:180px 370px 370px;column-gap:20px;row-gap:26px;align-items:center">
+<span></span><span class="colh">Main repliée</span><span class="colh">Main ouverte</span>
+
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">{{ r.name }}</span><span class="dsc">{{ r.desc }}</span></div>
+
+<div class="ph"><span class="av">J</span><div class="pmain"><span class="pn">Vous</span><div class="hpbar"><i></i></div></div><span class="hp"><svg width="11" height="11" viewBox="0 0 24 24" fill="#FF8A8A" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"></path></svg>610</span><span class="coin"><span></span>7/10</span><span class="cnt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4ae86" stroke-width="2" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"></rect></svg>21</span><span class="cnt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4ae86" stroke-width="2" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11z"></path><path d="M12 9v6M9.5 11.5h5"></path></svg>3</span>
+<sc-if value="{{ r.is1 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v1" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#2a1a0e" stroke-width="1.6" fill="#f3e6c4"><rect x="6" y="8" width="11" height="16" rx="2" transform="rotate(-20 11 24)"></rect><rect x="10.5" y="6" width="11" height="16" rx="2"></rect><rect x="15" y="8" width="11" height="16" rx="2" transform="rotate(20 21 24)"></rect></g></svg><span class="badge">10</span></button></sc-if>
+<sc-if value="{{ r.is2 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v2" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#2a1a0e" stroke-width="1.8" fill="#f3e6c4"><rect x="6" y="8" width="11" height="16" rx="2" transform="rotate(-20 11 24)"></rect><rect x="10.5" y="6" width="11" height="16" rx="2"></rect><rect x="15" y="8" width="11" height="16" rx="2" transform="rotate(20 21 24)"></rect></g></svg>10</button></sc-if>
+<sc-if value="{{ r.is3 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v3" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#2a1a0e" stroke-width="1.8" fill="#f3e6c4"><rect x="6" y="8" width="11" height="16" rx="2" transform="rotate(-20 11 24)"></rect><rect x="10.5" y="6" width="11" height="16" rx="2"></rect><rect x="15" y="8" width="11" height="16" rx="2" transform="rotate(20 21 24)"></rect></g></svg>Main<span class="badge">10</span></button></sc-if>
+<sc-if value="{{ r.is4 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn v4" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><span class="back">10</span></button></sc-if>
+<sc-if value="{{ r.is5 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn v5" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#fff3d6" stroke-width="1.8" fill="none"><rect x="6" y="8" width="11" height="16" rx="2" transform="rotate(-20 11 24)"></rect><rect x="10.5" y="6" width="11" height="16" rx="2"></rect><rect x="15" y="8" width="11" height="16" rx="2" transform="rotate(20 21 24)"></rect></g></svg><span class="badge" style="background:linear-gradient(#f2d27a,#c08a2a);color:#2a1a0e;box-shadow:0 0 0 1.5px #5a3d0c">10</span></button></sc-if>
+<sc-if value="{{ r.is6 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v6" aria-label="Ouvrir la main, 10 cartes" aria-expanded="false"><svg width="22" height="20" viewBox="0 0 32 28" aria-hidden="true"><g stroke="#2a1a0e" stroke-width="1.8" fill="#f3e6c4"><rect x="6" y="6" width="11" height="16" rx="2" transform="rotate(-20 11 22)"></rect><rect x="10.5" y="4" width="11" height="16" rx="2"></rect><rect x="15" y="6" width="11" height="16" rx="2" transform="rotate(20 21 22)"></rect></g></svg><b>MAIN·10</b></button></sc-if>
+</div>
+
+<div class="ph"><span class="av">J</span><div class="pmain"><span class="pn">Vous</span><div class="hpbar"><i></i></div></div><span class="hp"><svg width="11" height="11" viewBox="0 0 24 24" fill="#FF8A8A" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"></path></svg>610</span><span class="coin"><span></span>7/10</span><span class="cnt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4ae86" stroke-width="2" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"></rect></svg>21</span><span class="cnt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4ae86" stroke-width="2" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11z"></path><path d="M12 9v6M9.5 11.5h5"></path></svg>3</span>
+<sc-if value="{{ r.is1 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v1 on" aria-label="Fermer la main" aria-expanded="true"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#f2d27a" stroke-width="1.6" fill="#2a1a0e"><rect x="5" y="5" width="11" height="16" rx="2" transform="rotate(-28 10 21)"></rect><rect x="10.5" y="3" width="11" height="16" rx="2"></rect><rect x="16" y="5" width="11" height="16" rx="2" transform="rotate(28 21 21)"></rect></g></svg><span class="badge">10</span></button></sc-if>
+<sc-if value="{{ r.is2 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v2 on" aria-label="Fermer la main" aria-expanded="true"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#f2d27a" stroke-width="1.8" fill="#2a1a0e"><rect x="5" y="5" width="11" height="16" rx="2" transform="rotate(-28 10 21)"></rect><rect x="10.5" y="3" width="11" height="16" rx="2"></rect><rect x="16" y="5" width="11" height="16" rx="2" transform="rotate(28 21 21)"></rect></g></svg>10</button></sc-if>
+<sc-if value="{{ r.is3 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v3 on" aria-label="Fermer la main" aria-expanded="true"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#f2d27a" stroke-width="1.8" fill="#2a1a0e"><rect x="5" y="5" width="11" height="16" rx="2" transform="rotate(-28 10 21)"></rect><rect x="10.5" y="3" width="11" height="16" rx="2"></rect><rect x="16" y="5" width="11" height="16" rx="2" transform="rotate(28 21 21)"></rect></g></svg>Main<span class="badge">10</span></button></sc-if>
+<sc-if value="{{ r.is4 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn v4 on" aria-label="Fermer la main" aria-expanded="true"><span class="back">10</span></button></sc-if>
+<sc-if value="{{ r.is5 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn v5 on" aria-label="Fermer la main" aria-expanded="true"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><g stroke="#fff3d6" stroke-width="1.8" fill="none"><rect x="5" y="5" width="11" height="16" rx="2" transform="rotate(-28 10 21)"></rect><rect x="10.5" y="3" width="11" height="16" rx="2"></rect><rect x="16" y="5" width="11" height="16" rx="2" transform="rotate(28 21 21)"></rect></g></svg><span class="badge" style="background:linear-gradient(#f2d27a,#c08a2a);color:#2a1a0e;box-shadow:0 0 0 1.5px #5a3d0c">10</span></button></sc-if>
+<sc-if value="{{ r.is6 }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn gold v6 on" aria-label="Fermer la main" aria-expanded="true"><svg width="22" height="20" viewBox="0 0 32 28" aria-hidden="true"><g stroke="#f2d27a" stroke-width="1.8" fill="#2a1a0e"><rect x="5" y="4" width="11" height="16" rx="2" transform="rotate(-28 10 20)"></rect><rect x="10.5" y="2" width="11" height="16" rx="2"></rect><rect x="16" y="4" width="11" height="16" rx="2" transform="rotate(28 21 20)"></rect></g></svg><b>MAIN·10</b></button></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":980}}'>
+class Component extends DCLogic {
+renderVals() {
+const R = (k, name, desc) => ({ name, desc, is1: k === 1, is2: k === 2, is3: k === 3, is4: k === 4, is5: k === 5, is6: k === 6 });
+return { rows: [
+R(1, '1 · Éventail + pastille', 'Icône seule (trois cartes en éventail), le nombre dans une pastille rouge. Ouverte : l’éventail s’écarte, couleurs inversées.'),
+R(2, '2 · Éventail + nombre', 'Pilule dorée : icône puis le nombre en grand. Le plus compact avec du texte.'),
+R(3, '3 · Éventail + « Main »', 'Icône, le mot « Main », le nombre en pastille. Le plus explicite.'),
+R(4, '4 · Pile de dos de cartes', 'Une petite pile de cartes vues de dos, le nombre dessus. Ouverte : la pile se soulève et s’illumine.'),
+R(5, '5 · Sceau rouge', 'Rond comme les sceaux du jeu, éventail blanc, pastille dorée. Ouverte : il passe au turquoise des actions.'),
+R(6, '6 · Icône sur « MAIN·10 »', 'Bouton carré : l’éventail au-dessus, le texte en petites capitales dessous.')
+] };
+}
+}
+</script>
+</body>
+</html>

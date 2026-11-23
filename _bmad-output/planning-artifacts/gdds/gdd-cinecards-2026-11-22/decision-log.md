@@ -35,3 +35,4 @@
 - 2026-11-23 — Root valide le lot 6 de `a-valider-par-root.md` : hébergement, amis, historique, émotes (17 points, stories 8.3 à 8.6).
 - 2026-11-23 — Root valide le lot 7 de `a-valider-par-root.md` : decks construits (12 points, stories 10.1 à 10.3). Tout le fichier est validé.
 - 2026-11-23 — Root : un deck de joueur n'est jamais modifié automatiquement ; devenu invalide, il est inutilisable jusqu'à ce que son propriétaire le corrige (GDD, Deck Building). Lot 8 de `a-valider-par-root.md` (test en direct, story 8.7) validé.
+- 2026-11-23 — Root choisit la table téléphone v2, option F (`docs/design/mobile-table-v2/`) : plus de zoom, rangées terrains et sorts, main repliée derrière un bouton éventail, vue compacte ou détaillée (carte complète sans réplique, 70 % de l'écran) au choix dans « Réglages » → epic 14.

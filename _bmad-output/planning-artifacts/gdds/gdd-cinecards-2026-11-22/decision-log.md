@@ -32,3 +32,4 @@
 - 2026-11-22 — Root : le jeu déménage sur un sous-domaine du VPS (`cinecards.sevend.io` pour l'instant), avant que des clés d'accès existent (story 8.6, ADR-009). Pas d'e-mail (Resend) pour l'instant. Les clés d'accès restent coupées sur `seven74ai.github.io`.
 - 2026-11-23 — Root approuve les maquettes du constructeur de deck : option B (grille unique, barre du bas) et l'écran « Mes decks » (story 10.2).
 - 2026-11-23 — Root valide le lot 5 de `a-valider-par-root.md` : comptes et sécurité (13 points, stories 8.1 et 8.2).
+- 2026-11-23 — Root valide le lot 6 de `a-valider-par-root.md` : hébergement, amis, historique, émotes (17 points, stories 8.3 à 8.6).

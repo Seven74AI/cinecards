@@ -3656,6 +3656,7 @@ span.mod-src {
 }
 .result-dot.loss {
   background: var(--crimson);
+}
 /* ---------- story 8.5: emotes ---------- */
 .icon-btn.emote-btn[aria-expanded='true'] {
   color: var(--parch);

@@ -1,4 +1,4 @@
-# Handoff → next Claude session (2026-11-22)
+# Handoff → next Claude session (2026-11-23)
 
 Read this first, then `AGENTS.md` (how to work: autonomy rules, definition of done, shipping, e2e ports).
 Talk to Root in **English**. Project documents stay in French, and code in English.
@@ -8,7 +8,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   - Game: https://cinecards.sevend.io/ (served by the game server itself since story 8.6, same origin as
     `wss://cinecards.sevend.io` and `/api`; `/health` → `ok`)
   - Old site: https://seven74ai.github.io/cinecards/ (GitHub Pages, "CineCards a déménagé" banner, no passkeys)
-- **Done:** epics 1–7, 8 (accounts, passkeys, friends, history, emotes, new address) and 10 (constructed decks), plus (MVP), 11 (playtest-1 fixes), 12 (per-action animations) and 13 (playtest-2 fixes, stories 13.1–13.12). `main` passes typecheck and 152 unit tests (including the 200-game simulation). The last full e2e run reported 38/38.
+- **Done:** epics 1–8, 10, 11, 12 and 13 (all retrospectives of 8 and 10 done, their 4 action items done). `main` passes typecheck, 303 unit tests (both 200-game simulations included) and 49/49 e2e. Every VPS deploy runs a live smoke test (story 8.7): read `https://cinecards.sevend.io/api/smoke` with the `CF-Access-Client-Id` header (see below); last run 11/11 on `912fa41`.
 - **Deploy:**
   - **Game:** deployed with the server below (the Docker image builds the client with `VITE_SERVER_URL=same-origin`).
   - **Old site (Pages):** push to `main`, then start the Pages workflow yourself (GitHub MCP `actions_run_trigger`, `run_workflow`, `pages.yml`, ref `main`). Push-triggered Actions are broken on the GitHub account side, and Hermes and Root agreed not to chase it.
@@ -16,11 +16,10 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - **Tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`. Plan: `_bmad-output/planning-artifacts/epics.md`. Rules: the GDD (`planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`). History of decisions: `decision-log.md` next to it.
 
 ## Waiting on Root (go through these first)
-- **Done 2026-11-22/23:** Root validated all of `a-valider-par-root.md` (batches 1-7, epics 8 and 10 included). Neo's doubling stays uncapped
-  until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects.
+- **Nothing pending:** `a-valider-par-root.md` is fully validated (batches 1-8, 2026-11-22/23). Neo's doubling stays uncapped until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects. Root's rule: a saved deck is never changed automatically (GDD, Deck Building).
 - **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
   `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.
-- **Parked by Root (2026-11-22):** the iPhone `?fps` check and further performance tests. Do not bring them up until Root does.
+- **Parked by Root:** the iPhone `?fps` check and performance tests (2026-11-22), and the playtest with friends until the real cards are in (2026-11-23). Do not bring them up until Root does.
 
 
 ## Cloudflare Access (since 2026-11-23)
@@ -42,11 +41,10 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   the one you pushed (the VPS updates within ~5 min) and `ok` is true; a failed step has an `error`.
 
 ## Next options (let Root choose)
-- **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.
-- **Playtest:** a full playtest with friends (`gds-playtest-plan` can prepare it).
-- **Epic 9, importing Root's ~500 cards:** needs a sample of Root's current format first.
-- **Epic 8:** accounts, friends, history, emotes.
-- **Epic 10, constructed decks:** needs Root's deck rules (deck size, copies allowed).
+- **Next (Root, 2026-11-23): the three parked animation ideas** (`epics.md`, "Idées en attente" at the end of epic 13):
+  travel time proportional to distance, effect size relative to the card, table shake scaled to the screen. Mockup first.
+- **Epic 9, importing Root's ~500 cards:** Root brings a sample of his format in about a week. Existing saved decks must
+  not be changed by the import (they just become invalid if their cards change).
 
 ## How we worked (keep doing it)
 - **Process:** BMAD/GDS workflows. `gds-correct-course` for playtest feedback becomes stories in `epics.md` plus `sprint-status.yaml`, then dev agents implement them.

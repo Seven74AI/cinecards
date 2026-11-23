@@ -16,7 +16,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - **Tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`. Plan: `_bmad-output/planning-artifacts/epics.md`. Rules: the GDD (`planning-artifacts/gdds/gdd-cinecards-2026-11-22/gdd.md`). History of decisions: `decision-log.md` next to it.
 
 ## Waiting on Root (go through these first)
-- **Done 2026-11-22:** Root validated all of `a-valider-par-root.md` (batches 1-4b). Neo's doubling stays uncapped
+- **Done 2026-11-22/23:** Root validated all of `a-valider-par-root.md` (batches 1-7, epics 8 and 10 included). Neo's doubling stays uncapped
   until a playtest between humans; the 3 s spotlight also stays on the bot's spells and arrival effects.
 - **Fixed 2026-11-22:** after an automatic reconnection the client saved a stale seat token (the SDK fires
   `onReconnect` before storing the new one), so a later return was refused. See `watchSeatToken` in `apps/client/src/net/online.ts`.

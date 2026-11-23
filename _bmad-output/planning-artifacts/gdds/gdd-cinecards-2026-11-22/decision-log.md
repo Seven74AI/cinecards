@@ -33,3 +33,4 @@
 - 2026-11-23 — Root approuve les maquettes du constructeur de deck : option B (grille unique, barre du bas) et l'écran « Mes decks » (story 10.2).
 - 2026-11-23 — Root valide le lot 5 de `a-valider-par-root.md` : comptes et sécurité (13 points, stories 8.1 et 8.2).
 - 2026-11-23 — Root valide le lot 6 de `a-valider-par-root.md` : hébergement, amis, historique, émotes (17 points, stories 8.3 à 8.6).
+- 2026-11-23 — Root valide le lot 7 de `a-valider-par-root.md` : decks construits (12 points, stories 10.1 à 10.3). Tout le fichier est validé.

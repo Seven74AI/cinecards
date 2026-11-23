@@ -132,7 +132,7 @@ development_status:
   13-13-duree-des-deplacements-selon-la-distance: done  # maquette validée le 2026-11-23
   13-14-taille-des-effets-a-l-echelle-de-la-carte: done  # maquette validée le 2026-11-23
   13-15-tremblement-a-l-echelle-de-l-ecran: done  # maquette validée le 2026-11-23
-  epic-13-retrospective: optional
+  epic-13-retrospective: done
 action_items:
   - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"
     epic: 8
@@ -163,4 +163,28 @@ action_items:
     owner: "orchestrateur"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
-last_updated: 11-23-2026 12:00
+  - id: "epic-13-retro-item-1-captures-e2e-hors-des-fichiers-suivis"
+    epic: 13
+    action: "Captures e2e hors des fichiers suivis : constructed.spec.ts écrit sous test-results/ (ou SHOTS_DIR) ; un pnpm e2e laisse git status propre"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
+  - id: "epic-13-retro-item-2-règle-de-lisibilité-un-texte-ne-rapetisse-jamais"
+    epic: 13
+    action: "Règle de lisibilité dans AGENTS.md et la démo : un texte ne rapetisse jamais pour suivre une échelle, seuls les graphismes suivent ; la maquette montre le plus petit cas réel"
+    owner: "orchestrateur"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
+  - id: "epic-13-retro-item-3-règles-visuelles-dans-agents-md"
+    epic: 13
+    action: "AGENTS.md : maquette d abord, ordinateur inchangé sauf demande de Root (un choix sur maquette vaut demande), planches compare-demo dans la définition de fini des stories d animation"
+    owner: "orchestrateur"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
+  - id: "epic-13-retro-item-4-renvois-du-set-importé-pour-l-epic-9"
+    epic: 13
+    action: "Story 9.1 : étendre richtext.test.ts au set importé et lister citations non reconnues et alias à ajouter pour validation de Root"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
+last_updated: 11-23-2026 13:00

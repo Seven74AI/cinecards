@@ -92,7 +92,7 @@ development_status:
   8-3-liste-d-amis-et-invitation-directe: done
   8-4-historique: done
   8-5-emotes: done
-  epic-8-retrospective: optional
+  epic-8-retrospective: done
   epic-9: backlog
   9-1-import-des-cartes-de-root: backlog
   9-2-illustrations: backlog
@@ -103,7 +103,7 @@ development_status:
   10-1-regles-de-construction: done
   10-2-ecran-de-construction: done  # maquette B retenue par Root le 2026-11-23
   10-3-choisir-son-deck-en-salle: done
-  epic-10-retrospective: optional
+  epic-10-retrospective: done
   # epic-12 (retours visuels de chaque action) : approuvé par Root le 2026-11-22, à faire juste après l'epic 11, avant 8, 9, 10
   epic-12: done
   12-1-couche-de-presentation: done
@@ -129,3 +129,34 @@ development_status:
   13-11-courbes-d-acceleration-et-entree-de-carte-plus-lente: done
   13-12-fluidite-des-animations-sur-telephone: done
   epic-13-retrospective: optional
+action_items:
+  - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"
+    epic: 8
+    action: "Découper styles.css par fonctionnalité et ajouter un test d analyse CSS
+      (postcss)"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
+  - id: "epic-8-retro-item-2-assertions-robustes-api-health-en-tomatc"
+    epic: 8
+    action: "Assertions robustes : /api/health en toMatchObject, tests de migration
+      relatifs à MIGRATIONS.length"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
+  - id: "epic-8-retro-item-3-e2e-pas-de-réutilisation-d-un-serveur-pé"
+    epic: 8
+    action: "E2E : pas de réutilisation d un serveur périmé quand les ports e2e sont
+      donnés"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
+  - id: "epic-8-retro-item-4-agents-md-règle-de-fusion-des-agents-en"
+    epic: 8
+    action: "AGENTS.md : règle de fusion des agents en parallèle (une story à la fois,
+      tests après chaque fusion, analyse CSS) ; un problème signalé par deux agents
+      devient une tâche"
+    owner: "orchestrateur"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
+last_updated: 11-23-2026 09:58

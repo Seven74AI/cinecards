@@ -19,6 +19,7 @@
 @import './history.css';
 @import './emotes.css';
 @import './decks.css';
+@import './settings.css';
 
 /*
  * CineCards client styles: one stylesheet per feature, imported above in cascade order.

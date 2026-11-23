@@ -22,6 +22,7 @@ import { sfx, isMuted, setMuted } from '../audio/sfx.ts';
 import { CardBack, CardView } from './CardView.tsx';
 import { FullCard } from './Abilities.tsx';
 import { getHandView, subscribeHandView } from '../game/handView.ts';
+import { SettingsButton } from './Settings.tsx';
 import { useRefs } from './Refs.tsx';
 import { CardSheet, choiceLabels, hasChooseOne, type SheetAction } from './CardSheet.tsx';
 import { modifierLines, type ModifierLine } from '../game/modifiers.ts';
@@ -163,6 +164,8 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
   /** Story 14.3: compact (14.2, default) or detailed open hand; story 14.4 sets it from "Réglages". */
   const handView = useSyncExternalStore(subscribeHandView, getHandView);
   const detailedHand = compact && handView === 'detailed';
+  // story 14.4: seven 44 px buttons and a room code do not fit a 360 px phone; online, the speed goes into Réglages
+  const speedInSettings = compact && !!session.sendEmote;
   const [inspect, setInspect] = useState<string | null>(null);
   /** Story 13.9: lines to a modifier's sources, shown on demand for a moment (`tuck`: the sheet slides away meanwhile). */
   const [lines, setLines] = useState<{ target: string; links: SourceLink[]; tuck: boolean; key: number } | null>(null);
@@ -260,12 +263,12 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
     document.addEventListener('visibilitychange', hide);
     return () => document.removeEventListener('visibilitychange', hide);
   }, [pb]);
-  const cycleSpeed = () => {
-    const next = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]!;
+  const changeSpeed = (next: AnimSpeed) => {
     setSpeed(next);
     saveSpeed(next);
     pb.setSpeed(next);
   };
+  const cycleSpeed = () => changeSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]!);
 
   // reset interaction when the position changes; a target prompt of mine opens the picking mode (story 11.4)
   useEffect(() => {
@@ -835,10 +838,13 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           )}
           <span className="spacer" />
           {session.sendEmote ? <EmoteButton send={session.sendEmote} /> : null}
-          <button type="button" className="icon-btn speed-btn" onClick={cycleSpeed} aria-label={`Vitesse des animations : ${SPEED_FR[speed]}`} title={`Vitesse des animations : ${SPEED_FR[speed]}`}>
-            <Icon name="speed" size={16} />
-            <small>{speed === 'normal' ? '×1' : speed === 'fast' ? '×2' : '⏭'}</small>
-          </button>
+          {/* story 14.4: on the phone table of an online duel the bar has no room left; the speed moves into Réglages */}
+          {speedInSettings ? null : (
+            <button type="button" className="icon-btn speed-btn" onClick={cycleSpeed} aria-label={`Vitesse des animations : ${SPEED_FR[speed]}`} title={`Vitesse des animations : ${SPEED_FR[speed]}`}>
+              <Icon name="speed" size={16} />
+              <small>{speed === 'normal' ? '×1' : speed === 'fast' ? '×2' : '⏭'}</small>
+            </button>
+          )}
           <button type="button" className="icon-btn" onClick={openRules} aria-label="Règles et mots-clés">
             <Icon name="help" size={16} />
           </button>
@@ -858,6 +864,7 @@ export function Table({ session, onLeave }: { session: Session; onLeave: () => v
           >
             <Icon name={muted ? 'mute' : 'sound'} size={16} />
           </button>
+          <SettingsButton speed={speedInSettings ? { value: speed, set: changeSpeed } : undefined} />
         </div>
 
         {Hero({ player: foe })}

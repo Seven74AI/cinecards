@@ -28,6 +28,7 @@ const P: Record<string, string> = {
   zoom: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>',
   back: '<path d="M15 6l-6 6 6 6"/>',
   chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.8A8 8 0 1 1 21 12z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
   crown: '<path d="M3 18h18l-1.6-10-4.9 4-2.5-7-2.5 7-4.9-4z"/><path d="M3 21h18"/>',
 };
 const FILLED = new Set(['heart', 'bolt', 'star']);

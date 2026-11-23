@@ -8,7 +8,7 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   - Game: https://cinecards.sevend.io/ (served by the game server itself since story 8.6, same origin as
     `wss://cinecards.sevend.io` and `/api`; `/health` → `ok`)
   - Old site: https://seven74ai.github.io/cinecards/ (GitHub Pages, "CineCards a déménagé" banner, no passkeys)
-- **Done:** epics 1–8, 10, 11, 12 and 13, including 13.13–13.15 (2026-11-23: travel time by distance, effect size by card, shake by screen; mockup `docs/design/animations/maquette-13-13-a-13-15.html`, Root picked the recommended options). `main` passes typecheck, 313 unit tests (both 200-game simulations included) and 49/49 e2e. Every VPS deploy runs a live smoke test (story 8.7): read `https://cinecards.sevend.io/api/smoke` with the `CF-Access-Client-Id` header (see below); last run 11/11 on `912fa41`.
+- **Done:** epics 1–8 and 10–14. Epic 14 (2026-11-23) = phone table v2, mockup F (`docs/design/mobile-table-v2/`): no zoom, terrain/spell rows, hand folded behind the fan button, compact or detailed view (full cards) chosen in « Réglages » (phone only). `main` passes typecheck, 317 unit tests and 65/65 e2e; live smoke test 11/11 on `d6eb89c`. Read `https://cinecards.sevend.io/api/smoke` with the `CF-Access-Client-Id` header (see below).
 - **Deploy:**
   - **Game:** deployed with the server below (the Docker image builds the client with `VITE_SERVER_URL=same-origin`).
   - **Old site (Pages):** push to `main`, then start the Pages workflow yourself (GitHub MCP `actions_run_trigger`, `run_workflow`, `pages.yml`, ref `main`). Push-triggered Actions are broken on the GitHub account side, and Hermes and Root agreed not to chase it.

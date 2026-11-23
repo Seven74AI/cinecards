@@ -31,9 +31,9 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
 - Plain HTTP works this way. Browser WebSocket handshakes from this container do not (browsers send no custom header
   on them, and a local relay did not get an upgrade through the proxy), so live duels/invites can't be driven from
   here: rely on the local e2e suite and API checks.
-- Open question for Root: in an earlier test, logged-in API calls through Access answered "session expirée"; it is
-  either this container's proxy setup or Access stripping `Authorization` (players would be affected). Root to confirm
-  "Amis" / "Historique" open on a phone; if not, send the session token in a custom header as well.
+- Logged-in API calls through Access fail **from this container only** ("session expirée": the proxy rule for the
+  host interferes with `Authorization`). Root confirmed on a phone (2026-11-23) that "Amis" and "Historique" work:
+  players are not affected. Don't "fix" the game for this.
 - `deploy/autodeploy.sh` checks `https://cinecards.sevend.io/health`, now behind Access: point `HEALTH_URL` at
   `http://localhost:2567/health` on the VPS (pending Root / Hermes).
 

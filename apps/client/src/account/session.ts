@@ -40,9 +40,11 @@ interface Snapshot {
   history: boolean;
   /** Story 10.2: the server keeps decks (`decks: true` in `/api/health`). */
   decks: boolean;
+  /** Story 10.3: the server plays saved decks in rooms (`constructed: true` in `/api/health`). */
+  constructed: boolean;
 }
 
-let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false, friends: false, history: false, decks: false };
+let snap: Snapshot = { account: 'unknown', available: null, passkeys: false, manage: false, friends: false, history: false, decks: false, constructed: false };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<Snapshot>) => {
   snap = { ...snap, ...patch };
@@ -60,8 +62,8 @@ export function initAccount() {
   started = true;
   const stored = readStored();
   if (!stored) set({ account: 'guest' });
-  void serverFeatures().then(async ({ accounts: available, passkeys, friends, history, decks }) => {
-    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys, friends, history, decks });
+  void serverFeatures().then(async ({ accounts: available, passkeys, friends, history, decks, constructed }) => {
+    set({ available, passkeys: passkeys && webAuthnSupported(), manage: passkeys, friends, history, decks, constructed });
     if (!stored) return;
     if (!available) return set({ account: stored });
     const r = await me(stored.token);

@@ -51,17 +51,20 @@ export interface ServerFeatures {
   history: boolean;
   /** Story 10.2: decks saved on the account; an older server answers without it, which hides "Mes decks". */
   decks: boolean;
+  /** Story 10.3: constructed rooms (a story-10.2 server keeps decks but cannot play them yet). */
+  constructed: boolean;
 }
 
 let features: Promise<ServerFeatures> | null = null;
 /** What the server offers (`GET /api/health`, 4 s, once per visit). An older server, or none, hides the account UI. */
 export function serverFeatures(): Promise<ServerFeatures> {
-  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean; history?: boolean; decks?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
+  features ??= call<{ accounts?: boolean; passkeys?: boolean; friends?: boolean; history?: boolean; decks?: boolean; constructed?: boolean }>('GET', '/api/health', { timeoutMs: 4000 }).then((r) => ({
     accounts: r.ok && r.data?.accounts === true,
     passkeys: r.ok && r.data?.accounts === true && r.data?.passkeys === true,
     friends: r.ok && r.data?.accounts === true && r.data?.friends === true,
     history: r.ok && r.data?.accounts === true && r.data?.history === true,
     decks: r.ok && r.data?.accounts === true && r.data?.decks === true,
+    constructed: r.ok && r.data?.accounts === true && r.data?.decks === true && r.data?.constructed === true,
   }));
   return features;
 }

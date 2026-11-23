@@ -1811,6 +1811,78 @@ h3 {
   opacity: 1;
   font-weight: 700;
 }
+/* story 10.3: constructed decks (home choice and waiting room) */
+.modes label.off {
+  opacity: 0.55;
+  cursor: default;
+}
+.mode-hint {
+  margin: -2px 0 0;
+  padding-left: 22px;
+  font-size: 13px;
+}
+.mode-hint .link {
+  display: inline;
+  margin: 0;
+  padding: 10px 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+.home-actions .mode-hint {
+  padding-left: 0;
+  margin-top: -4px;
+  text-align: center;
+}
+.modes .mode-deck {
+  padding-left: 22px;
+  text-align: left;
+  align-items: stretch;
+}
+.modes .mode-deck select {
+  width: 100%;
+}
+.mode-deck select,
+.lobby-deck select {
+  font: inherit;
+  font-family: var(--text);
+  font-weight: 400;
+  font-size: 16px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--gold-dark);
+  background: #fff8e4;
+  color: var(--ink);
+  max-width: 100%;
+}
+.lobby-mode {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+}
+.seat-deck {
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.8;
+}
+.lobby-deck {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.deck-choice label {
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+.deck-choice .btn {
+  margin-top: 4px;
+}
+.lobby-my-deck {
+  margin: 0;
+  text-align: center;
+}
 .collection {
   width: 100%;
   max-width: 1000px;

@@ -50,6 +50,8 @@ export async function startServer(
   const stopMaintenance = startMaintenance(db, dataDir, accounts.purge);
   // story 10.2: decks saved on the account, checked against the server's own catalog
   const decks = new DeckService(db, (t) => accounts.accountOf(t), catalog, playableCardIds(catalog), opts.now);
+  // story 10.3: constructed rooms read the seats' decks from the same service
+  roomConfig.decks = decks;
   const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history, decks);
   const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
@@ -74,6 +76,7 @@ export async function startServer(
     stopMaintenance();
     if (roomConfig.accounts === accounts) roomConfig.accounts = null;
     if (roomConfig.history === history) roomConfig.history = null;
+    if (roomConfig.decks === decks) roomConfig.decks = null;
     if (hubConfig.social === social) {
       hubConfig.social = null;
       roomConfig.presence = null;

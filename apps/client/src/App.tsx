@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { clearSent, connectHub, disconnectHub, sendInvite } from './account/hub.ts';
 import { InviteToast } from './account/InviteToast.tsx';
 import { useAccount } from './account/session.ts';
-import { CATALOG } from './game/catalog.ts';
+import { randomDeck } from '@cinecards/engine';
+import { CATALOG, PLAYABLE } from './game/catalog.ts';
 import { localSession, type Session } from './game/session.ts';
 import { lastSeat, SERVER_URL } from './net/config.ts';
 import type { OnlineStart } from './net/online.ts';
@@ -44,12 +45,16 @@ export function App() {
   const start = (s: Start) => {
     setError(null);
     if (s.kind === 'hotseat' || s.kind === 'bot') {
-      setSession(localSession(CATALOG, { kind: s.kind, mode: s.mode }));
+      // story 10.3: constructed solo only, my deck against 50 random playable cards drawn with the game's seed
+      if (s.kind === 'bot' && s.mode === 'constructed' && s.deck) {
+        const seed = Math.floor(Math.random() * 2 ** 31);
+        setSession(localSession(CATALOG, { kind: 'bot', mode: 'constructed', seed, decks: [s.deck, randomDeck(PLAYABLE, seed)] }));
+      } else setSession(localSession(CATALOG, { kind: s.kind, mode: s.mode === 'constructed' ? 'shared' : s.mode }));
       return;
     }
     let how: OnlineStart;
     if (s.kind === 'reconnect') how = { reconnect: s.token };
-    else if (s.kind === 'create') how = { create: true, mode: s.mode, nickname: s.nickname, session: s.session };
+    else if (s.kind === 'create') how = { create: true, mode: s.mode, nickname: s.nickname, session: s.session, deckId: s.deckId };
     else if (s.kind === 'join') {
       how = { create: false, code: s.code, nickname: s.nickname, session: s.session };
       setLastCode(s.code);

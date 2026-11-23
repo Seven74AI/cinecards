@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { watchSeatToken } from './online.ts';
+import { DECK_REFUSED_CODE } from '@cinecards/protocol';
+import { joinErrorMessage, watchSeatToken } from './online.ts';
 
 /** Mimics @colyseus/sdk 0.18: `onReconnect` listeners run before the new token is stored. */
 function fakeRoom() {
@@ -40,5 +41,14 @@ describe('11.2 seat token after an automatic reconnection', () => {
     remember();
     remember();
     expect(saved).toEqual(['ABCDE:first', 'ABCDE:later']);
+  });
+});
+
+describe('joinErrorMessage (story 10.3)', () => {
+  it('shows the French refusal of a constructed room as written by the server', () => {
+    const msg = 'Cette salle se joue en decks construits : connecte-toi et construis un deck valide.';
+    expect(joinErrorMessage(Object.assign(new Error(msg), { code: DECK_REFUSED_CODE }), false)).toBe(msg);
+    // any other error keeps its usual words
+    expect(joinErrorMessage(Object.assign(new Error('room "X" not found'), { code: 4212 }), false)).toMatch(/Aucune salle/);
   });
 });

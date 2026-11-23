@@ -27,6 +27,16 @@ export interface Snapshot {
   reconnecting?: boolean;
   /** Online (story 8.5): the latest emote relayed by the server; `at` is local ms so a repeat shows again. */
   lastEmote?: { from: PlayerId; id: EmoteId; at: number } | null;
+  /** Online waiting room: the room's draw mode (story 10.3). */
+  mode?: DeckMode;
+  /** Online waiting room, constructed rooms (story 10.3): I still have to choose my deck. */
+  needDeck?: boolean;
+  /** Which seats have a deck the server accepted. */
+  deckChosen?: [boolean, boolean];
+  /** The id of the deck the server holds for me. */
+  deckId?: number | null;
+  /** The server refused my deck (French message); `at` is local ms. */
+  deckRefused?: { message: string; at: number } | null;
 }
 
 export interface Session {
@@ -41,6 +51,8 @@ export interface Session {
   pace?(busyFor: () => number): void;
   /** Online only (story 8.5): sends one of the fixed emotes; local sessions leave it out, which hides the button. */
   sendEmote?(id: EmoteId): void;
+  /** Online waiting room of a constructed room (story 10.3): plays this saved deck (only its id goes to the server). */
+  chooseDeck?(deckId: number): void;
   dispose(): void;
 }
 
@@ -158,11 +170,21 @@ export class LocalClock {
 /** Hot-seat (two players on one device) or a game against the built-in bot. Runs the engine in the browser. */
 export function localSession(
   catalog: Catalog,
-  opts: { kind: 'hotseat' | 'bot'; mode: DeckMode; seed?: number; names?: [string, string]; turnMs?: number; reactionMs?: number; initial?: GameState },
+  opts: {
+    kind: 'hotseat' | 'bot';
+    mode: DeckMode;
+    seed?: number;
+    /** Constructed mode (story 10.3, solo only): each player's 50 cards. */
+    decks?: [string[], string[]];
+    names?: [string, string];
+    turnMs?: number;
+    reactionMs?: number;
+    initial?: GameState;
+  },
 ): Session {
   const seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
   // `initial`: a prepared position (dev test scenes only)
-  const { state, events } = opts.initial ? { state: opts.initial, events: [] as GameEvent[] } : createGame(catalog, { seed, mode: opts.mode });
+  const { state, events } = opts.initial ? { state: opts.initial, events: [] as GameEvent[] } : createGame(catalog, { seed, mode: opts.mode, ...(opts.decks ? { decks: opts.decks } : {}) });
   const names: [string, string] = opts.names ?? (opts.kind === 'bot' ? ['Joueur', 'Le Grimoire'] : ['Joueur 1', 'Joueur 2']);
   const viewerOf = (s: GameState): PlayerId => (opts.kind === 'bot' ? 0 : (s.pending?.player ?? s.active));
   const base: Snapshot = { state, events, seq: 1, log: [], error: null, viewer: viewerOf(state), names, turnEndsAt: null, reactionEndsAt: null, status: 'playing' };

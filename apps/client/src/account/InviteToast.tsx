@@ -30,7 +30,7 @@ export function InviteToast({ onJoin }: { onJoin: (invite: ReceivedInvite) => vo
       {shown.map((i) => (
         <div key={i.inviteId} className="invite-toast parchment" role="alert">
           <p className="invite-text">
-            <strong>{i.from.nickname}</strong> t’invite à un duel
+            <strong>{i.from.nickname}</strong> t’invite à un duel{i.mode === 'constructed' ? ' en decks construits' : ''}
             <small className="invite-left" aria-label={`Expire dans ${left(i.expiresAt - now)}`}>
               {left(i.expiresAt - now)}
             </small>

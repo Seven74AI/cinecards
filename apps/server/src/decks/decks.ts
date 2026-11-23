@@ -18,6 +18,12 @@ export const DECK_MESSAGES = {
   not_found: 'Ce deck n’existe plus.',
 } as const;
 
+/** Story 10.3: refusals of a deck chosen for a constructed room (French, tutoiement). */
+export const PLAY_MESSAGES = {
+  not_found: 'Ce deck n’existe plus : choisis-en un autre.',
+  invalid: 'Ce deck n’est plus valide :',
+} as const;
+
 /** A deck as the API sends it: its status is always computed here, never trusted from the client. */
 export interface DeckInfo {
   id: number;
@@ -82,6 +88,24 @@ export class DeckService {
     if (!Array.isArray(cards)) return cards;
     updateDeck(this.db, id, me.id, name, cards, this.now());
     return { ok: true, deck: this.info(findDeck(this.db, id, me.id)!) };
+  }
+
+  /**
+   * Story 10.3: the cards of a deck the account may play in a constructed room, read from the base and checked again
+   * here (the client only sends the id). Another account's deck, a deleted deck or an invalid one is refused in French.
+   */
+  playDeck(accountId: number, deckId: unknown): { ok: true; cards: string[]; name: string } | { ok: false; message: string } {
+    const row = typeof deckId === 'number' && Number.isSafeInteger(deckId) ? findDeck(this.db, deckId, accountId) : undefined;
+    if (!row) return { ok: false, message: PLAY_MESSAGES.not_found };
+    const cards = parseCards(row.cards);
+    const v = validateDeck(cards, this.catalog, this.playable);
+    if (!v.ok) return { ok: false, message: `${PLAY_MESSAGES.invalid} ${v.errors[0]!.message}` };
+    return { ok: true, cards, name: row.name };
+  }
+
+  /** Story 10.3: whether the account has at least one deck it could play. */
+  hasPlayDeck(accountId: number): boolean {
+    return listDecks(this.db, accountId).some((r) => validateDeck(parseCards(r.cards), this.catalog, this.playable).ok);
   }
 
   remove(token: unknown, id: number): AuthResult<object> {

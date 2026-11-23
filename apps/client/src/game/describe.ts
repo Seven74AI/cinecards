@@ -65,7 +65,7 @@ export function describeEvent(e: GameEvent, catalog: Catalog, state: GameState, 
   const target = (t: Target) => (t.kind === 'player' ? who(t.player) : card(t.iid));
   switch (e.type) {
     case 'gameStarted':
-      return `La partie commence (${e.mode === 'shared' ? 'pioche commune' : 'decks aléatoires'}). ${who(e.firstPlayer)} joue en premier.`;
+      return `La partie commence (${e.mode === 'shared' ? 'pioche commune' : e.mode === 'constructed' ? 'decks construits' : 'decks aléatoires'}). ${who(e.firstPlayer)} joue en premier.`;
     case 'turnStarted':
       return `— Tour ${e.turnNumber} de ${who(e.player)} —`;
     case 'coinsGained':

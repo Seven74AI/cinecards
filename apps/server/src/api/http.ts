@@ -136,7 +136,7 @@ export function createApi(service: AccountService, origins: string[], passkeys =
       if (deck && req.method === 'DELETE') return reply(decks!.remove(bearer(req), Number(deck[1])), 204);
       switch (route) {
         case 'GET /api/health':
-          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}), ...(decks ? { decks: true } : {}) });
+          return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}), ...(decks ? { decks: true, constructed: true } : {}) });
         case 'GET /api/history':
           if (!history) break;
           return reply(history.list(bearer(req)), 200);

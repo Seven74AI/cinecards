@@ -9,4 +9,5 @@ export * from './query.ts';
 export { unsupportedReason, playableCardIds, KNOWN_OPS } from './support.ts';
 export { botRandom, botStep, candidateActions } from './bot.ts';
 export { timeoutAction } from './timeout.ts';
+export { randomDeck } from './random-deck.ts';
 export { TRIGGERS } from './effects/triggers.ts';

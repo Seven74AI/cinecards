@@ -41,7 +41,7 @@ export class Duel {
 
   constructor(
     private readonly catalog: Catalog,
-    opts: { seed: number; mode: DeckMode; firstPlayer?: PlayerId },
+    opts: { seed: number; mode: DeckMode; firstPlayer?: PlayerId; decks?: [string[], string[]] },
     public names: [string, string],
     private readonly out: DuelOutput,
     private readonly clock: Clock = realClock,
@@ -49,7 +49,7 @@ export class Duel {
     private readonly reactionMs = RULES.REACTION_SECONDS * 1000,
   ) {
     this.startedAt = clock.now();
-    const { state, events } = createGame(catalog, { seed: opts.seed, mode: opts.mode });
+    const { state, events } = createGame(catalog, { seed: opts.seed, mode: opts.mode, ...(opts.decks ? { decks: opts.decks } : {}) });
     this.state = state;
     this.armTimers(true);
     this.broadcast(events);

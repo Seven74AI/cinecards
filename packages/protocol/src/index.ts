@@ -34,7 +34,21 @@ export interface LobbyMessage {
   seats: [string | null, string | null];
   you: PlayerId;
   mode: DeckMode;
+  /** Story 10.3, constructed rooms only: you still have to choose your deck (`chooseDeck`) before the duel starts. */
+  needDeck?: boolean;
+  /** Story 10.3, constructed rooms only: which seats have a checked deck. */
+  deckChosen?: [boolean, boolean];
+  /** Story 10.3, constructed rooms only: the id of the deck the server holds for you, or null. */
+  deckId?: number | null;
 }
+
+/** Story 10.3: the server refused the deck sent with `chooseDeck` (or it became invalid before the start). */
+export interface DeckRefusedMessage {
+  message: string;
+}
+
+/** Story 10.3: close code of a join refused because of the constructed mode; the error message is French. */
+export const DECK_REFUSED_CODE = 4210;
 
 export interface AwayMessage {
   player: PlayerId;
@@ -73,6 +87,8 @@ export interface EmoteMessage {
 export interface ClientMessages {
   action: Action;
   emote: { id: EmoteId };
+  /** Story 10.3: the deck this seat plays in a constructed room (only its id: the server reads and checks it). */
+  chooseDeck: { deckId: number };
 }
 
 export interface ServerMessages {
@@ -81,6 +97,7 @@ export interface ServerMessages {
   rejected: RuleError;
   away: AwayMessage;
   emote: EmoteMessage;
+  deckRefused: DeckRefusedMessage;
 }
 
 export interface RoomOptions {
@@ -88,6 +105,13 @@ export interface RoomOptions {
   nickname?: string;
   /** Account session token (story 8.1); the server then uses the account's nickname. Absent = guest. */
   session?: string;
+  /** Story 10.3: one of the account's saved decks, for a `constructed` room (the server loads and checks it). */
+  deckId?: number;
+  /**
+   * Story 10.3: this client can choose its deck in the waiting room. A constructed room refuses a join without it
+   * (and without `deckId`), which is how an older client gets a clean refusal instead of a seat it cannot use.
+   */
+  pickDeck?: boolean;
 }
 
 export const ROOM_NAME = 'duel';

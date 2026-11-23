@@ -33,6 +33,7 @@ describe('8.4 history formatting', () => {
     expect(RESULT_TONE.opponent_conceded).toBe('win');
     expect(modeLabel('shared')).toBe('Pioche commune');
     expect(modeLabel('randomSplit')).toBe('Decks aléatoires');
+    expect(modeLabel('constructed')).toBe('Decks construits'); // story 10.3
     expect(turnsLabel(1)).toBe('1 tour');
     expect(turnsLabel(12)).toBe('12 tours');
     expect(opponentLabel({ nickname: 'Bruno', isGuest: false })).toBe('Bruno');

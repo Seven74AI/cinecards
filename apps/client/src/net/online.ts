@@ -1,19 +1,21 @@
 import { Client, type Room } from '@colyseus/sdk';
 import { createGame, type Action, type Catalog, type DeckMode } from '@cinecards/engine';
-import { isEmoteId, ROOM_NAME, type AwayMessage, type EmoteId, type EmoteMessage, type LobbyMessage, type RuleError, type ViewMessage } from '@cinecards/protocol';
+import { DECK_REFUSED_CODE, isEmoteId, ROOM_NAME, type AwayMessage, type DeckRefusedMessage, type EmoteId, type EmoteMessage, type LobbyMessage, type RuleError, type ViewMessage } from '@cinecards/protocol';
 import { appendLog, Store, type Session } from '../game/session.ts';
 
 import { forgetSeat, saveSeat, seatToken, SERVER_URL } from './config.ts';
 
 /** `session`: account session token (story 8.1); the server then names the seat after the account. */
 export type OnlineStart =
-  | { create: true; mode: DeckMode; nickname: string; session?: string }
+  | { create: true; mode: DeckMode; nickname: string; session?: string; deckId?: number }
   | { create: false; code: string; nickname: string; session?: string }
   | { reconnect: string };
 
 /** Player-facing join errors (story 11.2): not found, full, and a seat that can no longer be resumed are told apart. */
 export function joinErrorMessage(err: unknown, hadSeat: boolean): string {
   const msg = String((err as Error)?.message ?? err);
+  // story 10.3: a constructed room's refusal is already written for the player
+  if ((err as { code?: unknown })?.code === DECK_REFUSED_CODE && msg) return msg;
   if (/not found|disposed/i.test(msg)) return hadSeat ? 'Cette partie est terminée : la salle n’existe plus.' : 'Aucune salle ne porte ce code. Vérifie-le : une salle d’attente expire 10 min après le départ de tous ses joueurs.';
   if (/locked|full/i.test(msg))
     return hadSeat
@@ -79,7 +81,17 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
     room = r;
     remember = watchSeatToken(r, saveSeat);
     r.onMessage('lobby', (m: LobbyMessage) => {
-      store.set({ roomCode: m.code, seats: m.seats, viewer: m.you, status: store.snap.status === 'connecting' ? 'waiting' : store.snap.status });
+      store.set({
+        roomCode: m.code,
+        seats: m.seats,
+        viewer: m.you,
+        mode: m.mode,
+        // story 10.3: absent outside constructed rooms (and from older servers)
+        needDeck: m.needDeck,
+        deckChosen: m.deckChosen,
+        deckId: m.deckId,
+        status: store.snap.status === 'connecting' ? 'waiting' : store.snap.status,
+      });
     });
     r.onMessage('view', (m: ViewMessage) => {
       const seq = m.seq;
@@ -99,6 +111,7 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
       });
       if (m.view.state.phase === 'finished') forgetSeat(r.roomId);
     });
+    r.onMessage('deckRefused', (m: DeckRefusedMessage) => store.set({ deckRefused: { message: String(m?.message ?? ''), at: Date.now() } }));
     r.onMessage('rejected', (e: RuleError) => store.set({ error: { error: e, at: Date.now() } }));
     r.onMessage('away', (m: AwayMessage) => {
       if (m.player === store.snap.viewer) return;
@@ -129,14 +142,20 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
         forgetSeat(code);
       }
     }
-    return client.joinById(code, session ? { nickname, session } : { nickname });
+    // `pickDeck`: this client can choose its deck in a constructed room's waiting room (story 10.3)
+    return client.joinById(code, session ? { nickname, session, pickDeck: true } : { nickname, pickDeck: true });
   };
 
   const p: Promise<Room> =
     'reconnect' in start
       ? ((hadSeat = true), client.reconnect(start.reconnect))
       : start.create
-        ? client.create(ROOM_NAME, start.session ? { mode: start.mode, nickname: start.nickname, session: start.session } : { mode: start.mode, nickname: start.nickname })
+        ? client.create(ROOM_NAME, {
+            mode: start.mode,
+            nickname: start.nickname,
+            ...(start.session ? { session: start.session } : {}),
+            ...(start.mode === 'constructed' && start.deckId !== undefined ? { deckId: start.deckId } : {}),
+          })
         : join(start.code.toUpperCase(), start.nickname, start.session);
   p.then((r) => {
     if (disposed) void r.leave(true);
@@ -157,6 +176,10 @@ export function onlineSession(catalog: Catalog, start: OnlineStart, onFatal: (me
     },
     sendEmote(id: EmoteId) {
       room?.send('emote', { id });
+    },
+    chooseDeck(deckId: number) {
+      store.set({ deckRefused: null });
+      room?.send('chooseDeck', { deckId });
     },
     /** "Quitter": a voluntary disconnect; the server keeps the seat for 90 s (only `concede` forfeits). */
     dispose() {

@@ -1,6 +1,6 @@
-import { Room, type Client } from '@colyseus/core';
+import { Room, ServerError, type Client } from '@colyseus/core';
 import { RULES, type Action, type Catalog, type DeckMode, type PlayerId } from '@cinecards/engine';
-import { EMOTE_COOLDOWN_MS, isEmoteId, type AwayMessage, type EmoteMessage, type LobbyMessage, type RoomOptions } from '@cinecards/protocol';
+import { DECK_REFUSED_CODE, EMOTE_COOLDOWN_MS, isEmoteId, type AwayMessage, type DeckRefusedMessage, type EmoteMessage, type LobbyMessage, type RoomOptions } from '@cinecards/protocol';
 import { Duel } from './duel.ts';
 import { uniqueCode } from './codes.ts';
 import type { FinishedDuel } from './history.ts';
@@ -28,12 +28,24 @@ export const roomConfig: {
   invites?: { roomStarted(code: string): void; roomGone(code: string): void } | null;
   /** Story 8.4: records each finished duel (a game between two guests is dropped there); null = no history. */
   history?: { record(game: FinishedDuel): unknown } | null;
+  /** Story 10.3: the saved decks a seat may play in a constructed room; null = no constructed rooms (they fall back to `shared`). */
+  decks?: {
+    playDeck(accountId: number, deckId: unknown): { ok: true; cards: string[] } | { ok: false; message: string };
+    hasPlayDeck(accountId: number): boolean;
+  } | null;
   /** Clock of the emote rate limit (story 8.5), injectable for tests. */
   now?: () => number;
 } = { catalog: null };
 
 /** An empty waiting room stays joinable this long after its last player left (story 11.2). */
 export const LOBBY_TTL_MS = 10 * 60 * 1000;
+
+/** Story 10.3: player-facing refusals of a constructed room (French, tutoiement). */
+export const CONSTRUCTED_MESSAGES = {
+  /** Someone who cannot play here: a guest, an account without a valid deck, or an older client that cannot choose one. */
+  join: 'Cette salle se joue en decks construits : connecte-toi et construis un deck valide.',
+  signIn: 'Connecte-toi pour créer une salle en decks construits.',
+} as const;
 
 const cleanName = (n: unknown, fallback: string) => (typeof n === 'string' && n.trim() ? n.trim().slice(0, 16) : fallback);
 
@@ -53,18 +65,24 @@ export class DuelRoom extends Room {
   private duel: Duel | null = null;
   /** Accounts flagged "en partie" by this room (story 8.3), cleared when the duel ends or the room goes. */
   private playing: number[] = [];
+  /** Story 10.3, constructed rooms: the saved deck chosen by each seat; read again and frozen when the duel starts. */
+  private deckIds: [number | null, number | null] = [null, null];
+  /** Someone has held a seat here: the first join is the creator's. */
+  private everSeated = false;
 
   onCreate(options: RoomOptions) {
     this.roomId = uniqueCode((c) => usedCodes.has(c));
     usedCodes.add(this.roomId);
     openRooms.set(this.roomId, this);
-    this.mode = options?.mode === 'randomSplit' ? 'randomSplit' : 'shared';
+    // story 10.3: older clients only send `shared` / `randomSplit`; `constructed` needs the server's saved decks
+    this.mode = options?.mode === 'constructed' && roomConfig.decks ? 'constructed' : options?.mode === 'randomSplit' ? 'randomSplit' : 'shared';
     this.onMessage('action', (client: Client, action: Action) => {
       const seat = this.seatOf(client);
       if (seat === null || !this.duel || !action || typeof action !== 'object') return;
       this.duel.act(seat, action);
     });
     this.onMessage('emote', (client: Client, msg: { id?: unknown }) => this.emote(client, msg));
+    this.onMessage('chooseDeck', (client: Client, msg: { deckId?: unknown }) => this.chooseDeck(client, msg));
     // the creator joins right away; this only matters if that join fails
     this.armExpiry();
   }
@@ -72,13 +90,82 @@ export class DuelRoom extends Room {
   onJoin(client: Client, options: RoomOptions) {
     this.clearExpiry();
     const seat: PlayerId = this.seats[0] ? 1 : 0;
-    this.seats[seat] = client;
     // a valid session token names the seat after its account; anything else joins as a guest (story 8.1)
     const account = options?.session ? (roomConfig.accounts?.accountOf(options.session) ?? null) : null;
+    const deckId = this.mode === 'constructed' ? this.joinDeck(account?.id ?? null, options) : null;
+    this.everSeated = true;
+    this.seats[seat] = client;
     this.names[seat] = account ? account.nickname : cleanName(options?.nickname, seat === 0 ? 'Joueur 1' : 'Joueur 2');
     this.accounts[seat] = account ? account.id : null;
+    this.deckIds[seat] = deckId;
     this.sendLobby();
-    if (this.seats[0] && this.seats[1] && !this.duel) this.startDuel();
+    this.maybeStart();
+  }
+
+  /**
+   * Story 10.3: who may sit in a constructed room, before taking a seat. The creator brings a valid deck; a later
+   * player is signed in, and either brings a valid deck or can choose one in the waiting room (`pickDeck`, which an
+   * older client does not send) and has one. Throws a French refusal otherwise. Returns the deck already chosen.
+   */
+  private joinDeck(accountId: number | null, options: RoomOptions): number | null {
+    const creating = !this.everSeated;
+    const refuse = (message: string): never => {
+      // a refused creation leaves an empty room nobody knows the code of
+      if (creating) setTimeout(() => void this.disconnect(), 0);
+      throw new ServerError(DECK_REFUSED_CODE, message);
+    };
+    if (accountId === null || !roomConfig.decks) return refuse(creating ? CONSTRUCTED_MESSAGES.signIn : CONSTRUCTED_MESSAGES.join);
+    const deckId = options?.deckId;
+    if (deckId !== undefined) {
+      const deck = roomConfig.decks.playDeck(accountId, deckId);
+      if (deck.ok) return deckId;
+      if (creating) return refuse(deck.message);
+    }
+    if (creating || !options?.pickDeck || !roomConfig.decks.hasPlayDeck(accountId)) return refuse(CONSTRUCTED_MESSAGES.join);
+    return null;
+  }
+
+  /** Story 10.3: a seated player of a constructed room picks (or changes) their deck before the duel. */
+  private chooseDeck(client: Client, msg: { deckId?: unknown }) {
+    const seat = this.seatOf(client);
+    const accountId = seat === null ? null : this.accounts[seat];
+    if (seat === null || this.duel || this.mode !== 'constructed' || !roomConfig.decks) return;
+    const deck = accountId === null ? ({ ok: false, message: CONSTRUCTED_MESSAGES.join } as const) : roomConfig.decks.playDeck(accountId, msg?.deckId);
+    if (!deck.ok) {
+      this.refuseDeck(seat, deck.message);
+      return;
+    }
+    this.deckIds[seat] = msg.deckId as number;
+    this.sendLobby();
+    this.maybeStart();
+  }
+
+  private refuseDeck(seat: PlayerId, message: string) {
+    const out: DeckRefusedMessage = { message };
+    this.seats[seat]?.send('deckRefused', out);
+  }
+
+  /** Starts the duel once both seats are taken (and, in a constructed room, both decks chosen). */
+  private maybeStart() {
+    if (!this.seats[0] || !this.seats[1] || this.duel) return;
+    if (this.mode !== 'constructed') {
+      this.startDuel();
+      return;
+    }
+    if (this.deckIds[0] === null || this.deckIds[1] === null) return;
+    // read and checked once more now: this copy is the one the duel plays, whatever happens to the saved deck later
+    const decks: string[][] = [];
+    for (const seat of [0, 1] as const) {
+      const deck = roomConfig.decks?.playDeck(this.accounts[seat] ?? -1, this.deckIds[seat]) ?? { ok: false as const, message: CONSTRUCTED_MESSAGES.join };
+      if (!deck.ok) {
+        this.deckIds[seat] = null;
+        this.refuseDeck(seat, deck.message);
+        this.sendLobby();
+        return;
+      }
+      decks.push(deck.cards);
+    }
+    this.startDuel([decks[0]!, decks[1]!]);
   }
 
   onReconnect(client: Client) {
@@ -95,6 +182,7 @@ export class DuelRoom extends Room {
       else if (!this.duel) {
         this.seats[seat] = null;
         this.accounts[seat] = null;
+        this.deckIds[seat] = null;
         this.sendLobby();
         // the creator left the waiting room: invitations to it are pointless now
         if (seat === 0) roomConfig.invites?.roomGone(this.roomId);
@@ -194,6 +282,12 @@ export class DuelRoom extends Room {
   private sendLobby() {
     this.seats.forEach((c, you) => {
       const msg: LobbyMessage = { code: this.roomId, seats: [this.seats[0] ? this.names[0] : null, this.seats[1] ? this.names[1] : null], you: you as PlayerId, mode: this.mode };
+      if (this.mode === 'constructed') {
+        // story 10.3: only whether a deck is chosen, never which cards
+        msg.needDeck = this.deckIds[you] === null;
+        msg.deckChosen = [this.deckIds[0] !== null, this.deckIds[1] !== null];
+        msg.deckId = this.deckIds[you];
+      }
       c?.send('lobby', msg);
     });
   }
@@ -202,13 +296,13 @@ export class DuelRoom extends Room {
     this.seats.forEach((c) => c?.send('away', msg));
   }
 
-  private startDuel() {
+  private startDuel(decks?: [string[], string[]]) {
     if (!roomConfig.catalog) throw new Error('catalog not configured');
     this.lock();
     const seed = Math.floor(Math.random() * 2 ** 31);
     this.duel = new Duel(
       roomConfig.catalog,
-      { seed, mode: this.mode },
+      { seed, mode: this.mode, ...(decks ? { decks } : {}) },
       this.names,
       {
         view: (p, msg) => {

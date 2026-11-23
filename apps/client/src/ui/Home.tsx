@@ -6,6 +6,7 @@ import { AccountPanel } from '../account/AccountPanel.tsx';
 import { FriendsPanel } from '../account/FriendsPanel.tsx';
 import { HistoryPanel } from '../account/HistoryPanel.tsx';
 import { DecksScreen } from '../decks/DecksScreen.tsx';
+import { defaultDeck, lastDeckId, rememberDeck, usePlayableDecks } from '../decks/playable.ts';
 import { prepareInvite, useHub } from '../account/hub.ts';
 import { signOut, useAccount } from '../account/session.ts';
 import { MOVED_URL } from '../net/config.ts';
@@ -13,8 +14,8 @@ import { CardView } from './CardView.tsx';
 import { useRefs } from './Refs.tsx';
 
 export type Start =
-  | { kind: 'hotseat' | 'bot'; mode: DeckMode }
-  | { kind: 'create'; mode: DeckMode; nickname: string; session?: string; invite?: boolean }
+  | { kind: 'hotseat' | 'bot'; mode: DeckMode; /** constructed solo (story 10.3): my deck's cards */ deck?: string[] }
+  | { kind: 'create'; mode: DeckMode; nickname: string; session?: string; invite?: boolean; /** constructed (story 10.3) */ deckId?: number }
   | { kind: 'join'; code: string; nickname: string; session?: string }
   | { kind: 'reconnect'; token: string };
 
@@ -27,7 +28,7 @@ const savedNick = () => {
 };
 
 export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: Start) => void; initialCode?: string; onlineAvailable: boolean }) {
-  const [mode, setMode] = useState<DeckMode>('shared');
+  const [picked, setMode] = useState<DeckMode>('shared');
   const [nickname, setNickname] = useState(savedNick());
   const [code, setCode] = useState(initialCode ?? '');
   const [tab, setTab] = useState<'local' | 'online'>(initialCode ? 'online' : 'local');
@@ -39,7 +40,20 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
   const [decksOpen, setDecksOpen] = useState(false);
   const { openCard, openRules } = useRefs();
   // signed in (story 8.1): the server takes the nickname from the session token
-  const { available: accountsOn, signedIn, manage, friends: friendsOn, history: historyOn, decks: decksOn } = useAccount();
+  const { available: accountsOn, signedIn, manage, friends: friendsOn, history: historyOn, decks: decksOn, constructed: constructedOn } = useAccount();
+  // story 10.3: "Decks construits" needs an account on a server that plays saved decks; the list reloads after "Mes decks"
+  const [deckReload, setDeckReload] = useState(0);
+  const canConstruct = !!signedIn && decksOn && constructedOn;
+  const myDecks = usePlayableDecks(canConstruct ? signedIn.token : null, CATALOG, PLAYABLE, deckReload);
+  const [deckId, setDeckId] = useState<number | null>(lastDeckId);
+  const deck = myDecks ? defaultDeck(myDecks, deckId) : null;
+  const mode: DeckMode = picked === 'constructed' && !(canConstruct && deck) ? 'shared' : picked;
+  /** The deck sent with a new constructed room (only its id), remembered on this device. */
+  const deckStart = (): { deckId?: number } => {
+    if (mode !== 'constructed' || !deck) return {};
+    rememberDeck(deck.id);
+    return { deckId: deck.id };
+  };
   const requests = useHub().list?.incoming.length ?? 0;
   const nick = signedIn ? signedIn.nickname : nickname.trim() || 'Invité';
   const session = signedIn ? { session: signedIn.token } : {};
@@ -51,7 +65,16 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
     }
   };
   // story 10.2: "Mes decks" and the deck builder take the whole screen
-  if (decksOpen && signedIn && decksOn) return <DecksScreen me={signedIn} onClose={() => setDecksOpen(false)} />;
+  if (decksOpen && signedIn && decksOn)
+    return (
+      <DecksScreen
+        me={signedIn}
+        onClose={() => {
+          setDecksOpen(false);
+          setDeckReload((n) => n + 1);
+        }}
+      />
+    );
   const showcase = ['mx-neo', 'hg-arthur', 'hs-topper', 'wc-latrell'].map((id) => CATALOG.get(id)).filter((c) => !!c);
   return (
     <div className="home">
@@ -103,14 +126,45 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
               <input type="radio" name="mode" checked={mode === 'randomSplit'} onChange={() => setMode('randomSplit')} /> Decks aléatoires
               <small>Le paquet est coupé en deux : chacun sa pioche.</small>
             </label>
+            {canConstruct ? (
+              // story 10.3: each player plays a deck saved on their account
+              <>
+                <label className={(mode === 'constructed' ? 'on' : '') + (myDecks && !deck ? ' off' : '')}>
+                  <input type="radio" name="mode" checked={mode === 'constructed'} disabled={!deck} onChange={() => setMode('constructed')} /> Decks construits
+                  <small>Chacun joue son deck de 50 cartes.</small>
+                </label>
+                {myDecks && !deck ? (
+                  <p className="mode-hint">
+                    Construis d’abord un deck valide ·{' '}
+                    <button type="button" className="link" onClick={() => setDecksOpen(true)}>
+                      Mes decks
+                    </button>
+                  </p>
+                ) : null}
+                {mode === 'constructed' && myDecks && deck ? (
+                  <label className="field mode-deck">
+                    Mon deck
+                    <select value={deck.id} onChange={(e) => setDeckId(Number(e.target.value))}>
+                      {myDecks.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </>
+            ) : null}
           </fieldset>
         ) : null}
         {tab === 'local' ? (
           <div className="home-actions">
-            <button type="button" className="btn primary" onClick={() => onStart({ kind: 'hotseat', mode })}>
+            {/* story 10.3: no constructed decks in hot seat (GDD [ASSUMPTION]) */}
+            <button type="button" className="btn primary" disabled={mode === 'constructed'} onClick={() => onStart({ kind: 'hotseat', mode })}>
               Duel à deux sur ce téléphone
             </button>
-            <button type="button" className="btn" onClick={() => onStart({ kind: 'bot', mode })}>
+            {mode === 'constructed' ? <p className="muted mode-hint">Les decks construits se jouent en ligne ou contre le Grimoire.</p> : null}
+            <button type="button" className="btn" onClick={() => onStart(mode === 'constructed' && deck ? (rememberDeck(deck.id), { kind: 'bot', mode, deck: deck.cards }) : { kind: 'bot', mode })}>
               S’entraîner contre le Grimoire
             </button>
           </div>
@@ -186,7 +240,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
               disabled={!onlineAvailable}
               onClick={() => {
                 remember();
-                onStart({ kind: 'create', mode, nickname: nick, ...session });
+                onStart({ kind: 'create', mode, nickname: nick, ...session, ...deckStart() });
               }}
             >
               Créer un duel et inviter
@@ -219,7 +273,7 @@ export function Home({ onStart, initialCode, onlineAvailable }: { onStart: (s: S
             // a new room with the draw mode chosen here; the invitation goes out once its code is known
             setFriendsOpen(false);
             prepareInvite(friend);
-            onStart({ kind: 'create', mode, nickname: signedIn.nickname, session: signedIn.token, invite: true });
+            onStart({ kind: 'create', mode, nickname: signedIn.nickname, session: signedIn.token, invite: true, ...deckStart() });
           }}
         />
       ) : null}

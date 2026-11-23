@@ -17,7 +17,7 @@ export const RESULT_TONE: Record<GameResult, 'win' | 'loss' | 'draw'> = {
   opponent_conceded: 'win',
 };
 
-export const modeLabel = (mode: string) => (mode === 'randomSplit' ? 'Decks aléatoires' : 'Pioche commune');
+export const modeLabel = (mode: string) => (mode === 'randomSplit' ? 'Decks aléatoires' : mode === 'constructed' ? 'Decks construits' : 'Pioche commune');
 
 export const turnsLabel = (n: number) => `${n} tour${n > 1 ? 's' : ''}`;
 

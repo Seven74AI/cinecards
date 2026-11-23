@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type http from 'node:http';
 import { PASSKEY_MESSAGES, PasskeyService, type RelyingParty } from '../auth/passkeys.ts';
 import type { AccountService, AuthResult } from '../auth/service.ts';
@@ -90,7 +91,7 @@ const bearer = (req: http.IncomingMessage) => /^Bearer\s+(\S+)$/i.exec(req.heade
  * JSON API under `/api/` (story 8.1), served on the game server's port. Returns a request handler that
  * answers `/api/*` and returns true, or returns false so the request goes on to Colyseus.
  */
-export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService, history?: HistoryService, decks?: DeckService) {
+export function createApi(service: AccountService, origins: string[], passkeys = new PasskeyService(service), friends?: FriendService, history?: HistoryService, decks?: DeckService, smokeFile?: string) {
   return (req: http.IncomingMessage, res: http.ServerResponse): boolean => {
     const path = (req.url ?? '').split('?')[0]!;
     if (path !== '/api' && !path.startsWith('/api/')) return false;
@@ -137,6 +138,16 @@ export function createApi(service: AccountService, origins: string[], passkeys =
       switch (route) {
         case 'GET /api/health':
           return send(200, { ok: true, accounts: true, passkeys: true, ...(friends ? { friends: true } : {}), ...(history ? { history: true } : {}), ...(decks ? { decks: true, constructed: true } : {}) });
+        case 'GET /api/smoke': {
+          // story 8.7: the last live smoke test (scripts/smoke.mjs); it holds no password or token
+          let text: string;
+          try {
+            text = smokeFile ? readFileSync(smokeFile, 'utf8') : '';
+          } catch {
+            text = '';
+          }
+          return text ? send(200, JSON.parse(text)) : send(404, { error: 'not_found', message: 'Aucun test en direct pour l’instant.' });
+        }
         case 'GET /api/history':
           if (!history) break;
           return reply(history.list(bearer(req)), 200);

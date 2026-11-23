@@ -106,5 +106,34 @@ Sur le VPS, un minuteur systemd (`deploy/systemd/cinecards-autodeploy.timer`) la
 serveur (et donc le jeu) que si le commit a changé, puis vérifie `http://localhost:2567/health` sur le VPS (l'adresse publique est derrière Cloudflare Access depuis le 2026-11-23). L'installation est décrite dans
 `HANDOFF-HERMES.md`. Pour suspendre les mises à jour : `systemctl stop cinecards-autodeploy.timer`.
 
+## Test en direct après chaque déploiement (story 8.7)
+
+Une fois `/health` au vert, `autodeploy.sh` lance le test de fumée **dans le conteneur du jeu**, contre
+`http://localhost:2567` :
+
+```bash
+docker compose exec -T -e SMOKE_COMMIT=<commit> server \
+  node --experimental-transform-types --no-warnings scripts/smoke.mjs
+```
+
+Le script (`scripts/smoke.mjs`, sans navigateur) vérifie dans l'ordre : `/health`, les deux comptes de test,
+leur amitié, la présence (salle `hub`), une invitation de A reçue en direct par B, le début du duel, une émote,
+l'abandon de B, l'historique de A, un deck valide par compte et une salle « Decks construits » (début puis
+abandon). Délai global 60 s ; la première étape en échec arrête la suite.
+
+- Le journal (`journalctl -u cinecards-autodeploy`) dit `cinecards: smoke OK on <commit>` ou
+  `cinecards: smoke FAILED (<étape>: <raison>) on <commit>`. Un échec **n'annule pas** le déploiement.
+- Le résultat est dans `/app/data/smoke.json` et en ligne à **`GET /api/smoke`** (`{ ok, commit, startedAt,
+  durationMs, steps: [{ name, ok, ms, error? }] }`, `404` avant le premier test ; derrière Cloudflare Access :
+  `curl -H "CF-Access-Client-Id: …" -H "CF-Access-Client-Secret: …" https://cinecards.sevend.io/api/smoke`).
+- Les comptes de test s'appellent `ZZ-fumee-a` et `ZZ-fumee-b`. Ils sont créés au premier passage puis
+  réutilisés ; leurs mots de passe (aléatoires) ne sont que dans `/app/data/smoke-accounts.json` (droits 600),
+  jamais dans le résultat. Ils ne sont amis qu'entre eux et ne jouent qu'entre eux.
+- Si `smoke-accounts.json` est perdu alors que les comptes existent, le test échoue à l'étape `accounts` :
+  supprimer les deux comptes de la base (ou restaurer le fichier) pour qu'il les recrée.
+- Lancer le test à la main sur le VPS : `cd cinecards/deploy` puis la commande ci-dessus. En local :
+  `pnpm dev:server` puis `pnpm smoke` (variables : `SMOKE_URL`, défaut `http://localhost:2567` ; `DATA_DIR`,
+  défaut `apps/server/data`).
+
 Les push sur `main` ne déclenchent pas GitHub Actions pour l'instant : pour mettre à jour l'ancien
 site, lancer le workflow « Deploy client to GitHub Pages » à la main (onglet Actions → Run workflow).

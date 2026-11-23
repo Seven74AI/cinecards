@@ -14,6 +14,8 @@ COPY _bmad-output/planning-artifacts/glossaire-mots-cles.md ./_bmad-output/plann
 RUN pnpm install --frozen-lockfile --filter @cinecards/server... --filter @cinecards/client... --prod=false
 # same origin for the page, /api and the WebSocket; passkeys on (bound to this domain)
 RUN VITE_SERVER_URL=same-origin pnpm --filter @cinecards/client build
+# story 8.7: live smoke test, run by deploy/autodeploy.sh after each deploy (docker compose exec server node ... scripts/smoke.mjs)
+COPY scripts/smoke.mjs ./scripts/smoke.mjs
 ENV NODE_ENV=production PORT=2567 CONTENT_DIR=/app/content/sets DATA_DIR=/app/data CLIENT_DIR=/app/apps/client/dist
 # accounts database and its daily copies (story 8.1); mounted as a named volume in deploy/docker-compose.yml
 RUN mkdir -p /app/data

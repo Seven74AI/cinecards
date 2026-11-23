@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Server } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
@@ -26,6 +27,8 @@ export interface ServerOptions {
   clientDir?: string;
   /** Invitation lifetime (story 8.3), read at each invitation; default 2 min. */
   inviteTtlMs?: () => number;
+  /** Result of the live smoke test (story 8.7), served at `GET /api/smoke`. Default: DATA_DIR/smoke.json (none in memory). */
+  smokeFile?: string;
 }
 
 export async function startServer(
@@ -52,7 +55,7 @@ export async function startServer(
   const decks = new DeckService(db, (t) => accounts.accountOf(t), catalog, playableCardIds(catalog), opts.now);
   // story 10.3: constructed rooms read the seats' decks from the same service
   roomConfig.decks = decks;
-  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history, decks);
+  const api = createApi(accounts, opts.clientOrigins ?? parseOrigins(process.env.CLIENT_ORIGINS), undefined, social.friends, history, decks, opts.smokeFile ?? (dataDir === ':memory:' ? undefined : join(dataDir, 'smoke.json')));
   const files = createStatic(opts.clientDir ?? process.env.CLIENT_DIR);
   const httpServer = http.createServer();
   // answer the health check, the JSON API and the game's files (GET/HEAD only) before Colyseus' own HTTP routes see the request

@@ -35,6 +35,11 @@ Talk to Root in **English**. Project documents stay in French, and code in Engli
   host interferes with `Authorization`). Root confirmed on a phone (2026-11-23) that "Amis" and "Historique" work:
   players are not affected. Don't "fix" the game for this.
 - `deploy/autodeploy.sh` checks `http://localhost:2567/health` on the VPS since 2026-11-23 (the public address is behind Access).
+- **Checking a deploy (story 8.7):** after `/health`, autodeploy runs the live smoke test inside the game container
+  (`scripts/smoke.mjs`: accounts, friends, presence, invitation, duel, emote, concede, history, constructed decks).
+  Read its result over plain HTTP: `curl -H "CF-Access-Client-Id: bdb9bca10221ff4b0763ad9f3d8f1335.access"
+  https://cinecards.sevend.io/api/smoke` → `{ ok, commit, startedAt, durationMs, steps }`. Check that `commit` is
+  the one you pushed (the VPS updates within ~5 min) and `ok` is true; a failed step has an `error`.
 
 ## Next options (let Root choose)
 - **Ideas on hold:** three animation ideas (see `epics.md`, "Idées en attente"): travel time based on distance, effect size relative to the card, shake scaled to the screen.

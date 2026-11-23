@@ -1,6 +1,10 @@
+---
+baseline_commit: d69c65d6bd3dd8b3c6c8ef98e103a2c4becd8346
+---
+
 # Story 8.7: Test en direct après chaque déploiement
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -44,13 +48,13 @@ Cloud partagées et variables). Solution : le test tourne **sur le VPS**, dans l
 
 ## Tasks / Subtasks
 
-- [ ] `scripts/smoke.mjs` (AC 1, 2, 5) — réutiliser les messages et routes existants (`packages/protocol`,
+- [x] `scripts/smoke.mjs` (AC 1, 2, 5) — réutiliser les messages et routes existants (`packages/protocol`,
       `/api/accounts`, `/api/sessions`, `/api/friends`, `/api/decks`, salles `duel` et `hub`) ; le SDK Colyseus en Node
       fonctionne (déjà utilisé par `apps/server/src/server.test.ts`).
-- [ ] Route `GET /api/smoke` (`apps/server/src/api/http.ts`) (AC 3).
-- [ ] `deploy/autodeploy.sh` + `Dockerfile` + `docs/deploy.md` (AC 4) ; script racine `smoke` dans `package.json`.
-- [ ] Test vitest de bout en bout du script contre `startServer` en mémoire (AC 6).
-- [ ] `HANDOFF-CLAUDE.md` : lire `https://cinecards.sevend.io/api/smoke` (avec l'en-tête `CF-Access-Client-Id`) pour
+- [x] Route `GET /api/smoke` (`apps/server/src/api/http.ts`) (AC 3).
+- [x] `deploy/autodeploy.sh` + `Dockerfile` + `docs/deploy.md` (AC 4) ; script racine `smoke` dans `package.json`.
+- [x] Test vitest de bout en bout du script contre `startServer` en mémoire (AC 6).
+- [x] `HANDOFF-CLAUDE.md` : lire `https://cinecards.sevend.io/api/smoke` (avec l'en-tête `CF-Access-Client-Id`) pour
       vérifier un déploiement.
 
 ## Dev Notes
@@ -69,8 +73,59 @@ Cloud partagées et variables). Solution : le test tourne **sur le VPS**, dans l
 
 ## Dev Agent Record
 
+### Debug Log
+
+- Le script est à la racine (`scripts/`), dont les `node_modules` n'ont pas les paquets du serveur (et l'image Docker
+  n'installe que les paquets filtrés) : `@colyseus/sdk`, `@cinecards/engine` et `@cinecards/cards/node` sont résolus
+  avec `createRequire(apps/server/package.json)`. Les sources TypeScript du moteur demandent
+  `--experimental-transform-types` (déjà dans la commande de l'AC 4 et dans `pnpm smoke`).
+- Docker : le client est présent dans ce conteneur de développement mais pas le démon (`/var/run/docker.sock`
+  absent, lancer `dockerd` refusé) : l'image n'a pas pu être construite ici. Le script a été lancé à la main contre un
+  vrai serveur local (`DATA_DIR` sur disque, port 2687) : 11 étapes OK en 769 ms, `smoke-accounts.json` en 600.
+- `bash -n deploy/autodeploy.sh` OK ; la fonction `smoke` a été essayée avec un faux `docker` (succès, échec avec
+  étape, échec sans résultat) sous `set -euo pipefail` : le script continue et sort en 0 dans les trois cas.
+
 ### Completion Notes List
 
 - Story créée à partir de la rétrospective et de la demande de Root (2026-11-23).
+- `scripts/smoke.mjs` : 11 étapes chronométrées (`health`, `accounts`, `friends`, `presence`, `invite`, `duel`,
+  `emote`, `concede`, `history`, `decks`, `constructed`) ; délai global 60 s (`SMOKE_TIMEOUT_MS`), 10 s par attente ;
+  la première étape en échec arrête la suite ; nettoyage : quitte toutes les salles et ferme les deux sessions.
+  Résultat `DATA_DIR/smoke.json` écrit de façon atomique (fichier temporaire puis renommage) ; mots de passe aléatoires
+  dans `DATA_DIR/smoke-accounts.json` (600), écrits avant la création des comptes. Le commit vient de `SMOKE_COMMIT`
+  (passé par autodeploy), sinon `git rev-parse HEAD`, sinon `null`. Dernière ligne : `smoke OK (…)` ou
+  `smoke FAILED (étape: raison)`.
+- Route `GET /api/smoke` : renvoie `smoke.json` ou `404` ; le fichier est donné par `ServerOptions.smokeFile`
+  (défaut `DATA_DIR/smoke.json`, aucun pour `:memory:`).
+- `deploy/autodeploy.sh` (toujours dans `main()`) : après `/health`, `timeout 90 docker compose exec -T -e
+  SMOKE_COMMIT=… server node … scripts/smoke.mjs` ; journalise `cinecards: smoke OK on <sha>` ou
+  `cinecards: smoke FAILED (<étape>: <raison>) on <sha>` (avec le détail des étapes) ; jamais d'annulation, sortie 0.
+- `Dockerfile` : `COPY scripts/smoke.mjs` après le build du client (le cache de l'installation est gardé).
+- `apps/server/src/smoke.test.ts` : serveur en mémoire (`:memory:` + `smokeFile` dans un dossier temporaire), le
+  script lancé deux fois en processus enfant (comptes, amitié et deck réutilisés : 1 ami, 1 deck, 4 parties toutes
+  contre `ZZ-fumee-b`), `/api/smoke` 404 puis 200 sans mot de passe ni jeton ; un passage contre un port fermé sort
+  en 1 avec une seule étape `health` en échec.
+- Choix de comportement notés dans `a-valider-par-root.md` (section « Story 8.7 (2026-11-23) »).
+- Tests : `pnpm typecheck` OK ; `pnpm test` 38 fichiers, 278 tests OK ; `E2E_SERVER_PORT=2677 E2E_CLIENT_PORT=5284
+  PW_CHANNEL=chromium pnpm e2e -- --trace off` 49 passed. Moteur et cartes non touchés : pas de simulation de 200 parties.
+- Après livraison : lire `https://cinecards.sevend.io/api/smoke` (en-têtes Cloudflare Access) une fois le VPS à jour.
 
 ### File List
+
+- `scripts/smoke.mjs` (nouveau)
+- `apps/server/src/smoke.test.ts` (nouveau)
+- `apps/server/src/api/http.ts`
+- `apps/server/src/main.ts`
+- `deploy/autodeploy.sh`
+- `Dockerfile`
+- `docs/deploy.md`
+- `package.json`
+- `HANDOFF-CLAUDE.md`
+- `_bmad-output/implementation-artifacts/a-valider-par-root.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/8-7-test-en-direct-apres-deploiement.md`
+
+### Change Log
+
+- 2026-11-23 : test en direct après chaque déploiement (script de fumée, `GET /api/smoke`, autodeploy, test vitest de
+  bout en bout) ; statut → review.

@@ -92,7 +92,7 @@ development_status:
   8-3-liste-d-amis-et-invitation-directe: done
   8-4-historique: done
   8-5-emotes: done
-  8-7-test-en-direct-apres-deploiement: ready-for-dev  # ajoutée le 2026-11-23 (rétrospective + demande de Root)
+  8-7-test-en-direct-apres-deploiement: review  # ajoutée le 2026-11-23 (rétrospective + demande de Root)
   epic-8-retrospective: done
   epic-9: backlog
   9-1-import-des-cartes-de-root: backlog
@@ -160,4 +160,4 @@ action_items:
     owner: "orchestrateur"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-8-retro-2026-11-23.md"
-last_updated: 11-23-2026 09:58
+last_updated: 11-23-2026 10:30

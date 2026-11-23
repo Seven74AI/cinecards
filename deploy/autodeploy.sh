@@ -18,14 +18,34 @@ main() {
   git merge --ff-only --quiet origin/main
   cd deploy
   docker compose up -d --build
+  healthy=0
   for i in $(seq 1 30); do
     if curl -fsS "$HEALTH_URL" >/dev/null 2>&1; then
-      echo "cinecards: healthy on ${REMOTE:0:7}"
-      exit 0
+      healthy=1
+      break
     fi
     sleep 2
   done
-  echo "cinecards: health check FAILED after deploying ${REMOTE:0:7}" >&2
-  exit 1
+  if [ "$healthy" != 1 ]; then
+    echo "cinecards: health check FAILED after deploying ${REMOTE:0:7}" >&2
+    exit 1
+  fi
+  echo "cinecards: healthy on ${REMOTE:0:7}"
+  smoke "$REMOTE"
+  exit 0
+}
+# Story 8.7: live smoke test inside the game container (accounts, friends, invitation, duel, emote, decks).
+# Its result is DATA_DIR/smoke.json, also served at /api/smoke. A failure is reported, never rolled back.
+smoke() {
+  local out last
+  if out="$(timeout 90 docker compose exec -T -e SMOKE_COMMIT="$1" server \
+    node --experimental-transform-types --no-warnings scripts/smoke.mjs 2>&1)"; then
+    echo "cinecards: smoke OK on ${1:0:7}"
+  else
+    printf '%s\n' "$out" >&2
+    last="$(printf '%s\n' "$out" | grep -E '^smoke FAILED' | tail -n 1 || true)"
+    last="${last#smoke FAILED }"
+    echo "cinecards: smoke FAILED ${last:-(no result: $(printf '%s\n' "$out" | tail -n 1))} on ${1:0:7}" >&2
+  fi
 }
 main "$@"; exit $?

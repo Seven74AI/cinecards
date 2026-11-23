@@ -12,7 +12,8 @@
     "dev:client": "pnpm --filter @cinecards/client dev",
     "build:client": "pnpm --filter @cinecards/client build",
     "e2e": "playwright test",
-    "dev:server": "pnpm --filter @cinecards/server dev"
+    "dev:server": "pnpm --filter @cinecards/server dev",
+    "smoke": "node --experimental-transform-types --no-warnings scripts/smoke.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

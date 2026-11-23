@@ -1,0 +1,29 @@
+@import './base.css';
+@import './buttons.css';
+@import './card.css';
+@import './card-fx.css';
+@import './table.css';
+@import './sheet.css';
+@import './journal.css';
+@import './overlays.css';
+@import './ambient.css';
+@import './home.css';
+@import './responsive.css';
+@import './keyframes.css';
+@import './refinements.css';
+@import './rules-and-sources.css';
+@import './mobile-table.css';
+@import './action-fx.css';
+@import './account.css';
+@import './friends.css';
+@import './history.css';
+@import './emotes.css';
+@import './decks.css';
+
+/*
+ * CineCards client styles: one stylesheet per feature, imported above in cascade order.
+ * The order matters (later rules win on equal specificity): give a new feature its own file and import it
+ * at the end, or right after the feature it refines, rather than appending to an existing file.
+ * Every stylesheet must parse on its own (checked by src/styles.test.ts).
+ * This note stays below the imports: in dev, a comment ahead of the font @import changed text rendering.
+ */

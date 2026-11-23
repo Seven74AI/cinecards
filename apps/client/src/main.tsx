@@ -5,7 +5,7 @@ import { RefProvider } from './ui/Refs.tsx';
 import { FpsMeter } from './ui/FpsMeter.tsx';
 import { fpsWanted } from './game/perf.ts';
 import { warmAudio } from './audio/sfx.ts';
-import './styles.css';
+import './styles/index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

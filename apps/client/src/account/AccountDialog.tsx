@@ -72,7 +72,7 @@ function TextField({ label, value, onChange, autoComplete, error, mono }: { labe
 export function RecoveryCode({ nickname, code, note, onDone }: { nickname: string; code: string; note?: string | null; onDone: () => void }) {
   const [noted, setNoted] = useState(false);
   const [copied, setCopied] = useState(false);
-  // printing shows only the sheet with the nickname and the code (see `body.print-code` in styles.css)
+  // printing shows only the sheet with the nickname and the code (see `body.print-code` in styles/account.css)
   useEffect(() => {
     document.body.classList.add('print-code');
     return () => document.body.classList.remove('print-code');

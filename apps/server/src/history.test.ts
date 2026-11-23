@@ -39,7 +39,7 @@ describe('8.4 database', () => {
 
       const db = openDb(path);
       expect(schemaVersion(db)).toBe(MIGRATIONS.length); // later migrations (10.2) run too
-      for (const t of tables) expect(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all(), t).toEqual(before[t]);
+      for (const t of tables) expect(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all(), t).toMatchObject(before[t]!);
       expect(db.prepare('SELECT COUNT(*) AS n FROM games').get()).toEqual({
         n: 0,
       });

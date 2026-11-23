@@ -1,0 +1,126 @@
+/* ---------- overlays ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 6, 3, 0.7);
+  padding: 16px;
+  animation: fadeIn 0.2s;
+}
+.card-panel {
+  max-width: 420px;
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.card-panel.wide {
+  max-width: 640px;
+}
+.card-panel p {
+  margin: 0;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.handoff {
+  background: radial-gradient(ellipse at 50% 40%, #3a2414, #0b0603);
+}
+.highlight {
+  background: radial-gradient(circle, rgba(255, 149, 0, 0.35), rgba(10, 6, 3, 0.85) 60%);
+}
+.highlight-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: legendIn 1.5s ease-out;
+}
+.highlight-inner .card-big {
+  width: 170px;
+  box-shadow: 0 0 40px 10px rgba(255, 149, 0, 0.7);
+}
+.highlight-name {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 26px;
+  color: var(--gold2);
+  text-shadow: 0 0 12px rgba(255, 149, 0, 0.9), 0 2px 0 #000;
+  text-align: center;
+}
+.highlight-sub {
+  font-family: var(--display);
+  letter-spacing: 6px;
+  color: var(--r-legend);
+}
+.dice-overlay {
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(10, 6, 3, 0.55);
+}
+.die svg rect {
+  fill: var(--parch);
+  stroke: var(--gold-dark);
+  stroke-width: 4;
+}
+.die svg circle {
+  fill: var(--crimson);
+}
+.die.rolling {
+  animation: tumble 0.25s linear infinite;
+}
+.die.landed {
+  animation: land 0.35s ease-out;
+  filter: drop-shadow(0 0 14px rgba(242, 210, 122, 0.8));
+}
+.dice-label {
+  font-family: var(--display);
+  color: var(--gold2);
+  text-align: center;
+  max-width: 300px;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: #5a1414;
+  color: #ffe9d6;
+  border: 1px solid var(--gold);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  animation: toastIn 0.2s ease-out;
+}
+.toast.info {
+  background: #1e3a4a;
+  bottom: auto;
+  top: 60px;
+}
+.end h2 {
+  font-size: 28px;
+}

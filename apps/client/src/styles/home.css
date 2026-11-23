@@ -1,0 +1,305 @@
+/* ---------- home ---------- */
+.home {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 16px 40px;
+  overflow-x: hidden;
+}
+/* old GitHub Pages site only (story 8.6) */
+.moved-banner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  font-family: var(--display);
+}
+.moved-banner p {
+  margin: 0;
+  flex: 1 1 180px;
+}
+.moved-banner .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.home-title {
+  text-align: center;
+}
+.home-title h1 {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--gold2);
+  text-shadow: 0 0 18px rgba(242, 210, 122, 0.5), 0 3px 0 #000;
+  letter-spacing: 2px;
+}
+.home-title p {
+  margin: 4px 0 0;
+  font-style: italic;
+  color: var(--dim);
+}
+.seal-big {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: repeating-conic-gradient(rgba(212, 167, 74, 0.6) 0 3deg, transparent 3deg 20deg);
+  animation: spin 30s linear infinite;
+  box-shadow: 0 0 20px rgba(242, 210, 122, 0.35);
+}
+.showcase {
+  display: flex;
+  justify-content: center;
+  height: 130px;
+  margin: 4px 0 8px;
+}
+.fan {
+  margin: 0 -10px;
+  animation: float 4s ease-in-out infinite;
+}
+.fan:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.fan:nth-child(3) {
+  animation-delay: 1s;
+}
+.fan:nth-child(4) {
+  animation-delay: 1.5s;
+}
+.home-panel {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(42, 26, 14, 0.15);
+  border-radius: 6px;
+  padding: 3px;
+}
+.tabs button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: var(--display);
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink);
+}
+.tabs button.on {
+  background: var(--ink);
+  color: var(--gold2);
+}
+.modes {
+  border: 1px solid rgba(42, 26, 14, 0.3);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+}
+.modes legend {
+  font-family: var(--display);
+  font-weight: 700;
+  padding: 0 4px;
+}
+.modes label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.modes label small {
+  flex-basis: 100%;
+  font-weight: 400;
+  font-style: italic;
+  padding-left: 22px;
+  opacity: 0.8;
+}
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+}
+.field input,
+.join input {
+  font: inherit;
+  font-family: var(--text);
+  font-size: 16px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--gold-dark);
+  background: #fff8e4;
+  color: var(--ink);
+}
+.join {
+  display: flex;
+  gap: 8px;
+}
+.join input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--display);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+.resume {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 0;
+}
+.lobby {
+  text-align: center;
+  align-items: center;
+  margin-top: 40px;
+}
+.big-code {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 44px;
+  letter-spacing: 8px;
+  color: var(--ink);
+  padding: 4px 16px;
+  border: 2px dashed var(--gold-dark);
+  border-radius: 8px;
+}
+.seats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.seats li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.6;
+}
+.seats li.on {
+  opacity: 1;
+  font-weight: 700;
+}
+/* story 10.3: constructed decks (home choice and waiting room) */
+.modes label.off {
+  opacity: 0.55;
+  cursor: default;
+}
+.mode-hint {
+  margin: -2px 0 0;
+  padding-left: 22px;
+  font-size: 13px;
+}
+.mode-hint .link {
+  display: inline;
+  margin: 0;
+  padding: 10px 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+.home-actions .mode-hint {
+  padding-left: 0;
+  margin-top: -4px;
+  text-align: center;
+}
+.modes .mode-deck {
+  padding-left: 22px;
+  text-align: left;
+  align-items: stretch;
+}
+.modes .mode-deck select {
+  width: 100%;
+}
+.mode-deck select,
+.lobby-deck select {
+  font: inherit;
+  font-family: var(--text);
+  font-weight: 400;
+  font-size: 16px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--gold-dark);
+  background: #fff8e4;
+  color: var(--ink);
+  max-width: 100%;
+}
+.lobby-mode {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+}
+.seat-deck {
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.8;
+}
+.lobby-deck {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.deck-choice label {
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+.deck-choice .btn {
+  margin-top: 4px;
+}
+.lobby-my-deck {
+  margin: 0;
+  text-align: center;
+}
+.collection {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.collection h3 {
+  color: var(--gold2);
+  margin-bottom: 8px;
+}
+.collection-grid {
+  padding: 10px 0 0 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 12px 8px;
+}
+.collection-grid .card {
+  width: 100%;
+}

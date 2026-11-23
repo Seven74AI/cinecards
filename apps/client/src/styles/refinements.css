@@ -1,0 +1,46 @@
+/* ---------- story 13.12: smooth on phones ---------- */
+/* while actions play, the ambient effects hold still (every layout) */
+.cc-playing .rune-ring,
+.cc-playing .ember,
+.cc-playing .ambient::before,
+.cc-playing .orn-sheen,
+.cc-playing .tok-laurel.glow,
+.cc-playing .seal-big {
+  animation-play-state: paused;
+}
+/* the portrait phone table: fewer embers, slower runes, a steady candle glow */
+.table-root.phone .ember:nth-child(n + 7) {
+  display: none;
+}
+.table-root.phone .ambient::before {
+  animation: none;
+}
+.table-root.phone .rune-ring {
+  animation-duration: 90s;
+}
+
+/* desktop sizing refinements */
+.table-root.wide .card-hand {
+  width: 100px;
+}
+.table-root.wide .board {
+  grid-template-columns: repeat(10, minmax(0, 86px));
+  justify-content: center;
+  gap: 8px;
+}
+.table-root.wide .hand {
+  min-height: 160px;
+}
+
+/* target prompt actions (story 11.5) */
+.target-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* room for the cost token and its rarity laurel (story 11.7) */
+.sheet-head .card-big {
+  margin: 10px 0 0 10px;
+}

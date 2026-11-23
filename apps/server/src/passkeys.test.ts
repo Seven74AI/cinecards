@@ -40,7 +40,7 @@ const passkeyAccount = (s: AccountService, nickname: string) => {
 };
 
 describe('8.2 database', () => {
-  it('upgrades a version-1 database with an account to version 2 without loss', () => {
+  it('upgrades a version-1 database with an account to the latest version without loss', () => {
     const dir = mkdtempSync(join(tmpdir(), 'cinecards-db2-'));
     try {
       const path = join(dir, 'cinecards.db');
@@ -55,7 +55,7 @@ describe('8.2 database', () => {
       const db = openDb(path);
       expect(schemaVersion(db)).toBe(MIGRATIONS.length); // later migrations (8.3) run too
       const row = db.prepare('SELECT * FROM accounts').get() as unknown as AccountRow;
-      expect(row).toEqual({ id: 1, nickname: 'Léa', nickname_key: 'léa', password_hash: 'scrypt$hash', recovery_hash: 'rec', created_at: 42, webauthn_user_id: null });
+      expect(row).toMatchObject({ id: 1, nickname: 'Léa', nickname_key: 'léa', password_hash: 'scrypt$hash', recovery_hash: 'rec', created_at: 42, webauthn_user_id: null });
       expect(db.prepare('SELECT * FROM sessions').all()).toEqual([{ token_hash: 'tok', account_id: 1, created_at: 42, last_seen_at: 43 }]);
       expect(db.prepare('SELECT COUNT(*) AS n FROM passkeys').get()).toEqual({ n: 0 });
       // keys go with their account

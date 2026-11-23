@@ -1,0 +1,402 @@
+/* keywords, references and rules screen (story 11.8) */
+.kw,
+.ref {
+  font: inherit;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.kw {
+  text-decoration: underline dotted rgba(90, 55, 20, 0.7);
+  text-underline-offset: 3px;
+}
+.ref {
+  color: #6a2a8a;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.kw-tag.tg {
+  border: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 0 5px;
+  line-height: 1.5;
+  color: #fff;
+  cursor: help;
+}
+.kw:focus-visible,
+.ref:focus-visible,
+.kw-tag:focus-visible {
+  outline: 2px solid var(--arcane);
+  outline-offset: 1px;
+}
+.kw-bubble {
+  display: block;
+  margin: 6px 0 2px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: #2b1b10;
+  color: var(--parch);
+  font-size: 13px;
+  line-height: 1.35;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  animation: fadeIn 0.15s ease-out;
+}
+.kw-bubble b {
+  color: var(--gold2);
+  font-family: var(--display);
+  font-size: 12px;
+  margin-right: 4px;
+}
+.sheet.ref-sheet {
+  z-index: 45;
+}
+.ability.is-highlighted {
+  border-left-color: var(--arcane);
+  background: rgba(79, 209, 197, 0.16);
+  border-radius: 0 6px 6px 0;
+}
+.rules-screen .sheet-body {
+  max-height: 90dvh;
+}
+.rules-screen h2 {
+  margin: 0 40px 6px 0;
+  font-size: 20px;
+}
+.rules-screen h3 {
+  margin: 14px 0 4px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--gold-dark);
+}
+.rules-screen dl {
+  margin: 0;
+}
+.rule {
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(138, 100, 22, 0.25);
+}
+.rule dt {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+}
+.rule dd {
+  margin: 1px 0 0;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.rules-notes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+}
+
+/* preview of a cited card (story 13.1) */
+.preview-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  pointer-events: none;
+}
+.preview-layer[data-at='top'] {
+  align-items: flex-start;
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+.preview-layer[data-at='bottom'] {
+  align-items: flex-end;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.preview-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+.preview {
+  position: relative;
+  width: min(100%, 440px);
+  max-height: min(58dvh, 560px);
+  overflow-y: auto;
+  padding: 12px 12px 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--gold-dark), 0 12px 32px rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+  animation: previewIn 0.16s ease-out;
+}
+.preview-layer.hover .preview {
+  pointer-events: none;
+}
+.preview-head {
+  display: flex;
+  gap: 12px;
+}
+.preview-head .card-big {
+  width: 96px;
+  flex: none;
+  margin: 8px 0 0 8px;
+}
+.preview .abilities {
+  margin-top: 8px;
+}
+.preview-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+@keyframes previewIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+/* while a cited card on the table glows, the sheet underneath fades so the table shows through */
+body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-body,
+body.ref-peek .sheet:not(.ref-sheet):not(.docked) .sheet-scrim {
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+}
+.slot.ref-glow,
+.seal.ref-glow,
+.rune.ref-glow {
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--gold2), 0 0 20px 6px rgba(242, 210, 122, 0.75);
+  z-index: 2;
+}
+/* story 13.12: the slot's stronger glow is a pre-drawn layer whose opacity pulses (was an animated box-shadow).
+   Seals and runes clip their content (the card inside), so their glow stays steady. */
+.slot.ref-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 28px 10px rgba(242, 210, 122, 0.55);
+  pointer-events: none;
+  opacity: 0;
+  animation: refGlow 1.1s ease-in-out infinite alternate;
+}
+@keyframes refGlow {
+  to {
+    opacity: 1;
+  }
+}
+
+/* where bonuses and penalties come from (story 13.3) */
+.badge {
+  position: relative;
+}
+.src-n {
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  min-width: 12px;
+  height: 12px;
+  padding: 0 2px;
+  border-radius: 6px;
+  background: var(--gold2);
+  color: #3b2600;
+  border: 1px solid #5a3d0c;
+  font: 900 8px/10px var(--text);
+  font-style: normal;
+  text-align: center;
+  box-shadow: 0 0 4px rgba(242, 210, 122, 0.8);
+}
+/* story 13.9: a modified badge shows its sources' lines when tapped */
+.badge.has-src {
+  cursor: help;
+  pointer-events: auto; /* the stats row lets taps through to the card, a modified badge catches them */
+}
+.badge.has-src::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+/* the sheet slides away while the lines show, and comes back after */
+.sheet:not(.docked) .sheet-body {
+  transition: transform 0.22s ease-out;
+}
+.sheet.tucked:not(.docked) {
+  pointer-events: none;
+}
+.sheet.tucked:not(.docked) .sheet-scrim {
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+}
+.sheet.tucked:not(.docked) .sheet-body {
+  transform: translateY(calc(100% + 12px));
+  transition: transform 0.22s ease-in;
+}
+.badge.hp .src-n {
+  left: auto;
+  right: -5px;
+}
+.src-lines {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 29;
+  pointer-events: none;
+  overflow: visible;
+}
+.src-line {
+  --c: #5ee08a;
+}
+.src-line.malus {
+  --c: #ff5a4a;
+}
+.src-line line {
+  stroke: var(--c);
+  stroke-linecap: round;
+}
+.src-line .glow {
+  stroke-width: 7;
+  opacity: 0.35;
+  filter: blur(3px);
+}
+.src-line .flow {
+  stroke-width: 2.5;
+  stroke-dasharray: 9 6;
+  animation: srcFlow 0.7s linear infinite;
+  filter: drop-shadow(0 0 3px var(--c));
+}
+.src-line circle {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 4px var(--c));
+}
+@keyframes srcFlow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+.mods {
+  margin: 10px 0 4px;
+}
+.mods h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--gold-dark);
+}
+.mods ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.mod-src {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-areas: 'thumb txt val' 'thumb dur dur';
+  align-items: center;
+  column-gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border: 0;
+  border-left: 3px solid #2f8a55;
+  border-radius: 0 6px 6px 0;
+  background: rgba(47, 138, 85, 0.1);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+span.mod-src {
+  cursor: default;
+}
+.mod-src.malus {
+  border-left-color: #a32020;
+  background: rgba(163, 32, 32, 0.1);
+}
+.mod-thumb {
+  grid-area: thumb;
+  width: 34px;
+  height: 46px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--gold-dark);
+  background: #2a1a0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mod-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mod-txt {
+  grid-area: txt;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.mod-txt b {
+  font-size: 13px;
+}
+.cat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--gold-dark);
+  line-height: 1.3;
+}
+.cat-tag svg {
+  flex: none;
+}
+.mod-txt small {
+  font-style: italic;
+  font-size: 12px;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mod-val {
+  grid-area: val;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 12px;
+}
+.mod-val .up {
+  color: #1e6b3f;
+}
+.mod-val .down {
+  color: #a32020;
+}
+.mod-dur {
+  grid-area: dur;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.mod-dur .gone {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #5a4a3a;
+  color: var(--parch);
+  font-style: normal;
+  font-weight: 700;
+}

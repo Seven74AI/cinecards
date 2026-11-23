@@ -1,0 +1,353 @@
+/* ---------- compact phone table: overview + zoom (story 13.2, mockups docs/design/mobile-table/B-*) ---------- */
+.hand-fan {
+  display: contents;
+}
+.table.compact {
+  /*
+   * Story 13.6: the height is shared out exactly. Fixed rows (top bar, two heroes, banner, gaps), then the two
+   * sides grow as far as the width allows, and the hand takes the rest (at least --hand-min) with its cards
+   * sized from that free height, fully in view.
+   */
+  --g: 5px;
+  --hero-h: 44px;
+  --banner-h: 50px;
+  --fixed: calc(44px + 2 * var(--hero-h) + var(--banner-h) + 6 * var(--g));
+  --hand-min: clamp(108px, 18dvh, 156px);
+  /* a side around its 2 rows of slots: padding 2 × 4, strip 22, gaps 4 + 3 */
+  --side-x: 37px;
+  /* the widest card a slot holds: 5 columns, table and side paddings, 3 px gaps */
+  --cwmax: calc((100vw - 12px - 8px - 12px) / 5 - 2px);
+  /* board card widths: overview (4 rows of cards in the height left), zoomed side when the other folds (2 rows), folded strip */
+  --cw: min(76px, var(--cwmax), calc((100dvh - var(--fixed) - 2 * var(--side-x) - var(--zx, 0px) - var(--hand-min)) / 5.6));
+  --cwz: min(76px, var(--cwmax), calc((100dvh - var(--fixed) - var(--side-x) - 22px - 71px - var(--hand-min)) / 2.8));
+  --cwf: 42px;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  gap: var(--g);
+  padding: 0 6px;
+}
+/* a zoomed side's head is 22 px taller (its "Vue d'ensemble" button) */
+.table.compact.zoom-mine,
+.table.compact.zoom-theirs {
+  --zx: 22px;
+}
+@media (max-height: 700px) {
+  .table.compact {
+    --g: 3px;
+    --hero-h: 40px;
+    --banner-h: 44px;
+  }
+}
+.compact .topbar {
+  flex: none;
+  height: 44px;
+  gap: 0;
+}
+.compact .topbar .icon-btn {
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: 0;
+}
+.compact .topbar .room-code {
+  margin-left: 2px;
+}
+.compact .hero {
+  flex: none;
+  height: var(--hero-h);
+  padding: 0 8px;
+  gap: 6px;
+}
+.compact .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
+.compact .hero-main {
+  display: flex;
+  align-items: center;
+}
+.compact .hero-line {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  font-size: 13px;
+}
+.compact .hpbar {
+  position: absolute;
+  left: 44px;
+  right: 8px;
+  bottom: 3px;
+  height: 3px;
+  margin: 0;
+  border: 0;
+}
+.compact .hp-max {
+  display: none;
+}
+.compact .hero-coins {
+  font-size: 13px;
+}
+.compact .hero-counts {
+  flex-direction: row;
+  gap: 5px;
+  font-size: 11px;
+}
+
+/* a side: the strip of terrains and spells, then the 2 × 5 slots */
+.compact .side {
+  flex: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(20, 12, 6, 0.45);
+  box-shadow: 0 0 0 1px rgba(212, 167, 74, 0.25);
+  cursor: zoom-in;
+}
+.compact .side.is-zoomed {
+  cursor: default;
+  box-shadow: 0 0 0 1px rgba(242, 210, 122, 0.5), 0 0 14px rgba(242, 210, 122, 0.12);
+}
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  min-width: 0;
+}
+.is-zoomed .side-head {
+  height: 44px;
+}
+.side-btn {
+  flex: none;
+  margin: -11px 0 -11px auto;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font-family: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.side-btn.back-overview {
+  margin: 0 0 0 auto;
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--parch);
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(212, 167, 74, 0.45);
+}
+.compact .zones {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow: hidden;
+}
+.compact .zone {
+  gap: 3px;
+  align-items: center;
+}
+.compact .seal,
+.compact .rune {
+  width: 12px;
+  height: 12px;
+  border-width: 1px;
+  border-radius: 3px;
+  border-style: dashed;
+  box-shadow: none;
+  background: none;
+}
+.compact .seal > svg,
+.compact .rune > svg {
+  display: none;
+}
+.compact .seal.filled,
+.compact .rune.filled {
+  width: 20px;
+  height: 20px;
+  border-width: 1.5px;
+  border-style: solid;
+}
+.compact .seal.filled {
+  border-radius: 50%;
+}
+.compact .rune.filled {
+  border-radius: 46% 46% 40% 40% / 38% 38% 58% 58%;
+}
+/* in overview the strip is one touch target: it zooms the side */
+.compact .side:not(.is-zoomed) .zones * {
+  pointer-events: none;
+}
+.compact .is-zoomed .seal.filled,
+.compact .is-zoomed .rune.filled,
+.compact .is-zoomed .placeable {
+  width: 40px;
+  height: 40px;
+}
+.compact .is-zoomed .placeable > svg {
+  display: block;
+}
+
+.compact .board {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+}
+.compact .slot {
+  aspect-ratio: auto;
+  height: calc(var(--cw) * 1.4);
+}
+.compact .slot .card {
+  width: var(--cw);
+}
+.compact .slot-num {
+  font-size: 11px;
+}
+.compact.fold .is-zoomed .slot {
+  height: calc(var(--cwz) * 1.4);
+}
+.compact.fold .is-zoomed .slot .card {
+  width: var(--cwz);
+}
+/* folded: the other side becomes a strip of its cards */
+.compact .side.is-folded {
+  flex-direction: row;
+  align-items: center;
+  padding: 0 8px 0 6px;
+  min-height: calc(var(--cwf) * 1.4 + 12px);
+}
+.compact .is-folded .board {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 7px 0 5px 6px;
+  scrollbar-width: none;
+}
+.compact .is-folded .slot:not(.filled) {
+  display: none;
+}
+.compact .is-folded .slot {
+  flex: none;
+  width: 44px;
+  height: calc(var(--cwf) * 1.4);
+}
+.compact .is-folded .slot .card {
+  width: var(--cwf);
+}
+.compact .is-folded .slot::before,
+.compact .is-folded .slot .rune-ring {
+  display: none;
+}
+.is-folded .side-btn {
+  margin: 0;
+}
+.free-n {
+  margin-left: auto;
+  padding-left: 6px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+/* turn banner; during a choice it becomes the instruction bar */
+.compact .banner {
+  flex: none;
+  height: var(--banner-h);
+  min-height: 0;
+  padding: 0 4px 0 10px;
+}
+.compact .banner .btn.small {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+}
+.compact .banner.consigne {
+  background: linear-gradient(#2a3d3a, #14211f);
+  border-color: var(--arcane);
+  color: #dff7f3;
+  box-shadow: 0 0 12px rgba(79, 209, 197, 0.25);
+}
+.compact .banner.consigne .orn {
+  display: none;
+}
+.compact .banner.consigne .banner-text span {
+  color: #9fd9d1;
+}
+.compact .banner.consigne .timer {
+  color: #dff7f3;
+}
+.compact .banner.consigne .btn.ghost {
+  color: #dff7f3;
+  border-color: var(--arcane);
+}
+
+/* the hand (story 13.6): the free height below my hero, cards fully in view and sized from it, barely fanned */
+.compact .hand {
+  flex: 1 1 0;
+  min-height: var(--hand-min);
+  position: relative;
+  display: block;
+  margin: 0 -6px;
+  padding: 0;
+  overflow: visible;
+  container-type: size;
+}
+.compact .hand-fan {
+  /* card width from the free height (top 4 px, bottom 10 px for the fan), capped so 4 cards fit side by side */
+  --hw: min(124px, calc((100cqh - 14px) / 1.4), calc((100vw - 28px) / 4));
+  --step: max(44px, min(calc(var(--hw) + 4px), calc((100vw - 16px - var(--hw)) / max(1, var(--n) - 1))));
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: safe center;
+  padding: 0 8px 6px;
+  overflow: visible;
+  pointer-events: none;
+}
+.compact .hand-fan.many {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.compact .hand .card {
+  width: var(--hw);
+  margin-left: calc(var(--step) - var(--hw));
+  transform: translateY(calc(var(--k) * var(--k) * 1.5px)) rotate(calc(var(--k) * 1.5deg));
+  transform-origin: 50% 100%;
+  pointer-events: auto;
+}
+.compact .hand .card:first-child {
+  margin-left: 0;
+}
+.compact .hand .card-name {
+  font-size: max(8px, 9.5cqw);
+}
+.compact .hand .badge {
+  font-size: max(9px, 11cqw);
+}
+/* a touched card lifts and grows: a readable preview before it is played */
+.compact .hand .card.is-selected {
+  transform: translateY(-34%) scale(1.3);
+  transform-origin: 50% 100%;
+  z-index: 3;
+}
+.compact .hand .card.is-ready:hover:not(.is-selected) {
+  transform: translateY(-8px);
+  z-index: 2;
+}
+.compact .hand .muted {
+  margin: auto;
+  pointer-events: auto;
+}

@@ -1,0 +1,84 @@
+/* CineCards — "Grimoire fantastique" theme (stories 5.1, 7.1). Mobile first. */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Alegreya:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --leather: #1f140c;
+  --wood: #2b1b10;
+  --parch: #ead9b0;
+  --ink: #2a1a0e;
+  --gold: #d4a74a;
+  --gold2: #f2d27a;
+  --gold-dark: #8a6416;
+  --crimson: #8e1f1f;
+  --arcane: #4fd1c5;
+  --dim: #b9a27a;
+  --r-common: #b8bcc4;
+  --r-rare: #2f7bf6;
+  --r-epic: #b020c0;
+  --r-legend: #ff9500;
+  --display: 'Cinzel', 'Times New Roman', serif;
+  --text: 'Alegreya', Georgia, serif;
+  --parch-bg: repeating-linear-gradient(8deg, rgba(120, 80, 30, 0.05) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 50% 40%, #f3e6c4, var(--parch) 60%, #cdb07a);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+/* A scrollbar that appears or disappears must not shift the content: reserve its gutter (desktop-style
+   scrollbars only; phones use overlay scrollbars that take no room). */
+@media (pointer: fine) and (min-width: 700px) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+.sheet-body,
+.journal-list,
+.table-root.wide .table,
+.col-right,
+.preview {
+  scrollbar-gutter: stable;
+}
+body {
+  background: radial-gradient(ellipse at 50% 30%, #3a2414 0%, var(--wood) 45%, #120a05 100%);
+  color: var(--parch);
+  font-family: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  margin: 0;
+}
+.muted {
+  color: var(--dim);
+  font-style: italic;
+}
+
+.parchment {
+  background: var(--parch-bg);
+  color: var(--ink);
+  box-shadow: inset 0 0 18px rgba(90, 55, 20, 0.45), 0 6px 18px rgba(0, 0, 0, 0.55);
+  border-radius: 6px;
+}
+.parchment .muted {
+  color: #6b5232;
+}
+.parchment-dark {
+  background: linear-gradient(180deg, rgba(31, 20, 12, 0.92), rgba(18, 11, 6, 0.95));
+  border: 1px solid rgba(212, 167, 74, 0.35);
+  border-radius: 6px;
+}

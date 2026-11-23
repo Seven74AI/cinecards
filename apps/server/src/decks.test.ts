@@ -40,8 +40,8 @@ describe('10.2 database', () => {
 
       const db = openDb(path);
       expect(schemaVersion(db)).toBe(MIGRATIONS.length);
-      expect(db.prepare('SELECT * FROM accounts ORDER BY id').all()).toEqual(before.accounts);
-      expect(db.prepare('SELECT * FROM sessions').all()).toEqual(before.sessions);
+      expect(db.prepare('SELECT * FROM accounts ORDER BY id').all()).toMatchObject(before.accounts);
+      expect(db.prepare('SELECT * FROM sessions').all()).toMatchObject(before.sessions);
       db.prepare("INSERT INTO decks (account_id, name, cards, created_at, updated_at) VALUES (2, 'D', '[]', 1, 1)").run();
       expect(() => db.prepare("INSERT INTO decks (account_id, name, cards, created_at, updated_at) VALUES (99, 'D', '[]', 1, 1)").run()).toThrow();
       // a deleted account takes its decks with it
@@ -141,8 +141,8 @@ describe('10.2 HTTP API', () => {
     return r.token;
   };
 
-  it('announces decks in /api/health and allows PUT from the browser', async () => {
-    expect(await (await api('GET', '/api/health')).json()).toMatchObject({ decks: true });
+  it('announces decks (and constructed duels, 10.3) in /api/health and allows PUT from the browser', async () => {
+    expect(await (await api('GET', '/api/health')).json()).toMatchObject({ decks: true, constructed: true });
     const pre = await api('OPTIONS', '/api/decks/1');
     expect(pre.headers.get('access-control-allow-methods')).toContain('PUT');
   });

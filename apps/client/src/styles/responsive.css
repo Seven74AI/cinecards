@@ -1,0 +1,64 @@
+/* ---------- desktop (story 5.8) ---------- */
+@media (min-width: 700px) {
+  .table {
+    max-width: 680px;
+  }
+  .card-name {
+    font-size: 10px;
+  }
+  .badge {
+    font-size: 11px;
+  }
+}
+.table-root.wide {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  gap: 14px;
+  padding: 10px;
+  height: 100dvh;
+}
+.table-root.wide .table {
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+.table-root.wide .board {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+.col-left,
+.col-right {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.inspector-empty {
+  padding: 20px;
+  font-style: italic;
+  color: var(--dim);
+  text-align: center;
+}
+@media (min-width: 1100px) and (max-height: 820px) {
+  .table-root.wide .board {
+    grid-template-columns: repeat(10, minmax(0, 72px));
+    justify-content: center;
+  }
+}
+
+/* landscape phones / tablets */
+@media (orientation: landscape) and (max-height: 600px) {
+  .table {
+    max-width: 100%;
+  }
+  .board {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+  .hand {
+    min-height: 80px;
+  }
+  .card-hand {
+    width: 56px;
+  }
+}

@@ -1,4 +1,4 @@
-/* ---------- compact phone table: overview + zoom (story 13.2, mockups docs/design/mobile-table/B-*) ---------- */
+/* ---------- compact phone table (story 13.2; story 14.1: no zoom, terrain and spell rows, mockup docs/design/mobile-table-v2/F) ---------- */
 .hand-fan {
   display: contents;
 }
@@ -13,24 +13,19 @@
   --banner-h: 50px;
   --fixed: calc(44px + 2 * var(--hero-h) + var(--banner-h) + 6 * var(--g));
   --hand-min: clamp(108px, 18dvh, 156px);
-  /* a side around its 2 rows of slots: padding 2 × 4, strip 22, gaps 4 + 3 */
-  --side-x: 37px;
+  /* story 14.1: height of a terrain / spell plate, from 18 px (360 × 640) to 26 px (tall phones) */
+  --zh: clamp(18px, calc(8dvh - 34px), 26px);
+  /* a side around its 2 rows of slots: padding 2 × 4, two plate rows and their gap 3, gap 4 to the slots, slot gap 3 */
+  --side-x: calc(18px + 2 * var(--zh));
   /* the widest card a slot holds: 5 columns, table and side paddings, 3 px gaps */
   --cwmax: calc((100vw - 12px - 8px - 12px) / 5 - 2px);
-  /* board card widths: overview (4 rows of cards in the height left), zoomed side when the other folds (2 rows), folded strip */
-  --cw: min(76px, var(--cwmax), calc((100dvh - var(--fixed) - 2 * var(--side-x) - var(--zx, 0px) - var(--hand-min)) / 5.6));
-  --cwz: min(76px, var(--cwmax), calc((100dvh - var(--fixed) - var(--side-x) - 22px - 71px - var(--hand-min)) / 2.8));
-  --cwf: 42px;
+  /* board card width: 4 rows of cards in the height left */
+  --cw: min(76px, var(--cwmax), calc((100dvh - var(--fixed) - 2 * var(--side-x) - var(--hand-min)) / 5.6));
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
   gap: var(--g);
   padding: 0 6px;
-}
-/* a zoomed side's head is 22 px taller (its "Vue d'ensemble" button) */
-.table.compact.zoom-mine,
-.table.compact.zoom-theirs {
-  --zx: 22px;
 }
 @media (max-height: 700px) {
   .table.compact {
@@ -57,45 +52,55 @@
   flex: none;
   height: var(--hero-h);
   padding: 0 8px;
-  gap: 6px;
+  gap: 7px;
+  background: rgba(20, 12, 6, 0.7);
+  border-color: rgba(212, 167, 74, 0.35);
+}
+/* the active player's banner stands out (mockup F, `.ph.act`) */
+.compact .hero.active {
+  border-color: var(--gold2);
+  box-shadow: 0 0 0 0.5px var(--gold2), 0 0 10px rgba(242, 210, 122, 0.35);
 }
 .compact .avatar {
   width: 28px;
   height: 28px;
   font-size: 13px;
 }
+/* name above its HP bar (mockup F, `.pmain`) */
 .compact .hero-main {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
 }
-.compact .hero-line {
-  flex: 1;
-  min-width: 0;
-  align-items: center;
+.compact .hero-name {
+  font-family: var(--display);
   font-size: 13px;
+  line-height: 1.1;
 }
 .compact .hpbar {
-  position: absolute;
-  left: 44px;
-  right: 8px;
-  bottom: 3px;
-  height: 3px;
+  height: 4px;
   margin: 0;
   border: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
-.compact .hp-max {
-  display: none;
+.compact .hero-hp {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 13px;
 }
 .compact .hero-coins {
   font-size: 13px;
 }
 .compact .hero-counts {
   flex-direction: row;
-  gap: 5px;
+  gap: 6px;
+  font-family: var(--display);
+  font-weight: 700;
   font-size: 11px;
+  color: #ead9b0;
 }
 
-/* a side: the strip of terrains and spells, then the 2 × 5 slots */
+/* a side: the terrain and spell rows (above the characters for the foe, below for me), then the 2 × 5 slots */
 .compact .side {
   flex: none;
   position: relative;
@@ -106,97 +111,125 @@
   border-radius: 12px;
   background: rgba(20, 12, 6, 0.45);
   box-shadow: 0 0 0 1px rgba(212, 167, 74, 0.25);
-  cursor: zoom-in;
 }
-.compact .side.is-zoomed {
-  cursor: default;
-  box-shadow: 0 0 0 1px rgba(242, 210, 122, 0.5), 0 0 14px rgba(242, 210, 122, 0.12);
+.compact .zrows {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 3px;
 }
-.side-head {
+.compact .zrow {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 4px;
+  align-items: center;
+}
+.compact .zl {
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 22px;
-  min-width: 0;
-}
-.is-zoomed .side-head {
-  height: 44px;
-}
-.side-btn {
-  flex: none;
-  margin: -11px 0 -11px auto;
-  height: 44px;
-  min-width: 44px;
-  padding: 0 4px;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  gap: 4px;
+  height: var(--zh);
+  opacity: 0.8;
+}
+.compact .zg {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+/* a card in play: a small parchment plate, category icon and name (mockup F, `.pl`) */
+.compact .zplate,
+.compact .zempty {
+  position: relative;
+  height: var(--zh);
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 5px;
+}
+.compact .zplate {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 2px 0 4px;
   border: 0;
-  background: none;
-  color: var(--dim);
+  background: radial-gradient(ellipse at 50% 40%, #f3e6c4, #ead9b0 60%, #cdb07a);
+  box-shadow: 0 0 0 1.5px var(--gold), 0 2px 4px rgba(0, 0, 0, 0.5);
   font-family: var(--text);
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.05;
+  color: #2a1a0e;
+  text-align: left;
   cursor: pointer;
 }
-.side-btn.back-overview {
-  margin: 0 0 0 auto;
-  padding: 0 8px;
-  font-size: 13px;
-  color: var(--parch);
-  border-radius: 22px;
-  box-shadow: inset 0 0 0 1px rgba(212, 167, 74, 0.45);
-}
-.compact .zones {
-  flex: 1;
+.compact .zn {
   min-width: 0;
-  justify-content: flex-start;
-  gap: 10px;
   overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.compact .zone {
-  gap: 3px;
-  align-items: center;
+/* tall phones: plates of 26 px hold a name on two lines (mockup F) */
+@media (min-height: 760px) {
+  .compact .zn {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 }
-.compact .seal,
-.compact .rune {
-  width: 12px;
-  height: 12px;
-  border-width: 1px;
-  border-radius: 3px;
-  border-style: dashed;
-  box-shadow: none;
-  background: none;
+.compact .zi {
+  flex: none;
+  width: 9px;
+  height: 9px;
 }
-.compact .seal > svg,
-.compact .rune > svg {
-  display: none;
+.compact .zi-terrain {
+  transform: rotate(45deg) scale(0.85);
+  background: linear-gradient(160deg, #7fb84a, #3e7a1c 55%, #1d3a0c);
+  box-shadow: 0 0 0 1.5px var(--gold);
 }
-.compact .seal.filled,
-.compact .rune.filled {
-  width: 20px;
-  height: 20px;
-  border-width: 1.5px;
+.compact .zi-spell {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #e0574a, #a3271f 55%, #5a0f0d);
+  box-shadow: 0 0 0 1.5px var(--gold);
+}
+.compact .zi-equip {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  background: linear-gradient(160deg, #9aa6b8, #4a5568 60%, #1f2633);
+}
+/* an empty slot: dashed (mockup F, `.pe`) */
+.compact .zempty {
+  display: block;
+  border: 1px dashed rgba(212, 167, 74, 0.4);
+}
+.compact .zempty.placeable {
   border-style: solid;
 }
-.compact .seal.filled {
-  border-radius: 50%;
+/*
+ * The touch area of a plate (or of a free slot while placing) also covers the gaps around it: half the gap to its
+ * neighbours and to the other row, the gap to the characters, and on the outer row the side's padding and the gap to
+ * the hero banner. Nothing else is covered, so a tap never lands on the wrong card.
+ */
+.compact .zplate::after,
+.compact .zempty.placeable::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px -2.5px;
 }
-.compact .rune.filled {
-  border-radius: 46% 46% 40% 40% / 38% 38% 58% 58%;
+.compact .side.theirs .zrow:first-child .zg > ::after {
+  top: calc(-4px - var(--g));
 }
-/* in overview the strip is one touch target: it zooms the side */
-.compact .side:not(.is-zoomed) .zones * {
-  pointer-events: none;
+.compact .side.mine .zrow:last-child .zg > ::after {
+  bottom: calc(-4px - var(--g));
 }
-.compact .is-zoomed .seal.filled,
-.compact .is-zoomed .rune.filled,
-.compact .is-zoomed .placeable {
-  width: 40px;
-  height: 40px;
+.compact .side.theirs .zrow:last-child .zg > ::after {
+  bottom: -4px;
 }
-.compact .is-zoomed .placeable > svg {
-  display: block;
+.compact .side.mine .zrow:first-child .zg > ::after {
+  top: -4px;
+}
+.compact .zplate.ref-glow {
+  box-shadow: 0 0 0 2px var(--gold2), 0 0 20px 6px rgba(242, 210, 122, 0.75);
+  z-index: 2;
 }
 
 .compact .board {
@@ -212,53 +245,6 @@
 }
 .compact .slot-num {
   font-size: 11px;
-}
-.compact.fold .is-zoomed .slot {
-  height: calc(var(--cwz) * 1.4);
-}
-.compact.fold .is-zoomed .slot .card {
-  width: var(--cwz);
-}
-/* folded: the other side becomes a strip of its cards */
-.compact .side.is-folded {
-  flex-direction: row;
-  align-items: center;
-  padding: 0 8px 0 6px;
-  min-height: calc(var(--cwf) * 1.4 + 12px);
-}
-.compact .is-folded .board {
-  display: flex;
-  gap: 4px;
-  min-width: 0;
-  overflow-x: auto;
-  padding: 7px 0 5px 6px;
-  scrollbar-width: none;
-}
-.compact .is-folded .slot:not(.filled) {
-  display: none;
-}
-.compact .is-folded .slot {
-  flex: none;
-  width: 44px;
-  height: calc(var(--cwf) * 1.4);
-}
-.compact .is-folded .slot .card {
-  width: var(--cwf);
-}
-.compact .is-folded .slot::before,
-.compact .is-folded .slot .rune-ring {
-  display: none;
-}
-.is-folded .side-btn {
-  margin: 0;
-}
-.free-n {
-  margin-left: auto;
-  padding-left: 6px;
-  font-size: 11px;
-  font-style: italic;
-  color: var(--dim);
-  white-space: nowrap;
 }
 
 /* turn banner; during a choice it becomes the instruction bar */

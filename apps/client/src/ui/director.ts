@@ -798,7 +798,7 @@ function played(e: Extract<GameEvent, { type: 'cardPlayed' }>, ms: number, r: nu
   if (fly !== base) retime?.(ms + 16 + fly - base);
   const cat = CATALOG.get(e.cardId)?.category;
   // story 13.6: on the compact table a character lands at the demo's size, then settles into its slot;
-  // a terrain or an equipment (a small seal in its strip) is shown as a card that lands, then shrinks into it
+  // a terrain or an equipment (a plate in its row, story 14.1) is shown as a card that lands, then shrinks into it
   stage(el, r, fly + 450 * r, 0);
   if (from && compactTable() && !el.classList.contains('card')) zoneGhost(e.cardId, from, el, fly, r);
   else if (from) flyIn(el, from, fly, e.player === myId() ? 0 : -8);
@@ -1036,39 +1036,6 @@ function gameEnd(winner: PlayerId | 'draw', ms: number, r: number) {
   }
 }
 
-/** Positions of the cards on the table, read before a change of layout (story 13.2). */
-export type Layout = Map<HTMLElement, DOMRect>;
-export function captureLayout(): Layout {
-  const m: Layout = new Map();
-  document.querySelectorAll<HTMLElement>('.table .board .card, .table .zones [data-iid]').forEach((el) => m.set(el, el.getBoundingClientRect()));
-  return m;
-}
-
-/**
- * Story 13.2, overview ⇄ zoom: each card glides and scales from where it was to its new place (FLIP), the sides
- * fade in. Under 300 ms; with "reduce motion" only the fade is left (see `animate`).
- */
-export function flipLayout(before: Layout, ms = 260) {
-  for (const [el, a] of before) {
-    if (!el.isConnected) continue;
-    const b = el.getBoundingClientRect();
-    if (!a.width || !b.width) continue;
-    const dx = a.left - b.left;
-    const dy = a.top - b.top;
-    const s = a.width / b.width;
-    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(s - 1) < 0.01) continue;
-    void animate(
-      el,
-      [
-        { transform: `translate(${dx}px, ${dy}px) scale(${s})`, transformOrigin: '0 0', opacity: 0.6 },
-        { transform: 'translate(0, 0) scale(1)', transformOrigin: '0 0', opacity: 1 },
-      ],
-      ms,
-      { easing: EASING.easeOut },
-    );
-  }
-  document.querySelectorAll('.table .side').forEach((el) => void animate(el, [{ opacity: 0.55 }, { opacity: 1 }], ms));
-}
 
 
 // ---------------------------------------------------------------------------------------------------------

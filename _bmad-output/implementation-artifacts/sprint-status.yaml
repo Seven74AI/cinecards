@@ -134,8 +134,8 @@ development_status:
   13-15-tremblement-a-l-echelle-de-l-ecran: done  # maquette validée le 2026-11-23
   epic-13-retrospective: done
   # epic-14 (table téléphone v2, maquette F validée par Root le 2026-11-23) : maintenant, avant l'epic 9
-  epic-14: backlog
-  14-1-table-sans-zoom-rangees-terrains-et-sorts: backlog
+  epic-14: in-progress
+  14-1-table-sans-zoom-rangees-terrains-et-sorts: done
   14-2-main-repliee-bouton-eventail-vue-compacte: backlog
   14-3-carte-complete-et-vue-detaillee: backlog
   14-4-reglage-main-ouverte: backlog
@@ -194,4 +194,4 @@ action_items:
     owner: "agent dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
-last_updated: 11-23-2026 14:00
+last_updated: 11-23-2026 16:00

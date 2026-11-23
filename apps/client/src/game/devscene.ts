@@ -34,11 +34,37 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   neo: [['mx-neo'], []],
   // story 13.10: Le Grimoire holds only Tank; on its turn it plays it and sends my cards back to my hand
   retrait: [['hg-lancelot', 'hs-topper'], []],
+  // story 14.1: a full table (mockup F): 4 characters of mine, 7 of the foe, terrains and spells on both sides, and a
+  // hand of 10 cards (see EXTRA)
+  pleine: [
+    ['hg-patsy', 'mx-cypher', 'hs-topper', 'wc-gomez'],
+    ['hg-galahad', 'hg-bridgekeeper', 'hs-kent', 'hg-black-knight', 'hg-robin', 'hg-tim', 'mx-keymaker'],
+  ],
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;
 /** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
+  pleine: (state, take) => {
+    const put = (cardId: string, player: PlayerId, zone: 'terrains' | 'spells', slot: number) => {
+      const iid = take(cardId, player);
+      if (!iid) return;
+      state.instances[iid]!.playedOnTurn = 1;
+      state.players[player][zone][slot] = iid;
+    };
+    put('mx-matrix', 0, 'terrains', 0);
+    put('mx-recharge', 0, 'spells', 0);
+    put('mx-apu', 0, 'spells', 1);
+    put('hg-camelot', 1, 'terrains', 0);
+    put('hs-carrier', 1, 'terrains', 1);
+    put('hg-run-away', 1, 'spells', 0);
+    const me = state.players[0];
+    while (me.hand.length < 10 && state.sharedDeck.length) {
+      const iid = state.sharedDeck.shift()!;
+      state.instances[iid]!.owner = 0;
+      me.hand.push(iid);
+    }
+  },
   retrait: (state, take) => {
     const tank = take('mx-tank', 1)!;
     state.players[1].hand = [tank];

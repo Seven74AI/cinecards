@@ -4,7 +4,7 @@ baseline_commit: b701087
 
 # Story 10.3: Choisir son deck en salle
 
-Status: review
+Status: done
 
 ## Story
 
@@ -151,3 +151,4 @@ Agent de développement (gds-dev-story)
 ## Change Log
 
 - 2026-11-23 — Story 10.3 implémentée : mode « Decks construits » en ligne (deck choisi par son id, relu, revalidé et figé par le serveur ; second joueur qui choisit en salle d'attente ; invités, comptes sans deck et anciens clients refusés) et en solo (mon deck contre 50 cartes tirées avec la graine), `randomDeck`, `/api/health` `constructed: true`, tests serveur / moteur / client / e2e, captures. Statut : review.
+- 2026-11-23 — Revue : decks lus et revalidés par le serveur pour le compte du siège, figés au début ; écrans vérifiés ; typecheck, 276 tests (simulations 200/200 dans les deux familles de modes), e2e 49/49. Story terminée ; epic 10 terminé.

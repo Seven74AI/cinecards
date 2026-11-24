@@ -4,6 +4,7 @@ import { animate, animateSteps, cardEl, EASING, ENTRANCE_MS, ENTRANCE_TOUCH, ent
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { CardView, CHAINS_SVG, CRACKS_SVG } from './CardView.tsx';
+import { revealInRow } from './handScroll.ts';
 import { iconSvg, STATUS_ICON } from './Icon.tsx';
 import { CATALOG, cardArt } from '../game/catalog.ts';
 import { abilityBody, abilityTag } from '../game/labels.ts';
@@ -829,8 +830,12 @@ function drawn(iid: string, player: PlayerId, ms: number, r: number, retime?: Re
   const deck = ptOf(counterEl(player, 'Pioche'));
   if (!deck) return;
   const real = player === myId() ? document.querySelector<HTMLElement>(`.table .hand .card[data-iid="${CSS.escape(iid)}"]`) : null;
+  // story 14.6: in the open hand of the compact table, the row scrolls to the card first; the back flies to where the
+  // card will be once the row stops
+  const shift = real ? revealInRow(real) : 0;
   const to = real ? ptOf(real) : ptOf(handZone(player));
   if (!to) return;
+  to.x += shift;
   // story 13.13: a card drawn further away travels longer, and so does its beat
   const k = travelK(dist(deck, to), 'draw');
   if (k !== 1) retime?.((ms + 16) * k);

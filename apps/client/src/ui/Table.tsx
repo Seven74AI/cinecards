@@ -14,6 +14,7 @@ import {
 import type { Session } from '../game/session.ts';
 import { loadSpeed, Playback, saveSpeed, SPEED_FR, SPEEDS, type AnimSpeed, type Cue } from '../game/playback.ts';
 import { clearLeads, direct, noteHand } from './director.ts';
+import { revealInRow } from './handScroll.ts';
 import { removalAt } from '../game/removal.ts';
 import { Counter } from './Counter.tsx';
 import { describeEvent, triggerPhrase } from '../game/describe.ts';
@@ -144,6 +145,18 @@ function HandPanel({ detailed, handKey, children }: { detailed: boolean; handKey
       removeEventListener('resize', fit);
     };
   }, [detailed, handKey]);
+  // story 14.6: a card that arrives in the open hand (draw, back to hand) is scrolled into view; not when the hand
+  // opens, nor when its cards only change order or leave
+  const seen = useRef<Set<string> | null>(null);
+  useLayoutEffect(() => {
+    const ids = handKey ? handKey.split(',') : [];
+    const before = seen.current;
+    seen.current = new Set(ids);
+    if (!before) return;
+    const last = ids.filter((iid) => !before.has(iid)).pop();
+    const el = last ? ref.current?.querySelector<HTMLElement>(`.card[data-iid="${CSS.escape(last)}"]`) : null;
+    if (el) revealInRow(el);
+  }, [handKey]);
   return (
     <div ref={ref} className={'hand hand-panel' + (detailed ? ' detailed' : '')} id="cc-hand" role="region" aria-label="Ta main">
       <div className="hand-row">{children}</div>

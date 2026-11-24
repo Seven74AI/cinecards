@@ -38,6 +38,8 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
   // hand of 10 cards (see EXTRA); story 14.3: Néo first, the card with the longest texts (the tallest full card)
   // story 14.5: 5 coins, so Smith (13) and Néo (10) cannot be played; the hand shows Patsy and Camelot first
   tri: [['hs-topper'], ['hg-ni'], ['mx-smith', 'hg-patsy', 'mx-neo', 'hg-camelot']],
+  // story 14.6: 9 cards in my hand, so the open hand scrolls and the card I draw next turn lands past its right edge
+  pioche: [['hs-topper'], []],
   pleine: [
     ['hg-patsy', 'mx-cypher', 'hs-topper', 'wc-gomez'],
     ['hg-galahad', 'hg-bridgekeeper', 'hs-kent', 'hg-black-knight', 'hg-robin', 'hg-tim', 'mx-keymaker'],
@@ -46,6 +48,15 @@ const SCENES: Record<string, [string[], string[], string[]?]> = {
 };
 
 type Take = (cardId: string, player: PlayerId) => string | null;
+/** Tops my hand up to `n` cards from the shared deck. */
+function fillHand(state: GameState, n: number) {
+  const me = state.players[0];
+  while (me.hand.length < n && state.sharedDeck.length) {
+    const iid = state.sharedDeck.shift()!;
+    state.instances[iid]!.owner = 0;
+    me.hand.push(iid);
+  }
+}
 /** Extra setup after the characters are placed: terrains, graveyards, modifiers. */
 const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: string) => string) => void> = {
   tri: (state) => {
@@ -64,12 +75,11 @@ const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: strin
     put('hg-camelot', 1, 'terrains', 0);
     put('hs-carrier', 1, 'terrains', 1);
     put('hg-run-away', 1, 'spells', 0);
-    const me = state.players[0];
-    while (me.hand.length < 10 && state.sharedDeck.length) {
-      const iid = state.sharedDeck.shift()!;
-      state.instances[iid]!.owner = 0;
-      me.hand.push(iid);
-    }
+    fillHand(state, 10);
+  },
+  pioche: (state) => {
+    fillHand(state, 9);
+    state.players[1].hand = []; // Le Grimoire only plays the card it draws: nothing comes back to my hand
   },
   retrait: (state, take) => {
     const tank = take('mx-tank', 1)!;
@@ -104,7 +114,7 @@ const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: strin
 };
 
 /** Seed of the bot for the scenes where its choices matter (story 13.10: it sends my cards back with Tank). */
-const BOT_SEEDS: Record<string, number> = { retrait: 9 };
+const BOT_SEEDS: Record<string, number> = { retrait: 9, pioche: 1 };
 export const devBotSeed = (name: string): number | undefined => BOT_SEEDS[name];
 
 export function devScene(catalog: Catalog, name: string): GameState | null {

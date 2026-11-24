@@ -141,7 +141,7 @@
 .compact .zg {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 5px;
+  gap: 4px; /* story 14.6: 5 px before, a little more room for the names */
 }
 /* a card in play: a small parchment plate, category icon and name (mockup F, `.pl`) */
 .compact .zplate,
@@ -155,33 +155,35 @@
 .compact .zplate {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 0 2px 0 4px;
+  /* story 14.6: tighter around the icon, so a long name keeps the most room */
+  gap: 2px;
+  padding: 0 2px 0 3px;
   border: 0;
   background: radial-gradient(ellipse at 50% 40%, #f3e6c4, #ead9b0 60%, #cdb07a);
   box-shadow: 0 0 0 1.5px var(--gold), 0 2px 4px rgba(0, 0, 0, 0.5);
   font-family: var(--text);
   font-weight: 700;
   font-size: 10px;
-  line-height: 1.05;
+  line-height: 1.1;
   color: #2a1a0e;
   text-align: left;
   cursor: pointer;
 }
+/*
+ * A name on two lines at most (mockup F; story 14.6: on every phone, plates of 24 px and more hold two lines of 10 px),
+ * ended by an ellipsis if it is longer still; the full name stays in the plate's label and in the card's sheet.
+ */
 .compact .zn {
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-/* tall phones: plates of 26 px hold a name on two lines (mockup F) */
-@media (min-height: 760px) {
-  .compact .zn {
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
+.compact .zplate .zi {
+  width: 8px;
+  height: 8px;
 }
 .compact .zi {
   flex: none;
@@ -219,7 +221,7 @@
 .compact .zempty.placeable::after {
   content: '';
   position: absolute;
-  inset: -1.5px -2.5px;
+  inset: -1.5px -2px;
 }
 .compact .side.theirs .zrow:first-child .zg > ::after {
   top: calc(-4px - var(--g));
@@ -401,8 +403,8 @@
   align-items: center;
   gap: 8px;
   /* room for the cost token (it sticks out top left) and the glow of a playable card; the end padding lets the last
-     card leave the fading edge */
-  padding: 12px 40px 6px 14px;
+     card leave the fading edge (story 14.6: all of it, the edge fades the last 12 % of the row) */
+  padding: 12px max(40px, calc(12cqw + 6px)) 6px 14px;
   scroll-padding-left: 14px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -443,7 +445,7 @@
 .compact .hand-panel.detailed .hand-row {
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 40px 10px 18px;
+  padding: 14px max(40px, calc(12cqw + 6px)) 10px 18px;
   scroll-padding-left: 18px;
 }
 .compact .hand-panel.detailed .hand-row .card {
@@ -454,4 +456,38 @@
 }
 .compact .hand-panel.detailed .hand-row .badge {
   font-size: 12px;
+}
+
+/*
+ * Story 14.6: the ATK and PV of a table card always fit side by side, readable (9 px at least), and the badge counting
+ * a modified stat's sources (story 13.3) sits above its badge's outer corner, over the art, clear of the number (its text box rises above the badge).
+ * The `.badge` of the friends list (friends.css) also reaches these badges; here its size is undone.
+ */
+.compact .slot .card-stats {
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  gap: 1px;
+}
+.compact .slot .badge {
+  min-width: 0;
+  height: auto;
+  padding: 1px 2px;
+  gap: 1px;
+  font-size: clamp(9px, calc(var(--cw) * 0.16), 12px);
+  line-height: 1;
+}
+/* the sword and heart give way first on the narrowest cards (the badges' colour and shape still tell them apart) */
+.compact .slot .badge svg {
+  width: clamp(0px, calc((var(--cw) - 56px) * 2), 9px);
+  height: 9px;
+}
+.compact .slot .src-n {
+  top: auto;
+  bottom: calc(100% + 3px);
+  left: -2px;
+}
+.compact .slot .badge.hp .src-n {
+  left: auto;
+  right: -2px;
 }

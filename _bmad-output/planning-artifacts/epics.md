@@ -1124,6 +1124,16 @@ As a joueur, I want voir d'abord les cartes que je peux jouer, et toute la table
 - **Then** les cartes que je peux jouer (même règle que la lueur « jouable » : coût ≤ pièces, ou pose gratuite) viennent d'abord, puis les autres ; chaque groupe garde l'ordre de pioche ; une carte change de groupe dès que c'est le cas
 - **And** la table téléphone laisse libres les zones de sécurité du haut et du bas (`env(safe-area-inset-*)`) : bandeaux, initiale et bouton de la main entièrement visibles, toujours sans défilement vertical
 
+### Story 14.6: Finitions de la table téléphone
+As a joueur sur téléphone, I want lire chaque valeur et chaque nom, et voir la carte que je viens de piocher, So that rien ne soit caché sur un petit écran.
+**Constat (fin de l'epic 14, 2026-11-24) :** sur un téléphone de 360 px, les pastilles du nombre de sources de bonus couvrent la valeur d'ATQ des cartes de la table ; les noms longs des terrains et des sorts sont coupés (« Le porte… », « Fuyez ! F… ») ; une carte piochée main ouverte arrive en fin de rangée, souvent hors de l'écran.
+**Acceptance Criteria:**
+- **Given** la table compacte de 360 × 640 à 430 × 932
+- **Then** la pastille du nombre de sources ne couvre jamais la valeur d'ATQ ni de PV (ni sur ordinateur, qui ne change pas)
+- **And** le nom d'un terrain ou d'un sort tient sur sa plaque (deux lignes au besoin), sans passer sous une taille lisible (règle de lisibilité de `AGENTS.md`) ; s'il reste trop long, la fin est coupée proprement et le nom complet reste dans la fiche
+- **And** quand une carte arrive dans la main ouverte (pioche, retour en main), la rangée défile jusqu'à elle
+- **And** toujours sans défilement vertical ; ordinateur, tablette et paysage inchangés
+
 ## Epic 8: Comptes et amis (post-MVP)
 
 Révisé le 2026-11-22 (`sprint-change-proposal-2026-11-22-epics-8-10.md`, approuvé) : clé d'accès avec code de secours, et pseudo + mot de passe ; pas d'e-mail ni de Google pour l'instant. À faire avant les epics 10 puis 9.

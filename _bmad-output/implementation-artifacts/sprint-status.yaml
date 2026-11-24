@@ -141,7 +141,7 @@ development_status:
   14-4-reglage-main-ouverte: done
   14-5-main-triee-et-zones-de-securite: done  # retour de Root (iPhone), 2026-11-23
   14-6-finitions-de-la-table-telephone: done
-  epic-14-retrospective: optional
+  epic-14-retrospective: done
 action_items:
   - id: "epic-8-retro-item-1-découper-styles-css-par-fonctionnalité-e"
     epic: 8
@@ -196,4 +196,28 @@ action_items:
     owner: "agent dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-13-retro-2026-11-23.md"
-last_updated: 11-23-2026 16:00
+  - id: "epic-14-retro-item-1-lot-10-de-validation"
+    epic: 14
+    action: "Lot 10 : valider avec Root les choix par défaut de l epic 14 dans a-valider-par-root.md"
+    owner: "Root"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
+  - id: "epic-14-retro-item-2-outils-de-maquette-dans-le-depot"
+    epic: 14
+    action: "scripts/capture-cards.mjs (captures depuis ?scene=pleine sans modifier devscene.ts) et mode d emploi du rendu local des planches dans docs/design/README.md"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
+  - id: "epic-14-retro-item-3-regles-de-maquette-dans-agents-md"
+    epic: 14
+    action: "AGENTS.md : maquettes avec captures du jeu, cas le plus chargé, liste de tout ce que l écran affiche, chaque planche regardée avant Root"
+    owner: "orchestrateur"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
+  - id: "epic-14-retro-item-4-verification-vrai-telephone"
+    epic: 14
+    action: "e2e de la table téléphone à 390 × 664 (hauteur visible de Safari) avec zones de sécurité simulées ; capture iPhone demandée à Root en fin d epic téléphone"
+    owner: "agent dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
+last_updated: 11-24-2026 10:00

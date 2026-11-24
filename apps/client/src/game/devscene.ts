@@ -113,8 +113,12 @@ const EXTRA: Record<string, (state: GameState, take: Take, iidOf: (cardId: strin
   },
 };
 
-/** Seed of the bot for the scenes where its choices matter (story 13.10: it sends my cards back with Tank). */
-const BOT_SEEDS: Record<string, number> = { retrait: 9, pioche: 1 };
+/**
+ * Seed of the bot for the scenes where its choices matter (story 13.10: it sends my cards back with Tank). `mort`: with
+ * seed 7 Le Grimoire plays Carrier, Mouse and Epok and attacks once, never Tank, so my characters stay on the table
+ * (a random seed made the e2e "Tour adverse" test flaky).
+ */
+const BOT_SEEDS: Record<string, number> = { retrait: 9, pioche: 1, mort: 7 };
 export const devBotSeed = (name: string): number | undefined => BOT_SEEDS[name];
 
 export function devScene(catalog: Catalog, name: string): GameState | null {

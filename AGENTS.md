@@ -46,6 +46,10 @@ Private web card duel (pnpm monorepo, TypeScript): `packages/engine` (pure rules
 ## Visual changes (Root, retrospective of epic 13, 2026-11-23)
 - **Mockup first, then Root chooses, then build.** Any change to layout, sizes, timing or effects starts with a mockup
   (before/after when something already exists), Root picks an option, and only then the story is coded.
+- **Mockups that show the real game (retrospective of epic 14, 2026-11-24):** the "before" is a capture of the game,
+  cards and sheets are captures of the real components (dev scene `?scene=pleine`), the busiest case is shown (a
+  10-card hand), and the mockup keeps everything the screen shows today (list it first). Render and look at every
+  board before showing it to Root; a broken board costs a round trip.
 - **Desktop stays as it is unless Root asks.** Phone-only behaviour lives behind the portrait-phone layout. Root
   choosing a desktop change on a mockup counts as asking; nothing else does. Prove desktop is unchanged with
   `scripts/compare-desktop.mjs` when a story is meant to be phone-only.

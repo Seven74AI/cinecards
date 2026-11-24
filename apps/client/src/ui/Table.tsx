@@ -114,7 +114,8 @@ function useWide() {
 /**
  * Story 14.3: the open hand of the compact table. In the detailed view it is as tall as the tallest full card it holds
  * plus its padding (measured again when the hand changes, a card's size changes or the window is resized), so no card
- * scrolls vertically; it grows upward over my side, the turn banner and the foe's side, never over the foe's banner.
+ * scrolls vertically; it grows upward over my side, the turn banner and the foe's side, and over the foe's banner
+ * only when the card does not fit below it (short screens, Root 2026-11-24).
  */
 function HandPanel({ detailed, handKey, children }: { detailed: boolean; handKey: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -124,6 +125,7 @@ function HandPanel({ detailed, handKey, children }: { detailed: boolean; handKey
     if (!panel || !row) return;
     if (!detailed) {
       panel.style.removeProperty('height');
+      panel.classList.remove('over-foe');
       return;
     }
     const fit = () => {
@@ -131,10 +133,18 @@ function HandPanel({ detailed, handKey, children }: { detailed: boolean; handKey
       const tallest = Math.max(0, ...cards.map((c) => c.offsetHeight));
       const cs = getComputedStyle(row);
       const want = (tallest || 60) + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      // the room above the bottom of my side, up to the foe's banner (a small gap keeps its glow in view)
-      const foe = panel.closest('.table')?.querySelector<HTMLElement>('.hero');
-      const room = foe ? panel.getBoundingClientRect().bottom - foe.getBoundingClientRect().bottom - 4 : want;
-      panel.style.height = `${Math.round(Math.min(want, room))}px`;
+      // the room above the bottom of my side, up to the foe's banner (a small gap keeps its glow in view); Root
+      // (2026-11-24): on a short screen where the tallest card does not fit there, the panel may cover the foe's
+      // banner too, up to the top bar, so the card keeps its full picture
+      const table = panel.closest('.table');
+      const bottom = panel.getBoundingClientRect().bottom;
+      const foe = table?.querySelector<HTMLElement>('.hero');
+      const bar = table?.querySelector<HTMLElement>('.topbar');
+      const room = foe ? bottom - foe.getBoundingClientRect().bottom - 4 : want;
+      const most = bar ? bottom - bar.getBoundingClientRect().bottom - 4 : room;
+      const height = want <= room ? want : Math.min(want, Math.max(room, most));
+      panel.classList.toggle('over-foe', height > room);
+      panel.style.height = `${Math.round(height)}px`;
     };
     fit();
     const ro = new ResizeObserver(fit);

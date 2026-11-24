@@ -39,3 +39,4 @@
 - 2026-11-23 — Root : la main montre d'abord les cartes jouables, puis les autres, chaque groupe dans l'ordre de pioche, sur toutes les dispositions (story 14.5).
 - 2026-11-24 — Root valide le lot 10 de `a-valider-par-root.md` : tous les choix par défaut de l'epic 14 (stories 14.1 à 14.5).
 - 2026-11-24 — Root valide le lot 11 de `a-valider-par-root.md` : les 6 choix de la story 14.6 (valeurs d'ATQ/PV de 9 à 12 px sur la table téléphone, icônes masquées sous 56 px, noms sur deux lignes, défilement vers la carte piochée).
+- 2026-11-24 — Root : sur un écran court, la vue détaillée de la main garde l'illustration entière des cartes et peut couvrir le bandeau adverse (au lieu d'une illustration raccourcie).

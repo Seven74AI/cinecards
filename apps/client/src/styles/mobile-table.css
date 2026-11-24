@@ -458,17 +458,16 @@
   font-size: 12px;
 }
 /*
- * Epic 14 retrospective, action 4: on a short screen (Safari on a 390 × 844 iPhone shows 390 × 664, less its safe
- * areas) the tallest full card (Néo) did not fit between the banners and lost its ATK / PV. The picture gets shorter
- * there (a narrower card only wraps its texts more); if a card is still too tall, the row scrolls down to it.
+ * Epic 14 retrospective, action 4, then Root (2026-11-24): on a short screen (Safari on a 390 × 844 iPhone shows
+ * 390 × 664, less its safe areas) the tallest full card (Néo) does not fit between the banners. The card keeps its full
+ * picture and the panel covers the foe's banner too (`over-foe`, set by HandPanel); a card still taller than that
+ * scrolls in the row rather than slipping under my banner.
  */
-@media (max-height: 700px) {
-  .compact .hand-panel.detailed .hand-row .card-full .card-art {
-    height: 42cqw;
-  }
-  .compact .hand-panel.detailed .hand-row {
-    overflow-y: auto;
-  }
+.compact .hand-panel.detailed .hand-row {
+  overflow-y: auto;
+}
+.compact .hand-panel.over-foe {
+  z-index: 6;
 }
 
 /*

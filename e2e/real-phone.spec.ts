@@ -5,7 +5,7 @@ import { openHand } from './hand.ts';
  * Epic 14 retrospective, action 4: the phone table on a real iPhone. A 390 × 844 iPhone shows only 390 × 664 in
  * Safari with its bars, and its notch and home indicator take the safe areas (faked as in safe-area.spec.ts: Chromium
  * reports none). At that size: no vertical scroll, both banners and the fan button whole on screen, the open hand
- * (compact and detailed) covers neither banner, and the ATK / PV numbers of the table cards stay visible.
+ * never covers my banner (the detailed view may cover the foe's, Root 2026-11-24), and the ATK / PV numbers of the table cards stay visible.
  */
 const SAFARI = { width: 390, height: 664 };
 const SA_T = 47;
@@ -99,7 +99,7 @@ for (const scene of ['pleine', 'mort']) {
 }
 
 for (const view of ['compact', 'detailed'] as const) {
-  test(`390×664 with safe areas, ${view} open hand: neither banner covered`, async ({ page }) => {
+  test(`390×664 with safe areas, ${view} open hand: my banner never covered, the foe's only by the detailed view`, async ({ page }) => {
     await open(page, 'pleine', view);
     await openHand(page);
     await expect(page.locator('.table .hand-panel .card').first()).toBeVisible();
@@ -108,7 +108,14 @@ for (const view of ['compact', 'detailed'] as const) {
     const m = await layout(page);
     expect(m.scroll).toBeLessThanOrEqual(0);
     expect(m.panel).not.toBeNull();
-    for (const b of m.banners) expect(meets(m.panel!, b), JSON.stringify({ panel: m.panel, banner: b })).toBe(false);
+    // my banner (and its fan button) is never covered; Root (2026-11-24): on this short screen the detailed view may
+    // cover the foe's banner so the tallest card keeps its full picture, the compact view never does
+    expect(meets(m.panel!, m.banners[1]!), JSON.stringify({ panel: m.panel, banner: m.banners[1] })).toBe(false);
+    if (view === 'compact') expect(meets(m.panel!, m.banners[0]!)).toBe(false);
+    else await expect(page.locator('.table .hand-panel')).toHaveClass(/over-foe/);
+    // the top bar stays reachable
+    const bar = await page.locator('.table .topbar').boundingBox();
+    expect(m.panel!.top).toBeGreaterThanOrEqual(bar!.y + bar!.height);
     // the panel itself stays clear of the notch and of the home indicator
     expect(m.panel!.top).toBeGreaterThanOrEqual(SA_T - 1);
     expect(m.panel!.bottom).toBeLessThanOrEqual(m.h - SA_B + 1);

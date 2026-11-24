@@ -38,3 +38,4 @@
 - 2026-11-23 — Root choisit la table téléphone v2, option F (`docs/design/mobile-table-v2/`) : plus de zoom, rangées terrains et sorts, main repliée derrière un bouton éventail, vue compacte ou détaillée (carte complète sans réplique, 70 % de l'écran) au choix dans « Réglages » → epic 14.
 - 2026-11-23 — Root : la main montre d'abord les cartes jouables, puis les autres, chaque groupe dans l'ordre de pioche, sur toutes les dispositions (story 14.5).
 - 2026-11-24 — Root valide le lot 10 de `a-valider-par-root.md` : tous les choix par défaut de l'epic 14 (stories 14.1 à 14.5).
+- 2026-11-24 — Root valide le lot 11 de `a-valider-par-root.md` : les 6 choix de la story 14.6 (valeurs d'ATQ/PV de 9 à 12 px sur la table téléphone, icônes masquées sous 56 px, noms sur deux lignes, défilement vers la carte piochée).

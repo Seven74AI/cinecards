@@ -206,7 +206,7 @@ action_items:
     epic: 14
     action: "scripts/capture-cards.mjs (captures depuis ?scene=pleine sans modifier devscene.ts) et mode d emploi du rendu local des planches dans docs/design/README.md"
     owner: "agent dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
   - id: "epic-14-retro-item-3-regles-de-maquette-dans-agents-md"
     epic: 14
@@ -218,6 +218,6 @@ action_items:
     epic: 14
     action: "e2e de la table téléphone à 390 × 664 (hauteur visible de Safari) avec zones de sécurité simulées ; capture iPhone demandée à Root en fin d epic téléphone"
     owner: "agent dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-14-retro-2026-11-24.md"
 last_updated: 11-24-2026 10:00
